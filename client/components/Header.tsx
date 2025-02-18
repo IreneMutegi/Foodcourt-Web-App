@@ -2,10 +2,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { FiMenu, FiX } from "react-icons/fi"; // Import icons for hamburger menu
+import LoginModal from "./LoginModal";
 import "./Header.css";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <header className="header">
@@ -21,9 +23,16 @@ const Header = () => {
         <ul className="navList">
           <li><Link href="/cart" onClick={() => setIsOpen(false)}>Cart</Link></li>
           <li><Link href="/about" onClick={() => setIsOpen(false)}>About</Link></li>
-          <li><Link href="/login" onClick={() => setIsOpen(false)}>Sign Up/Login</Link></li>
+          <li>
+            {/* Open the Login Modal */}
+            <button className="login-btn" onClick={() => setIsModalOpen(true)}>
+              Login
+            </button>
+          </li>
         </ul>
       </nav>
+       {/* Login Selection Modal */}
+       <LoginModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </header>
   );
 };
