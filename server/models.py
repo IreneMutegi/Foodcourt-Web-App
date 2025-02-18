@@ -1,7 +1,7 @@
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy import MetaData
-from flask_sqlalchemy import SQLAlchemy
 
 # Configure metadata
 metadata = MetaData(naming_convention={
@@ -11,62 +11,48 @@ metadata = MetaData(naming_convention={
 # Initialize the database
 db = SQLAlchemy(metadata=metadata)
 
-# Models
-class Client(db.Model, SerializerMixin):
-    __tablename__ = 'clients'
-
+class Admin(db.Model):
+    __tablename__ = 'admin'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    email = db.Column(db.String, nullable=False, unique=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    restaurants = db.relationship('Restaurant', backref='admin', lazy=True)
 
-    vehicles = db.relationship('Vehicle', backref='client', cascade="all, delete-orphan")
-    serialize_rules = ('-vehicles.client',)
-
-
-class Vehicle(db.Model, SerializerMixin):
-    __tablename__ = 'vehicles'
-
+class Client(db.Model):
+    __tablename__ = 'client'
     id = db.Column(db.Integer, primary_key=True)
-    make = db.Column(db.String, nullable=False)
-    model = db.Column(db.String, nullable=False)
-    year = db.Column(db.Integer, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), unique=True, nullable=False)
+    orders = db.relationship('Order', backref='client', lazy=True)
 
-    client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
-    services = db.relationship('Service', backref='vehicle', cascade="all, delete-orphan")
-    serialize_rules = ('-services.vehicle', '-client.vehicles')
-
-
-class Service(db.Model, SerializerMixin):
-    __tablename__ = 'services'
-
+class Restaurant(db.Model):
+    __tablename__ = 'restaurants'
     id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.String, nullable=False)
-    
-    vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicles.id'), nullable=False)
-    mechanic_id = db.Column(db.Integer, db.ForeignKey('mechanics.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    cuisine = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), unique=True, nullable=False)
+    admin_id = db.Column(db.Integer, db.ForeignKey('admin.id'), nullable=False)
+    menu_id = db.Column(db.Integer, db.ForeignKey('menu.id'), unique=True)
+    menu = db.relationship('Menu', backref='restaurant', uselist=False)
+    orders = db.relationship('Order', backref='restaurant', lazy=True)
 
-    serialize_rules = ('-vehicle.services', '-mechanic.services')
-
-
-
-class Mechanic(db.Model, SerializerMixin):
-    __tablename__ = 'mechanics'
-
+class Order(db.Model):
+    __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    
+    client_id = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
+    restaurant_id = db.Column(db.Integer, db.ForeignKey('restaurants.id'), nullable=False)
+    table_number = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
 
-    employee_id = db.Column(db.Integer, db.ForeignKey('employees.id'), nullable=False)
-    services = db.relationship('Service', backref='mechanic', cascade="all, delete-orphan")
-    serialize_rules = ('-employee.mechanics', '-services.mechanic')
-
-
-class Employee(db.Model, SerializerMixin):
-    __tablename__ = 'employees'
-
+class Menu(db.Model):
+    __tablename__ = 'menu'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    category = db.Column(db.String, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    cuisine = db.Column(db.String(100), nullable=False)
+    category = db.Column(db.String(100), nullable=False)
 
-    mechanics = db.relationship('Mechanic', backref='employee', cascade="all, delete-orphan")
-    serialize_rules = ('-mechanics.employee',)
+    restaurant = db.relationship('Restaurant', backref='menu', uselist=False)
