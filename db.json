@@ -1,0 +1,22 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "email": "test@example.com",
+      "password": "password123",
+      "role": "client"
+    },
+    {
+      "id": "2",
+      "email": "restaurant@example.com",
+      "password": "securePass",
+      "role": "restaurant"
+    },
+    {
+      "id": "1aee",
+      "email": "zipporah@gmail.com",
+      "password": "12345",
+      "role": "client"
+    }
+  ]
+}

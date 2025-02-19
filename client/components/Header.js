@@ -5,9 +5,9 @@ import { FiMenu, FiX } from "react-icons/fi"; // Import icons for hamburger menu
 import LoginModal from "./LoginModal";
 import "./Header.css";
 
-const Header = () => {
+const Header = ({ setIsModalOpen }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  
 
   return (
     <header className="header">
@@ -31,8 +31,6 @@ const Header = () => {
           </li>
         </ul>
       </nav>
-       {/* Login Selection Modal */}
-       <LoginModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </header>
   );
 };
