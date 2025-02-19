@@ -71,3 +71,4 @@ class Menu(db.Model):
         return f'<Menu {self.id}, {self.name}, {self.price}, Image: {self.image_url}>'
     
     
+    
