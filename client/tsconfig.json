@@ -22,6 +22,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "components/LoginModal.js", "components/Header.js", "components/Footer.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/components/LoginModal.js", "app/components/Header.js", "app/components/Footer.js", "app/page.js", "app/layout.js"],
   "exclude": ["node_modules"]
 }

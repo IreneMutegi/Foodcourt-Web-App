@@ -17,6 +17,24 @@
       "email": "zipporah@gmail.com",
       "password": "12345",
       "role": "client"
+    },
+    {
+      "id": "b418",
+      "email": "rovenel@gmail.com",
+      "password": "12345",
+      "role": "client"
+    },
+    {
+      "id": "4157",
+      "email": "tom@gmail.com",
+      "password": "12345",
+      "role": "client"
+    },
+    {
+      "id": "8b6a",
+      "email": "tim@gmail.com",
+      "password": "0987",
+      "role": "client"
     }
   ]
 }

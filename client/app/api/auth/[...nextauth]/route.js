@@ -10,23 +10,46 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const users = [
-          { id: "1", email: "user@example.com", password: "password123" }
-        ];
+        try {
+          const res = await fetch(`http://localhost:3001/users?email=${credentials.email}`);
+          const users = await res.json();
 
-        const user = users.find(
-          u => u.email === credentials.email && u.password === credentials.password
-        );
+          if (users.length === 0) {
+            throw new Error("User not found");
+          }
 
-        if (user) {
-          return { id: user.id, email: user.email };
+          const user = users[0];
+
+          if (user.password !== credentials.password) {
+            throw new Error("Invalid password");
+          }
+
+          return { id: user.id, email: user.email, role: user.role };
+        } catch (error) {
+          console.error("Auth error:", error);
+          throw new Error("Invalid email or password");
         }
-        throw new Error("Invalid email or password");
-      }
-    })
+      },
+    }),
   ],
   session: {
     strategy: "jwt",
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.role = user.role;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.user.id = token.id;
+      session.user.email = token.email;
+      session.user.role = token.role;
+      return session;
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# Ignore all files
+*
+
+# Allow loginModal.js to be committed
+!/components/LoginModal.js
+!/components/LoginModal.css
+!/components/Header.js
+!/app/Layout.tsx
