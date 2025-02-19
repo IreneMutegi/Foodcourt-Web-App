@@ -39,10 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-# Ignore all files
+# Ignore all files except /client/app
+*
 
-
-# Allow specific folders and files
-!/components/*
-
-!/app/
+!client/app/
