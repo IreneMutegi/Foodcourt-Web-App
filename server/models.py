@@ -69,3 +69,5 @@ class Menu(db.Model):
 
     def __repr__(self):
         return f'<Menu {self.id}, {self.name}, {self.price}, Image: {self.image_url}>'
+    
+    
