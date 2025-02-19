@@ -6,8 +6,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <Header />
-        {children}
-        <Footer /> {/* Footer added here */}
+        <main className="main-content">{children}</main> {/* This pushes the footer down */}
+        <Footer />
       </body>
     </html>
   );
