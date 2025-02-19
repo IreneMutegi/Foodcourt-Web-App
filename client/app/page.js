@@ -1,8 +1,11 @@
-import img1 from "../public/images/artcaffe.jpeg";
-import img2 from "../public/images/chicken.jpeg";
-import img3 from "../public/images/pizza.jpeg";
+"use client";
+import restaurants from "../public/data";
+import Menu from "../components/Menu";
+import {useState} from "react"
 import "./page.css";
 export default function Home() {
+
+const [selectedRestaurant, setSelectedRestaurant] = useState(null)
   return (
     <>
       <section>
@@ -13,43 +16,21 @@ export default function Home() {
           </form>
         </div>
         <div className="restaurant-card-container">
-          <div className="restaurant-card">
-            <div className="image-container">
-                <img src={img3}/>
+          {restaurants.map((restaurant, index) => (
+            <div className="restaurant-card" key={index} onClick={()=>setSelectedRestaurant(restaurant)}>
+              <div className="image-container">
+                <img src={restaurant.image} alt={restaurant.name} />
+              </div>
+              <p>{restaurant.name}</p>
             </div>
-            <p>Pizza Inn</p>
-          </div>
-          <div className="restaurant-card">
-            <div className="image-container">
-                <img src={img3}/>
-            </div>
-            <p>Pizza Inn</p>
-          </div>
-          <div className="restaurant-card">
-            <div className="image-container">
-                <img src={img3}/>
-            </div>
-            <p>Pizza Inn</p>
-          </div>
-          <div className="restaurant-card">
-            <div className="image-container">
-                <img src={img3}/>
-            </div>
-            <p>Pizza Inn</p>
-          </div>
-          <div className="restaurant-card">
-            <div className="image-container">
-                <img src={img3}/>
-            </div>
-            <p>Pizza Inn</p>
-          </div>
-          <div className="restaurant-card">
-            <div className="image-container">
-                <img src={img3}/>
-            </div>
-            <p>Pizza Inn</p>
-          </div>
+          ))}
         </div>
+        {selectedRestaurant &&(
+            <Menu 
+            restaurant = {selectedRestaurant}
+            onClose = {()=> setSelectedRestaurant(null)}
+            />
+        )}
       </section>
     </>
   );
