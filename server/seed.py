@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
-from models import db, Admin, Client, Restaurant, Menu, orders_association
+from models import db, Admin, Client, Restaurant, Menu, Order
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://cullen:kaberere@localhost/malldb'
@@ -59,22 +59,17 @@ def seed_data():
             print("Menus seeded.")
 
             # Seeding Orders (Prevent Duplicates)
-            order_exists = db.session.execute(
-                orders_association.select().where(
-                    (orders_association.c.client_id == client1.id) & 
-                    (orders_association.c.restaurant_id == restaurant1.id)
-                )
-            ).fetchone()
+            order1 = Order.query.filter_by(client_id=client1.id, restaurant_id=restaurant1.id, table_number=5).first()
+            order2 = Order.query.filter_by(client_id=client2.id, restaurant_id=restaurant2.id, table_number=3).first()
 
-            if not order_exists:
-                db.session.execute(orders_association.insert().values(client_id=client1.id, restaurant_id=restaurant1.id, table_number=5, quantity=2))
-                db.session.execute(orders_association.insert().values(client_id=client2.id, restaurant_id=restaurant2.id, table_number=3, quantity=1))
-                db.session.commit()
-                print("Orders seeded.")
-            else:
-                print("Orders already exist. Skipping order seeding.")
-
-            print("Seeding completed successfully.")
+            if not order1:
+                order1 = Order(client_id=client1.id, restaurant_id=restaurant1.id, table_number=5, quantity=2)
+                db.session.add(order1)
+            if not order2:
+               order2 = Order(client_id=client2.id, restaurant_id=restaurant2.id, table_number=3, quantity=1)
+               db.session.add(order2)
+            print("Orders seeded.")
+            
         
         except IntegrityError as e:
             db.session.rollback()
