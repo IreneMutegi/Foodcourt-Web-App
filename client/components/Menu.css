@@ -21,10 +21,10 @@
 .menu-container button#close-btn {
   position: absolute;
   right: 20px;
-  cursor:pointer;
+  cursor: pointer;
 }
-.menu-container button#order-btn{
-    cursor: pointer;
+.menu-container button#order-btn {
+  cursor: pointer;
 }
 .menu-container table {
   display: flex;
@@ -39,4 +39,27 @@
 .menu-container td {
   padding: 8px;
   text-align: left;
+}
+
+.order-form-overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  height: 100%;
+  width: 100%;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.order-form-container {
+  background: red;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  width: 70%;
+  height: 70%;
+  text-align: center;
 }
