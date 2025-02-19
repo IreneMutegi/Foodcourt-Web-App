@@ -1,11 +1,10 @@
 "use client";
 import restaurants from "../public/data";
-import Menu from "../components/Menu";
-import {useState} from "react"
+import Menu from "./components/Menu";
+import { useState } from "react";
 import "./page.css";
 export default function Home() {
-
-const [selectedRestaurant, setSelectedRestaurant] = useState(null)
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   return (
     <>
       <section>
@@ -17,7 +16,11 @@ const [selectedRestaurant, setSelectedRestaurant] = useState(null)
         </div>
         <div className="restaurant-card-container">
           {restaurants.map((restaurant, index) => (
-            <div className="restaurant-card" key={index} onClick={()=>setSelectedRestaurant(restaurant)}>
+            <div
+              className="restaurant-card"
+              key={index}
+              onClick={() => setSelectedRestaurant(restaurant)}
+            >
               <div className="image-container">
                 <img src={restaurant.image} alt={restaurant.name} />
               </div>
@@ -25,11 +28,11 @@ const [selectedRestaurant, setSelectedRestaurant] = useState(null)
             </div>
           ))}
         </div>
-        {selectedRestaurant &&(
-            <Menu 
-            restaurant = {selectedRestaurant}
-            onClose = {()=> setSelectedRestaurant(null)}
-            />
+        {selectedRestaurant && (
+          <Menu
+            restaurant={selectedRestaurant}
+            onClose={() => setSelectedRestaurant(null)}
+          />
         )}
       </section>
     </>
