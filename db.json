@@ -35,6 +35,24 @@
       "email": "tim@gmail.com",
       "password": "0987",
       "role": "client"
+    },
+    {
+      "id": "3f39",
+      "email": "guy@gmail.com",
+      "password": "guy",
+      "role": "client"
+    },
+    {
+      "id": "9e4a",
+      "email": "zip@gmail.com",
+      "password": "zip",
+      "role": "client"
+    },
+    {
+      "id": "121c",
+      "email": "morvin@gmail.com",
+      "password": "morvin",
+      "role": "client"
     }
   ]
 }
