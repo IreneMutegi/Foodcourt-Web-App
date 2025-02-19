@@ -1,0 +1,45 @@
+section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 70px 0 100px 0;
+  width: 100%;
+}
+.search-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+  height: 100px;
+  margin-bottom: 50px;
+}
+.search-form-container h3 {
+  color: #4db6ac;
+}
+.search-form-container form {
+  width: 50%;
+}
+.search-form-container input {
+  width: 100%;
+  height: 15px;
+  border: 2px solid #222;
+  padding: 5px;
+}
+.restaurant-card-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  width: 80%;
+  margin-bottom: 50px;
+}
+.restaurant-card-container .restaurant-card {
+  width: 30%;
+  height: 150px;
+  border: 1px solid #222;
+  cursor: pointer;
+}

@@ -1,5 +1,8 @@
 /* Footer Styling */
 .footer {
+    position: fixed;
+    bottom:0;
+    width: 100%;
     background: #222;
     color: white;
     padding: 20px 0;

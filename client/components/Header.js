@@ -19,9 +19,21 @@ const Header = () => {
       {/* Navigation Links */}
       <nav className={isOpen ? "nav open" : "nav"}>
         <ul className="navList">
-          <li><Link href="/cart" onClick={() => setIsOpen(false)}>Cart</Link></li>
-          <li><Link href="/about" onClick={() => setIsOpen(false)}>About</Link></li>
-          <li><Link href="/login" onClick={() => setIsOpen(false)}>Sign Up/Login</Link></li>
+          <li>
+            <Link href="/cart" onClick={() => setIsOpen(false)}>
+              Cart
+            </Link>
+          </li>
+          <li>
+            <Link href="/about" onClick={() => setIsOpen(false)}>
+              About
+            </Link>
+          </li>
+          <li>
+            <Link href="/login" onClick={() => setIsOpen(false)}>
+              Sign Up/Login
+            </Link>
+          </li>
         </ul>
       </nav>
     </header>
