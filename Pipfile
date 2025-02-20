@@ -1,18 +1,18 @@
-
+[[source]]
 url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
 [packages]
 flask = "*"
-sqlalchemy-serializer = "*"
+flask-cors = "*"
 sqlalchemy = "*"
 flask-migrate = "*"
 flask-sqlalchemy = "*"
 flask-restful = "*"
-flask-cors = "*"
-
+psycopg2-binary = "*"
 [dev-packages]
 
 [requires]
 python_version = "3.10"
+python_full_version = "3.10.12"
