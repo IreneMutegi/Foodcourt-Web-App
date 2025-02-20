@@ -1,14 +1,13 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_restful import Api, Resource
-from models import db, Client, Restaurant, Menu, orders_association  
 from flask_migrate import Migrate
+from models import db, Client, Admin, Restaurant, Menu, orders_association  
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://irene:password@localhost:5432/malldb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# db = SQLAlchemy()
 db.init_app(app)
 api = Api(app)
 migrate = Migrate(app, db)
@@ -16,115 +15,166 @@ CORS(app)
 
 class Welcome(Resource):
     def get(self):
-        return {
-            "message": "Welcome to NEXTGEN Food App!",
-        }
+        return {"message": "Welcome to NEXTGEN Food App!"}
 
 api.add_resource(Welcome, '/')
 
+from flask_restful import Resource
+from flask import request
+from models import Client, Restaurant, Admin
 
-class RegisterClient(Resource):
-    def post(self):
+# UserLogin class handles user login (POST) and retrieving user details (GET) based on user type (client, restaurant, admin).
+class UserLogin(Resource):
+    
+    def post(self, table):
         data = request.get_json()
+
+        email = data.get("email")
+        password = data.get("password")
+
+        if not email or not password:
+            return {"message": "Email and password are required"}, 400
+
+        return self.authenticate_user(table, email, password)
+
+    def authenticate_user(self, table, email, password):
         
-        client = Client(
-            name=data['name'],
-            email=data['email'],
-            password=data['password']
-        )
-        db.session.add(client)
+        if table == "client":
+            user = Client.query.filter_by(email=email).first()
+        elif table == "restaurant":
+            user = Restaurant.query.filter_by(email=email).first()
+        elif table == "admin":
+            user = Admin.query.filter_by(email=email).first()
+        else:
+            return {"message": "Invalid user type"}, 400
+
+        if not user or user.password != password:
+            return {"message": "Invalid credentials"}, 401
+
+        return {
+            "message": f"{table.capitalize()} login successful!",
+            "user": {"id": user.id, "role": table}
+        }, 200
+
+    def get(self, table):
+       
+        email = request.args.get("email")
+
+        if not email:
+            return {"message": "Email is required"}, 400
+
+        if table == "client":
+            user = Client.query.filter_by(email=email).first()
+        elif table == "restaurant":
+            user = Restaurant.query.filter_by(email=email).first()
+        elif table == "admin":
+            user = Admin.query.filter_by(email=email).first()
+        else:
+            return {"message": "Invalid user type"}, 400
+
+        if not user:
+            return {"message": "User not found"}, 404
+
+        return {
+            "message": f"{table.capitalize()} user found!",
+            "user": {"id": user.id, "email": user.email, "role": table}
+        }, 200
+api.add_resource(UserLogin, "/<string:table>/login")
+
+# UserSignUp class handles user registration (POST) for different user types (client, restaurant, admin).
+
+class UserSignUp(Resource):
+    def post(self, table):
+        data = request.get_json()
+        name = data.get("name")
+        email = data.get("email")
+        password = data.get("password")  
+
+        if not name or not email or not password:
+            return {"message": "Name, email, and password are required"}, 400
+
+        if table == "client":
+            if Client.query.filter_by(email=email).first():
+                return {"message": "Email already exists!"}, 400
+            user = Client(name=name, email=email, password=password)
+        elif table == "restaurant":
+            admin_id = data.get("admin_id")
+            if Restaurant.query.filter_by(email=email).first():
+                return {"message": "Email already exists!"}, 400
+            user = Restaurant(name=name, email=email, password=password, admin_id=admin_id)
+        elif table == "admin":
+            if Admin.query.filter_by(email=email).first():
+                return {"message": "Email already exists!"}, 400
+            user = Admin(name=name, email=email, password=password)
+        else:
+            return {"message": "Invalid user type"}, 400
+
+        db.session.add(user)
         db.session.commit()
 
-        return {"message": "Client registered successfully"}, 201
-
-api.add_resource(RegisterClient, '/register/client')
-
-# Restaurant Registration
-class RegisterRestaurant(Resource):
-    def post(self):
-        data = request.get_json()
-
-        restaurant = Restaurant(
-            name=data['name'],
-            email=data['email'],
-            password=data['password'],
-            cuisine=data['cuisine'],
-            admin_id=data['admin_id']
-        )
-        db.session.add(restaurant)
-        db.session.commit()
-
-        return {"message": "Restaurant registered successfully"}, 201
-
-api.add_resource(RegisterRestaurant, '/register/restaurant')
-
-# Client Login
-class LoginClient(Resource):
-    def post(self):
-        data = request.get_json()
-
-        email = data.get('email')
-        password = data.get('password')
-
-        if not email or not password:
-            return {"error": "Email and password are required"}, 400
-
-        # Get the client by email
-        client = Client.query.filter_by(email=email).first()
-
-        if client and client.password == password:
-            client_data = {
-                "id": client.id,
-                "email": client.email,
-                "name": client.name,
-            }
-            return {"message": "Client login successful", "client": client_data}, 200
-
-        return {"error": "Invalid email or password"}, 401
-
-api.add_resource(LoginClient, '/login/client')
+        return {"message": f"{table.capitalize()} signed up successfully!", "user": {"id": user.id, "role": table}}, 201
 
 
-# Restaurant Login
-class LoginRestaurant(Resource):
-    def post(self):
-        data = request.get_json()
 
-        email = data.get('email')
-        password = data.get('password')
-
-        if not email or not password:
-            return {"error": "Email and password are required"}, 400
-
-        # Get the restaurant by email
-        restaurant = Restaurant.query.filter_by(email=email).first()
-
-        if restaurant and restaurant.password == password:
-            restaurant_data = {
-                "id": restaurant.id,
-                "email": restaurant.email,
-                "name": restaurant.name,
-            }
-            return {"message": "Restaurant login successful", "restaurant": restaurant_data}, 200
-
-        return {"error": "Invalid email or password"}, 401
-
-api.add_resource(LoginRestaurant, '/login/restaurant')
-
+api.add_resource(UserSignUp, "/<string:table>/signup")
 
 class RestaurantList(Resource):
     def get(self):
-        # Fetch all restaurants
         restaurants = Restaurant.query.all()
         if not restaurants:
             return {"error": "No restaurants found"}, 404
-        
-        # Prepare a list of restaurant details to return
         restaurant_list = [
             {"id": r.id, "name": r.name, "cuisine": r.cuisine} for r in restaurants
         ]
         return {"restaurants": restaurant_list}, 200
+    
 api.add_resource(RestaurantList, '/restaurants')
+# Restaurant Registration
+class RegisterRestaurant(Resource):
+    def post(self):
+        data = request.get_json()
+        name = data.get('name')
+        email = data.get('email')
+        password = data.get('password')
+        cuisine = data.get('cuisine')
+        admin_id = admin_id = data.get('admin_id') 
+        
+        restaurant = Restaurant(name=name, email=email, password=password, cuisine=cuisine, admin_id=admin_id)
+        db.session.add(restaurant)
+        db.session.commit()
+        return {"message": "Restaurant registered successfully"}, 201
+
+api.add_resource(RegisterRestaurant, '/register/restaurant')
+
+
+class RestaurantUpdate(Resource):
+    def patch(self):
+        data = request.get_json()
+
+        restaurant_id = data.get('id')
+        name = data.get('name')
+        cuisine = data.get('cuisine')
+
+        if not restaurant_id:
+            return {"error": "Restaurant ID is required for update"}, 400
+
+        restaurant = Restaurant.query.get(restaurant_id)
+        if not restaurant:
+            return {"error": "Restaurant not found"}, 404
+
+        if name:
+            restaurant.name = name
+        if cuisine:
+            restaurant.cuisine = cuisine
+
+        db.session.commit()
+
+        return {"message": "Restaurant updated successfully"}, 200
+
+api.add_resource(RestaurantUpdate, '/restaurants/update')
+
+
+
 
 class RestaurantByName(Resource):
     def get(self, name):
@@ -228,14 +278,14 @@ class ClientOrdersPost(Resource):
 
         for meal_entry in meals:
             meal_id = meal_entry.get("meal_id")
-            quantity = meal_entry.get("quantity", 1)  # Default quantity to 1
+            quantity = meal_entry.get("quantity", 1)  
 
             meal = Menu.query.get(meal_id)
             if meal:
                 stmt = orders_association.insert().values(
                     client_id=client_id,
                     restaurant_id=restaurant_id,
-                    meal_id=meal_id,  # Now inserting meal_id
+                    meal_id=meal_id,  
                     table_number=table_number,
                     quantity=quantity
                 )
@@ -341,5 +391,5 @@ api.add_resource(RestaurantOrdersPut, '/orders/restaurant/<int:client_id>/<int:r
 
 
 
-if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+if __name__ == "__main__":
+    app.run(debug=True, port=5555)
