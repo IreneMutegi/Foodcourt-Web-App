@@ -1,6 +1,7 @@
 "use client";
 import { signIn, signOut, useSession } from "next-auth/react";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import "./LoginModal.css";
 
 const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
@@ -10,56 +11,64 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const router = useRouter();
   
-
   React.useEffect(() => {
     if (isOpen) {
-      if (isAdminLogin) {
-        setSelectedRole("admin"); // Directly set to "admin" for admin login
-      } else {
-        setSelectedRole(null); // Ensure the modal starts from role selection for other users
-      }
+      setSelectedRole(isAdminLogin ? "admin" : null);
     }
   }, [isOpen, isAdminLogin]);
-  
 
   if (!isOpen) return null;
 
+  // Handles both Sign-In & Sign-Up
   const handleAuth = async (e) => {
     e.preventDefault();
     setError("");
     setSuccessMessage("");
-  
-    if (hasAccount) {
-      // Fetch user details from the backend to verify role before signing in
-      try {
-        const response = await fetch(`http://localhost:3001/users?email=${formData.email}`);
-        const users = await response.json();
-  
-        if (users.length === 0) {
+
+    const tables = ["admin", "client", "restaurants"];
+    let user = null;
+    let userRole = null;
+
+    try {
+      // For Sign-In
+      if (hasAccount) {
+        // Check each table for the user
+        for (const table of tables) {
+          const response = await fetch(`http://localhost:3001/${table}?email=${formData.email}`);
+          const users = await response.json();
+
+          if (users.length > 0) {
+            user = users[0];
+            userRole = table;
+            break;
+          }
+        }
+
+        if (!user) {
           setError("User not found. Please sign up.");
           return;
         }
-  
-        const user = users[0]; // Assuming unique emails (adjust if necessary)
-  
+
         if (user.password !== formData.password) {
           setError("Invalid email or password.");
           return;
         }
-  
-        if (user.role !== selectedRole) {
-          setError(`You are registered as a ${user.role}.`);
+
+        if (userRole !== selectedRole) {
+          setError(`You are registered as a ${userRole}.`);
           return;
         }
-  
-        // Proceed with NextAuth sign-in if role matches
+
+        // Sign in with NextAuth
         const result = await signIn("credentials", {
           email: formData.email,
           password: formData.password,
+          role: userRole,
           redirect: false,
         });
-  
+
         if (result.error) {
           setError("Invalid email or password.");
         } else {
@@ -67,48 +76,61 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
           setTimeout(() => {
             setSuccessMessage("");
             onClose();
-          }, 2000);
+            redirectUser(userRole);
+          },);
         }
-      } catch (error) {
-        setError("Something went wrong. Please try again.");
-      }
-    } else {
-      // Handle Sign Up
-      try {
-        const checkUser = await fetch(`http://localhost:3001/users?email=${formData.email}`);
-        const existingUsers = await checkUser.json();
-  
-        if (existingUsers.length > 0) {
-          setError("Email is already registered.");
-          return;
+        
+      } 
+      // For Sign-Up
+      else {
+        // Check if the email already exists in any table
+        for (const table of tables) {
+          const response = await fetch(`http://localhost:3001/${table}?email=${formData.email}`);
+          const existingUsers = await response.json();
+          if (existingUsers.length > 0) {
+            setError("Email is already registered.");
+            return;
+          }
         }
-  
+
+        // Add new user to the selected role table
         const newUser = {
           email: formData.email,
-          password: formData.password, // This should be hashed in the backend
+          password: formData.password, // Should be hashed in the backend
           role: selectedRole,
         };
-  
-        const response = await fetch("http://localhost:3001/users", {
+
+        const response = await fetch(`http://localhost:3001/${selectedRole}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newUser),
         });
-  
+
         if (response.ok) {
           setSuccessMessage("You've successfully signed up!");
           setTimeout(() => {
             setSuccessMessage("");
             setHasAccount(true);
-          }, 2000);
+          }, 1000);
         } else {
           setError("Signup failed. Try again.");
         }
-      } catch (error) {
-        setError("Something went wrong. Please try again.");
       }
+    } catch (error) {
+      setError("Something went wrong. Please try again.");
     }
-  };  
+  };
+
+  // Redirect user based on role
+  const redirectUser = (role) => {
+    if (role === "restaurants") {
+      router.push("/restaurant");
+    } else if (role === "client") {
+      router.push("/home");
+    } else if (role === "admin") {
+      router.push("/admin");
+    }
+  };
 
   return (
     <>
@@ -126,7 +148,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
                 <button className="client-btn" onClick={() => setSelectedRole("client")}>
                   Client
                 </button>
-                <button className="restaurant-btn" onClick={() => setSelectedRole("restaurant")}>
+                <button className="restaurant-btn" onClick={() => setSelectedRole("restaurants")}>
                   Restaurant
                 </button>
               </div>

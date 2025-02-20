@@ -11,20 +11,31 @@ export const authOptions = {
       },
       async authorize(credentials) {
         try {
-          const res = await fetch(`http://localhost:3001/users?email=${credentials.email}`);
-          const users = await res.json();
+          const tables = ["admin", "client", "restaurants"];
+          let user = null;
+          let userRole = null;
 
-          if (users.length === 0) {
-            throw new Error("User not found");
+          // Loop through each table to find the user
+          for (const table of tables) {
+            const res = await fetch(`http://localhost:3001/${table}?email=${credentials.email}`);
+            const users = await res.json();
+
+            if (users.length > 0) {
+              user = users[0]; // Assuming unique emails
+              userRole = table;
+              break;
+            }
           }
 
-          const user = users[0];
+          if (!user) {
+            throw new Error("User not found");
+          }
 
           if (user.password !== credentials.password) {
             throw new Error("Invalid password");
           }
 
-          return { id: user.id, email: user.email, role: user.role };
+          return { id: user.id, email: user.email, role: userRole };
         } catch (error) {
           console.error("Auth error:", error);
           throw new Error("Invalid email or password");
