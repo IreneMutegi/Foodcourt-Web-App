@@ -1,10 +1,16 @@
 "use client";
 import restaurants from "../public/data";
 import Menu from "./components/Menu";
+import Cart from "./cart/page";
 import { useState } from "react";
 import "./page.css";
 export default function Home() {
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [cart, setCart] = useState([]);
+
+  const addToCart = (order) => {
+    setCart((prevCart) => [...prevCart, order]);
+  };
   return (
     <>
       <section>
@@ -32,8 +38,10 @@ export default function Home() {
           <Menu
             restaurant={selectedRestaurant}
             onClose={() => setSelectedRestaurant(null)}
+            addToCart={addToCart}
           />
         )}
+        <Cart cart={cart} setCart={setCart} />
       </section>
     </>
   );

@@ -2,9 +2,11 @@
 *
 
 !app/page.css
+!app/cart/page.js
+!app/cart/page.css
 !app/globals.css
 !app/page.js
 !public/images
 !public/data.js
-!components/Menu.js
-!components/Menu.css
+!app/components/Menu.js
+!app/components/Menu.css

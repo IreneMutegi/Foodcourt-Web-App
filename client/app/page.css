@@ -59,3 +59,58 @@ section {
   height: 100%;
   object-fit: contain;
 }
+/* 📺 Extra Large Screens (Above 1200px) */
+@media screen and (min-width: 1201px) {
+}
+
+/* 🖥️ Large Desktops (1025px - 1200px) */
+@media screen and (min-width: 1025px) and (max-width: 1200px) {
+}
+
+/* 💻 Laptops & Small Desktops (769px - 1024px) */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+}
+
+/* 📲 Small Tablets (481px - 768px) */
+@media screen and (min-width: 481px) and (max-width: 768px) {
+  .restaurant-card-container {
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 70px;
+  }
+  .restaurant-card-container .restaurant-card {
+    width: 50%;
+  }
+  .menu-container {
+    width: 100%;
+  }
+  .order-form-container {
+    width: 80%;
+    height: 70%;
+  }
+  .order-form-container .form-buttons {
+    margin-top: 40px;
+  }
+}
+
+/* 📱 Mobile Devices (up to 480px) */
+@media screen and (max-width: 480px) {
+  .restaurant-card-container {
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 100px;
+  }
+  .restaurant-card-container .restaurant-card {
+    width: 50%;
+  }
+  .menu-container {
+    width: 100%;
+  }
+  .order-form-container {
+    width: 80%;
+    height: 70%;
+  }
+  .order-form-container .form-buttons {
+    margin-top: 40px;
+  }
+}
