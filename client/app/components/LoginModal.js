@@ -10,6 +10,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  
 
   React.useEffect(() => {
     if (isOpen) {
