@@ -6,14 +6,15 @@ metadata = MetaData(naming_convention={
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
 })
 
+
 db = SQLAlchemy(metadata=metadata)
 
 class Admin(db.Model):  
     _tablename_ = 'admin'
     id = Column(Integer, primary_key=True)
-    name = Column(String(100), nullable=False)
-    email = Column(String(100), unique=True, nullable=False)
-    password = Column(String(100), nullable=False)
+    name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
     restaurants = db.relationship('Restaurant', back_populates='admin')
 
     def _repr_(self):
@@ -22,9 +23,9 @@ class Admin(db.Model):
 class Client(db.Model):  
     _tablename_ = 'clients'
     id = Column(Integer, primary_key=True)
-    name = Column(String(100), nullable=False)
-    email = Column(String(100), unique=True, nullable=False)
-    password = Column(String(100), unique=True, nullable=False)
+    name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    password = Column(String, unique=True, nullable=False)
     orders = db.relationship('Order', back_populates='client')
 
     def _repr_(self):
@@ -33,10 +34,10 @@ class Client(db.Model):
 class Restaurant(db.Model):  
     _tablename_ = 'restaurants'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    cuisine = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(100), unique=True, nullable=False)
+    name = db.Column(db.String, nullable=False)
+    cuisine = db.Column(db.String, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
+    password = db.Column(db.String, unique=True, nullable=False)
     admin_id = db.Column(db.Integer, db.ForeignKey('admin.id'), nullable=False)
     image_url = db.Column(db.String, nullable=True)
     menu_id = db.Column(db.Integer, db.ForeignKey('menu.id'), nullable=True) 
@@ -50,10 +51,10 @@ class Restaurant(db.Model):
 class Menu(db.Model):  
     _tablename_ = 'menu'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String, nullable=False)
     price = db.Column(db.Integer, nullable=False)
     image_url = db.Column(db.String, nullable=True)
-    category = db.Column(db.String(100), nullable=False)
+    category = db.Column(db.String, nullable=False)
     
     restaurant = db.relationship('Restaurant', back_populates='menu', uselist=False)  
 

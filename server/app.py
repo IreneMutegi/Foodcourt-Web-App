@@ -1,7 +1,7 @@
 from flask import Flask, request
-# from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 from flask_restful import Api, Resource
-from models import db, Client, Restaurant, Menu,orders_association  
+from models import db, Client, Restaurant, Menu, orders_association  
 from flask_migrate import Migrate
 
 app = Flask(__name__)
@@ -12,6 +12,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 api = Api(app)
 migrate = Migrate(app, db)
+CORS(app)
 
 class Welcome(Resource):
     def get(self):
@@ -22,51 +23,64 @@ class Welcome(Resource):
 api.add_resource(Welcome, '/')
 
 
-# Client Registration
 class RegisterClient(Resource):
     def post(self):
         data = request.get_json()
-        name = data.get('name')
-        email = data.get('email')
-        password = data.get('password')
         
-        client = Client(name=name, email=email, password=password)
+        client = Client(
+            name=data['name'],
+            email=data['email'],
+            password=data['password']
+        )
         db.session.add(client)
         db.session.commit()
+
         return {"message": "Client registered successfully"}, 201
 
 api.add_resource(RegisterClient, '/register/client')
-
 
 # Restaurant Registration
 class RegisterRestaurant(Resource):
     def post(self):
         data = request.get_json()
-        name = data.get('name')
-        email = data.get('email')
-        password = data.get('password')
-        cuisine = data.get('cuisine')
-        admin_id = admin_id = data.get('admin_id') 
-        
-        restaurant = Restaurant(name=name, email=email, password=password, cuisine=cuisine, admin_id=admin_id)
+
+        restaurant = Restaurant(
+            name=data['name'],
+            email=data['email'],
+            password=data['password'],
+            cuisine=data['cuisine'],
+            admin_id=data['admin_id']
+        )
         db.session.add(restaurant)
         db.session.commit()
+
         return {"message": "Restaurant registered successfully"}, 201
 
 api.add_resource(RegisterRestaurant, '/register/restaurant')
-
 
 # Client Login
 class LoginClient(Resource):
     def post(self):
         data = request.get_json()
+
         email = data.get('email')
         password = data.get('password')
-        
+
+        if not email or not password:
+            return {"error": "Email and password are required"}, 400
+
+        # Get the client by email
         client = Client.query.filter_by(email=email).first()
+
         if client and client.password == password:
-            return {"message": "Client login successful", "user_id": client.id}, 200
-        return {"error": "Invalid email or password for Client"}, 401
+            client_data = {
+                "id": client.id,
+                "email": client.email,
+                "name": client.name,
+            }
+            return {"message": "Client login successful", "client": client_data}, 200
+
+        return {"error": "Invalid email or password"}, 401
 
 api.add_resource(LoginClient, '/login/client')
 
@@ -75,15 +89,29 @@ api.add_resource(LoginClient, '/login/client')
 class LoginRestaurant(Resource):
     def post(self):
         data = request.get_json()
+
         email = data.get('email')
         password = data.get('password')
-        
+
+        if not email or not password:
+            return {"error": "Email and password are required"}, 400
+
+        # Get the restaurant by email
         restaurant = Restaurant.query.filter_by(email=email).first()
+
         if restaurant and restaurant.password == password:
-            return {"message": "Restaurant login successful", "user_id": restaurant.id}, 200
-        return {"error": "Invalid email or password for Restaurant"}, 401
+            restaurant_data = {
+                "id": restaurant.id,
+                "email": restaurant.email,
+                "name": restaurant.name,
+            }
+            return {"message": "Restaurant login successful", "restaurant": restaurant_data}, 200
+
+        return {"error": "Invalid email or password"}, 401
 
 api.add_resource(LoginRestaurant, '/login/restaurant')
+
+
 class RestaurantList(Resource):
     def get(self):
         # Fetch all restaurants
