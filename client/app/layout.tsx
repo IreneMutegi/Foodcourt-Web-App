@@ -11,7 +11,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Header />
-        {children}
+
+        <main className="main-content">{children}</main> {/* This pushes the footer down */}
+
         <Footer />
       </body>
     </html>
