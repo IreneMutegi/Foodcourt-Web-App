@@ -1,8 +1,8 @@
-"""Initial migration
+"""initial commit
 
-Revision ID: c20c9d4239fd
+Revision ID: dd54687505fc
 Revises: 
-Create Date: 2025-02-18 19:16:40.167171
+Create Date: 2025-02-20 16:53:29.997183
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c20c9d4239fd'
+revision = 'dd54687505fc'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -32,14 +32,13 @@ def upgrade():
     sa.Column('email', sa.String(length=100), nullable=False),
     sa.Column('password', sa.String(length=100), nullable=False),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email'),
-    sa.UniqueConstraint('password')
+    sa.UniqueConstraint('email')
     )
     op.create_table('menu',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('price', sa.Integer(), nullable=False),
-    sa.Column('cuisine', sa.String(length=100), nullable=False),
+    sa.Column('image_url', sa.String(), nullable=True),
     sa.Column('category', sa.String(length=100), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
@@ -50,22 +49,23 @@ def upgrade():
     sa.Column('email', sa.String(length=100), nullable=False),
     sa.Column('password', sa.String(length=100), nullable=False),
     sa.Column('admin_id', sa.Integer(), nullable=False),
+    sa.Column('image_url', sa.String(), nullable=True),
     sa.Column('menu_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['admin_id'], ['admin.id'], name=op.f('fk_restaurants_admin_id_admin')),
     sa.ForeignKeyConstraint(['menu_id'], ['menu.id'], name=op.f('fk_restaurants_menu_id_menu')),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email'),
-    sa.UniqueConstraint('menu_id'),
-    sa.UniqueConstraint('password')
+    sa.UniqueConstraint('email')
     )
     op.create_table('orders',
     sa.Column('client_id', sa.Integer(), nullable=False),
     sa.Column('restaurant_id', sa.Integer(), nullable=False),
+    sa.Column('meal_id', sa.Integer(), nullable=False),
     sa.Column('table_number', sa.Integer(), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['client_id'], ['client.id'], name=op.f('fk_orders_client_id_client')),
+    sa.ForeignKeyConstraint(['meal_id'], ['menu.id'], name=op.f('fk_orders_meal_id_menu')),
     sa.ForeignKeyConstraint(['restaurant_id'], ['restaurants.id'], name=op.f('fk_orders_restaurant_id_restaurants')),
-    sa.PrimaryKeyConstraint('client_id', 'restaurant_id')
+    sa.PrimaryKeyConstraint('client_id', 'restaurant_id', 'meal_id')
     )
     # ### end Alembic commands ###
 

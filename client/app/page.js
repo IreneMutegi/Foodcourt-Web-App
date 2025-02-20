@@ -1,3 +1,4 @@
+
 "use client";
 import restaurants from "../public/data";
 import Menu from "./components/Menu";
