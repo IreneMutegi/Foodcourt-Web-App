@@ -8,64 +8,69 @@ metadata = MetaData(naming_convention={
 
 db = SQLAlchemy(metadata=metadata)
 
-orders_association = Table(
-    'orders', 
-    db.Model.metadata,  
-    Column('client_id', Integer, ForeignKey('client.id'), primary_key=True),
-    Column('restaurant_id', Integer, ForeignKey('restaurants.id'), primary_key=True),
-    Column('table_number', Integer, nullable=False),
-    Column('quantity', Integer, nullable=False)
-)
-
 class Admin(db.Model):  
-    __tablename__ = 'admin'
+    _tablename_ = 'admin'
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     email = Column(String(100), unique=True, nullable=False)
     password = Column(String(100), nullable=False)
     restaurants = db.relationship('Restaurant', back_populates='admin')
 
-    def __repr__(self):
+    def _repr_(self):
         return f'<Admin {self.id}, {self.name}, {self.email}>'
 
 class Client(db.Model):  
-    __tablename__ = 'client'
+    _tablename_ = 'clients'
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     email = Column(String(100), unique=True, nullable=False)
     password = Column(String(100), unique=True, nullable=False)
-    restaurants = db.relationship('Restaurant', secondary=orders_association, back_populates='clients')
+    orders = db.relationship('Order', back_populates='client')
 
-    def __repr__(self):
+    def _repr_(self):
         return f'<Client {self.id}, {self.name}, {self.email}>'
 
 class Restaurant(db.Model):  
-    __tablename__ = 'restaurants'
+    _tablename_ = 'restaurants'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     cuisine = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), unique=True, nullable=False)
     admin_id = db.Column(db.Integer, db.ForeignKey('admin.id'), nullable=False)
-    menu_id = db.Column(db.Integer, db.ForeignKey('menu.id'), unique=True)
-    
-    menu = db.relationship('Menu', back_populates='restaurant', uselist=False)  # back_populates points to 'restaurant' in Menu
-
-    clients = db.relationship('Client', secondary=orders_association, back_populates='restaurants')
+    image_url = db.Column(db.String, nullable=True)
+    menu_id = db.Column(db.Integer, db.ForeignKey('menu.id'), nullable=True) 
+    menu = db.relationship('Menu', back_populates='restaurant', uselist=False)  
+    orders = db.relationship('Order', back_populates='restaurant')
     admin = db.relationship('Admin', back_populates='restaurants')
 
-    def __repr__(self):
-        return f'<Restaurant {self.id}, {self.name}, {self.cuisine}>'
+    def _repr_(self):
+        return f'<Restaurant {self.id}, {self.name}, {self.cuisine}, Image: {self.image_url}>'
 
 class Menu(db.Model):  
-    __tablename__ = 'menu'
+    _tablename_ = 'menu'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Integer, nullable=False)
-    cuisine = db.Column(db.String(100), nullable=False)
+    image_url = db.Column(db.String, nullable=True)
     category = db.Column(db.String(100), nullable=False)
     
-    restaurant = db.relationship('Restaurant', back_populates='menu', uselist=False)  # back_populates should point back to 'menu' in Restaurant
+    restaurant = db.relationship('Restaurant', back_populates='menu', uselist=False)  
 
-    def __repr__(self):
-        return f'<Menu {self.id}, {self.name}, {self.price}, {self.cuisine}>'
+    def _repr_(self):
+        return f'<Menu {self.id}, {self.name}, {self.price}, Image: {self.image_url}>'
+
+class Order(db.Model):
+    _tablename_ = "orders"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    client_id = db.Column(db.Integer, db.ForeignKey("clients.id"), nullable=False)
+    restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurants.id"), nullable=False)
+    table_number = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    
+    client = db.relationship("Client", back_populates="orders")
+    restaurant = db.relationship("Restaurant", back_populates="orders")
+
+    def _repr_(self):
+        return f'<Order {self.id}, Client {self.client_id}, Restaurant {self.restaurant_id}, Table {self.table_number}, Quantity {self.quantity}>'

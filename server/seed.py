@@ -1,10 +1,10 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
-from models import db, Admin, Client, Restaurant, Menu, orders_association
+from models import db, Admin, Client, Restaurant, Menu, Order
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://irene:password@localhost/myappdb'
+app = Flask(_name_)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://cullen:kaberere@localhost/malldb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -12,7 +12,7 @@ db.init_app(app)
 def seed_data():
     with app.app_context():
         db.create_all()
-        
+
         try:
             # Seeding Admins
             admin1 = Admin.query.filter_by(email='admin1@example.com').first()
@@ -20,58 +20,60 @@ def seed_data():
                 admin1 = Admin(name='Admin One', email='admin1@example.com', password='securepassword1')
                 db.session.add(admin1)
                 db.session.commit()
-            
+                print("Admin seeded.")
+
             # Seeding Clients
             client1 = Client.query.filter_by(email='john@example.com').first()
-            client2 = Client.query.filter_by(email='jane@example.com').first()
+            client2 = Client.query.filter_by(email='faith@example.com').first()
             if not client1:
-                client1 = Client(name='John Doe', email='john@example.com', password='password123')
-                client2 = Client(name='Jane Smith', email='jane@example.com', password='password456')
-                db.session.add_all([client1, client2])
-                db.session.commit()
+                client1 = Client(name='John Omondi', email='john@example.com', password='password123')
+                db.session.add(client1)
+            if not client2:
+                client2 = Client(name='Faith Wanjiru', email='faith@example.com', password='password456')
+                db.session.add(client2)
+            db.session.commit()
+            print("Clients seeded.")
 
             # Seeding Restaurants
-            restaurant1 = Restaurant.query.filter_by(email='italian@example.com').first()
-            restaurant2 = Restaurant.query.filter_by(email='sushi@example.com').first()
+            restaurant1 = Restaurant.query.filter_by(email='nigerian@example.com').first()
+            restaurant2 = Restaurant.query.filter_by(email='chinese@example.com').first()
             if not restaurant1:
-                restaurant1 = Restaurant(name='Italian Delight', cuisine='Italian', email='italian@example.com', password='restopass', admin_id=admin1.id)
-                restaurant2 = Restaurant(name='Sushi Place', cuisine='Japanese', email='sushi@example.com', password='restopass2', admin_id=admin1.id)
-                db.session.add_all([restaurant1, restaurant2])
-                db.session.commit()
+                restaurant1 = Restaurant(name='Nigeria Delight', cuisine='Nigerian', email='nigerian@example.com', password='restopass', admin_id=admin1.id)
+                db.session.add(restaurant1)
+            if not restaurant2:
+                restaurant2 = Restaurant(name='Chinese Place', cuisine='Chinese', email='chinese@example.com', password='restopass2', admin_id=admin1.id)
+                db.session.add(restaurant2)
+            db.session.commit()
+            print("Restaurants seeded.")
 
             # Seeding Menu Items
             menu1 = Menu.query.filter_by(name='Pasta Carbonara').first()
             menu2 = Menu.query.filter_by(name='Sushi Roll').first()
             if not menu1:
-                menu1 = Menu(name='Pasta Carbonara', price=15, cuisine='Italian', category='Main Course', restaurant_id=restaurant1.id)
-                menu2 = Menu(name='Sushi Roll', price=12, cuisine='Japanese', category='Appetizer', restaurant_id=restaurant2.id)
-                db.session.add_all([menu1, menu2])
-                db.session.commit()
+                menu1 = Menu(name='Pasta Carbonara', price=15, category='Main Course', restaurant=restaurant1)
+                db.session.add(menu1)
+            if not menu2:
+                menu2 = Menu(name='Sushi Roll', price=12, category='Appetizer', restaurant=restaurant2)
+                db.session.add(menu2)
+            db.session.commit()
+            print("Menus seeded.")
 
-            # Seeding Orders (Ensure no duplicate orders are added)
-            existing_orders = db.session.execute(
-                orders_association.select().where(
-                    (orders_association.c.client_id == client1.id) &
-                    (orders_association.c.restaurant_id == restaurant1.id)
-                )
-            ).fetchall()
+            # Seeding Orders (Prevent Duplicates)
+            order1 = Order.query.filter_by(client_id=client1.id, restaurant_id=restaurant1.id, table_number=5).first()
+            order2 = Order.query.filter_by(client_id=client2.id, restaurant_id=restaurant2.id, table_number=3).first()
 
-            if not existing_orders:
-                order1 = orders_association.insert().values(client_id=client1.id, restaurant_id=restaurant1.id, table_number=5, quantity=2)
-                order2 = orders_association.insert().values(client_id=client2.id, restaurant_id=restaurant2.id, table_number=3, quantity=1)
-
-                db.session.execute(order1)
-                db.session.execute(order2)
-                db.session.commit()
-                print("✅ Orders seeded successfully!")
-            else:
-                print("⚠️ Orders already exist. Skipping order seeding.")
+            if not order1:
+                order1 = Order(client_id=client1.id, restaurant_id=restaurant1.id, table_number=5, quantity=2)
+                db.session.add(order1)
+            if not order2:
+               order2 = Order(client_id=client2.id, restaurant_id=restaurant2.id, table_number=3, quantity=1)
+               db.session.add(order2)
+            print("Orders seeded.")
             
-            print("Seeding completed successfully!")
         
-        except IntegrityError:
+        except IntegrityError as e:
             db.session.rollback()
-            print(" Error: Integrity constraint violation. Rolling back.")
+            print(f"Error: Integrity constraint violation. Rolling back. Details: {e}")
 
-if __name__ == '__main__':
-    seed_data()
+if _name_ == '_main_':
+    seed_data()

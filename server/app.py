@@ -16,7 +16,7 @@ migrate = Migrate(app, db)
 class Welcome(Resource):
     def get(self):
         return {
-            "message": "Welcome to My Food App!",
+            "message": "Welcome to NEXTGEN Food App!",
         }
 
 api.add_resource(Welcome, '/')
