@@ -1,0 +1,8 @@
+ id |    name    |        email        |  password   
+----+------------+---------------------+-------------
+ 29 | Client One | client1@example.com | password1
+ 30 | Client Two | client2@example.com | password2
+ 33 | John Doe   | john@example.com    | password123
+ 34 | Jane Smith | jane@example.com    | password456
+(4 rows)
+
