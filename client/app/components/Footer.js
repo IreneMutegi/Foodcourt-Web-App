@@ -1,15 +1,19 @@
 "use client"; // Ensures it's a client component
 import { FiMail, FiInstagram } from "react-icons/fi"; // Email and Instagram icons
 import Link from "next/link";
+import { useState } from "react";
+import LoginModal from "./LoginModal";
 import "./Footer.css";
 
-const Footer = () => {
+const Footer = ({ setIsModalOpen }) => {
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+
   return (
     <footer className="footer">
       <div className="footer-content">
         {/* Admin Button */}
         <div className="admin-section">
-          <Link href="/admin" className="admin-btn">Admin</Link>
+          <button className="admin-btn" onClick={() => setIsAdminOpen(true)}>Admin</button>
         </div>
 
         {/* Contacts Section */}
@@ -31,6 +35,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
+      {isAdminOpen && <LoginModal isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} isAdminLogin />}
     </footer>
   );
 };

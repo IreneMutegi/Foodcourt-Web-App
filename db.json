@@ -1,0 +1,58 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "email": "test@example.com",
+      "password": "password123",
+      "role": "client"
+    },
+    {
+      "id": "2",
+      "email": "restaurant@example.com",
+      "password": "securePass",
+      "role": "restaurant"
+    },
+    {
+      "id": "1aee",
+      "email": "zipporah@gmail.com",
+      "password": "12345",
+      "role": "client"
+    },
+    {
+      "id": "b418",
+      "email": "rovenel@gmail.com",
+      "password": "12345",
+      "role": "client"
+    },
+    {
+      "id": "4157",
+      "email": "tom@gmail.com",
+      "password": "12345",
+      "role": "client"
+    },
+    {
+      "id": "8b6a",
+      "email": "tim@gmail.com",
+      "password": "0987",
+      "role": "client"
+    },
+    {
+      "id": "3f39",
+      "email": "guy@gmail.com",
+      "password": "guy",
+      "role": "client"
+    },
+    {
+      "id": "9e4a",
+      "email": "zip@gmail.com",
+      "password": "zip",
+      "role": "client"
+    },
+    {
+      "id": "121c",
+      "email": "morvin@gmail.com",
+      "password": "morvin",
+      "role": "client"
+    }
+  ]
+}
