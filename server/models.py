@@ -10,29 +10,29 @@ metadata = MetaData(naming_convention={
 db = SQLAlchemy(metadata=metadata)
 
 class Admin(db.Model):  
-    __tablename__ = 'admin'
+    _tablename_ = 'admin'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     restaurants = db.relationship('Restaurant', back_populates='admin')
 
-    def __repr__(self):
+    def _repr_(self):
         return f'<Admin {self.id}, {self.name}, {self.email}>'
 
 class Client(db.Model):  
-    __tablename__ = 'clients'
+    _tablename_ = 'clients'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     password = Column(String, unique=True, nullable=False)
     orders = db.relationship('Order', back_populates='client')
 
-    def __repr__(self):
+    def _repr_(self):
         return f'<Client {self.id}, {self.name}, {self.email}>'
 
 class Restaurant(db.Model):  
-    __tablename__ = 'restaurants'
+    _tablename_ = 'restaurants'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     cuisine = db.Column(db.String, nullable=False)
@@ -45,11 +45,11 @@ class Restaurant(db.Model):
     orders = db.relationship('Order', back_populates='restaurant')
     admin = db.relationship('Admin', back_populates='restaurants')
 
-    def __repr__(self):
+    def _repr_(self):
         return f'<Restaurant {self.id}, {self.name}, {self.cuisine}, Image: {self.image_url}>'
 
 class Menu(db.Model):  
-    __tablename__ = 'menu'
+    _tablename_ = 'menu'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     price = db.Column(db.Integer, nullable=False)
@@ -58,11 +58,11 @@ class Menu(db.Model):
     
     restaurant = db.relationship('Restaurant', back_populates='menu', uselist=False)  
 
-    def __repr__(self):
+    def _repr_(self):
         return f'<Menu {self.id}, {self.name}, {self.price}, Image: {self.image_url}>'
 
 class Order(db.Model):
-    __tablename__ = "orders"
+    _tablename_ = "orders"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     client_id = db.Column(db.Integer, db.ForeignKey("clients.id"), nullable=False)
@@ -73,9 +73,5 @@ class Order(db.Model):
     client = db.relationship("Client", back_populates="orders")
     restaurant = db.relationship("Restaurant", back_populates="orders")
 
-    def __repr__(self):
+    def _repr_(self):
         return f'<Order {self.id}, Client {self.client_id}, Restaurant {self.restaurant_id}, Table {self.table_number}, Quantity {self.quantity}>'
-
-    
-    
-    

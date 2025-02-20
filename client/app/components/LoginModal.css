@@ -1,0 +1,162 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Dark overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal {
+    background: #565555b5;
+    padding: 25px;
+    border-radius: 12px;
+    width:150px;
+    text-align: center;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3);
+    position: relative;
+    max-width: 90%; /* Prevents overflow on smaller screens */
+  }
+  
+  
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #07f7df;
+  }
+
+  .role-selection {
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center buttons horizontally */
+    gap: 10px; /* Add space between buttons */
+
+  }
+
+  .text-center {
+    color: white;
+  }
+  
+  
+  .client-btn, .restaurant-btn {
+    background: #03b4a2;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    width: 110px; /* Adjust button width */
+    cursor: pointer;
+    font-size: 16px;
+    text-align: center;
+    transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
+}
+
+.client-btn:hover, .restaurant-btn:hover {
+    background: #025c54;
+    transform: scale(1.09);
+}
+
+.auth-form-container-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .success-text {
+    color: #07f7df;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  
+  
+.auth-form-container {
+    width: 300px; /* Increased width for better form display */
+    padding: 25px;
+    border: 1px solid #ccc;
+    background: #565555b5;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 90%; /* Prevents overflow on smaller screens */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .auth-form-container h3 {
+    color: white;
+  }
+  
+
+  .form-input {
+    width: 100%; /* Makes the input take full width of the form */
+    max-width: 280px; /* Prevents it from getting too large */
+    padding: 10px; /* Adds spacing inside the input */
+    margin: 8px 0; /* Creates spacing between input fields */
+    border: 1px solid #037468;
+    border-radius: 6px;
+    font-size: 16px;
+    background: #f8f8f8;
+    outline: none;
+  }
+  
+  .form-input:focus {
+    border-color: #037468;
+    box-shadow: #037468;
+  }
+  
+  .submit-btn {
+    width: 100%;
+    padding: 12px;
+    background: #03b4a2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+  }
+  
+  .submit-btn:hover {
+    background: #037468;
+  }
+  
+  .toggle-text {
+    font-size: 16px;
+    margin-top: 10px;
+    color: white;
+  }
+  
+  .toggle-link {
+    color: #07f7df;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .toggle-link:hover {
+    text-decoration: underline;
+  }
+  
+  .error-text {
+    color: #05bca9;
+    font-size: 14px;
+    margin-top: 5px;
+  }

@@ -1,0 +1,133 @@
+/* General Dashboard Styling */
+.dashboard {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  /* Header */
+  .menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .menu-title {
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  /* Add Restaurant Button */
+  .add-restaurant-btn {
+    background: #4DB6AC;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .add-restaurant-btn:hover {
+    background: #388E8E;
+  }
+  
+  /* Table Styling */
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .restaurant-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .restaurant-table th,
+  .restaurant-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  .restaurant-table th {
+    background-color: #f4f4f4;
+  }
+  
+  /* Actions */
+  .actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  /* Edit & Delete Buttons */
+  .edit-btn,
+  .delete-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .edit-btn {
+    background: #FFD700;
+    color: black;
+  }
+  
+  .delete-btn {
+    background: #FF4D4D;
+    color: white;
+  }
+  
+  .edit-btn:hover {
+    background: #E6C300;
+  }
+  
+  .delete-btn:hover {
+    background: #D93636;
+  }
+  
+  /* Form Styling */
+  .form-container {
+    background: white;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    max-width: 400px;
+    margin: 20px auto;
+  }
+  
+  form input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  form button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }
+  
+  form button[type="submit"] {
+    background: #4DB6AC;
+  }
+  
+  form button[type="button"] {
+    background: #ddd;
+  }
+  
+  form button[type="submit"]:hover {
+    background: #388E8E;
+  }
+  
+  form button[type="button"]:hover {
+    background: #ccc;
+  }
+  
