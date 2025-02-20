@@ -27,7 +27,7 @@ export default function AboutPage() {
   
         <p style={styles.text}>
           At <strong>Next Gen</strong>, we believe food is more than just a meal—it's an experience!  
-          Thank you for choosing us. Bon appétit! 🍕🍜🍔
+          Thank you for choosing us. Bon appétit! 🍕🍜🍔 
         </p>
       </div>
     );
