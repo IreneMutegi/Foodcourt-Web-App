@@ -1,12 +1,14 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
-from models import db, Admin, Client, Restaurant, Menu, Order
+from models import db, Admin, Client, Restaurant, Menu, orders_association
 
-app = Flask(_name_)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://cullen:kaberere@localhost/malldb'
+# Initialize Flask and SQLAlchemy once
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://irene:password@localhost/malldb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Use the same `db` instance from models, no need to create a new one here
 db.init_app(app)
 
 def seed_data():
@@ -59,21 +61,42 @@ def seed_data():
             print("Menus seeded.")
 
             # Seeding Orders (Prevent Duplicates)
-            order1 = Order.query.filter_by(client_id=client1.id, restaurant_id=restaurant1.id, table_number=5).first()
-            order2 = Order.query.filter_by(client_id=client2.id, restaurant_id=restaurant2.id, table_number=3).first()
+            order_exists = db.session.execute(
+                orders_association.select().where(
+                    (orders_association.c.client_id == client1.id) & 
+                    (orders_association.c.restaurant_id == restaurant1.id)
+                )
+            ).fetchone()
 
-            if not order1:
-                order1 = Order(client_id=client1.id, restaurant_id=restaurant1.id, table_number=5, quantity=2)
-                db.session.add(order1)
-            if not order2:
-               order2 = Order(client_id=client2.id, restaurant_id=restaurant2.id, table_number=3, quantity=1)
-               db.session.add(order2)
-            print("Orders seeded.")
-            
+            if not order_exists:
+                # Add the `meal_id` (menu item id) for each order
+                db.session.execute(orders_association.insert().values(
+                    client_id=client1.id, 
+                    restaurant_id=restaurant1.id, 
+                    table_number=5, 
+                    quantity=2,
+                    meal_id=menu1.id  # Specify the meal_id for the order
+                ))
+
+                db.session.execute(orders_association.insert().values(
+                    client_id=client2.id, 
+                    restaurant_id=restaurant2.id, 
+                    table_number=3, 
+                    quantity=1,
+                    meal_id=menu2.id  # Specify the meal_id for the order
+                ))
+
+                db.session.commit()
+                print("Orders seeded.")
+            else:
+                print("Orders already exist. Skipping order seeding.")
+
+            print("Seeding completed successfully.")
         
         except IntegrityError as e:
             db.session.rollback()
             print(f"Error: Integrity constraint violation. Rolling back. Details: {e}")
 
-if _name_ == '_main_':
-    seed_data()
+
+if __name__ == '__main__':
+    seed_data()
