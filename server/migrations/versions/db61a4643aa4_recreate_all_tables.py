@@ -1,8 +1,8 @@
-"""Initial migration
+"""Recreate all tables
 
-Revision ID: c7f62cb047dc
+Revision ID: db61a4643aa4
 Revises: 
-Create Date: 2025-02-19 15:47:58.628915
+Create Date: 2025-02-19 21:45:34.529027
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c7f62cb047dc'
+revision = 'db61a4643aa4'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -26,7 +26,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
-    op.create_table('client',
+    op.create_table('clients',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('email', sa.String(length=100), nullable=False),
@@ -59,14 +59,14 @@ def upgrade():
     sa.UniqueConstraint('password')
     )
     op.create_table('orders',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('client_id', sa.Integer(), nullable=False),
     sa.Column('restaurant_id', sa.Integer(), nullable=False),
     sa.Column('table_number', sa.Integer(), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['client_id'], ['client.id'], name=op.f('fk_orders_client_id_client')),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], name=op.f('fk_orders_client_id_clients')),
     sa.ForeignKeyConstraint(['restaurant_id'], ['restaurants.id'], name=op.f('fk_orders_restaurant_id_restaurants')),
-    sa.PrimaryKeyConstraint('id', 'client_id', 'restaurant_id')
+    sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
 
@@ -76,6 +76,6 @@ def downgrade():
     op.drop_table('orders')
     op.drop_table('restaurants')
     op.drop_table('menu')
-    op.drop_table('client')
+    op.drop_table('clients')
     op.drop_table('admin')
     # ### end Alembic commands ###
