@@ -115,16 +115,17 @@ api.add_resource(UserSignUp, "/<string:table>/signup")
 
 
 
-
 class ClientList(Resource):
     def get(self):
         clients = Client.query.all()
         if not clients:
-            return jsonify({"message": "No clients found"}), 404
+            return {"message": "No clients found"}, 404  # No jsonify needed
+        
         clients_list = [{"id": c.id, "name": c.name, "email": c.email} for c in clients]
-        return jsonify(clients_list), 200
+        return clients_list, 200  # Flask-RESTful will serialize it automatically
 
 api.add_resource(ClientList, '/clients')
+
 
 # Restaurant Registration
 class RegisterRestaurant(Resource):
@@ -146,11 +147,16 @@ api.add_resource(RegisterRestaurant, '/register/restaurant')
 class RestaurantList(Resource):
     def get(self):
         restaurants = Restaurant.query.all()
-        return jsonify([{
+        
+        if not restaurants:
+            return {"message": "No restaurants found"}, 404  # No need for jsonify
+        
+        return [{
             "id": r.id, "name": r.name, "cuisine": r.cuisine, "email": r.email
-        } for r in restaurants]), 200
+        } for r in restaurants], 200  # Just return the list
 
 api.add_resource(RestaurantList, '/restaurants')
+
 
 class RestaurantUpdate(Resource):
     def patch(self):
