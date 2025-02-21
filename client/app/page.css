@@ -44,6 +44,11 @@ section {
   padding: 0 0 10px 0;
   border: 1px solid #222;
   cursor: pointer;
+  transition: transform 0.3s ease-in-out;
+}
+.restaurant-card-container .restaurant-card:hover {
+  transform: translateY(5px);
+  border: 4px solid #4db6ac;
 }
 .restaurant-card-container .restaurant-card .image-container {
   width: 100%;
