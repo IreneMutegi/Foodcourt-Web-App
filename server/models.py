@@ -69,12 +69,18 @@ class Order(db.Model):
     restaurant_id = db.Column(db.Integer, db.ForeignKey("restaurants.id"), nullable=False)
     table_number = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    
+    meal = db.Column(db.String, nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    total = db.Column(db.Integer, nullable=False)
+
     client = db.relationship("Client", back_populates="orders")
     restaurant = db.relationship("Restaurant", back_populates="orders")
 
     def __repr__(self):
-        return f'<Order {self.id}, Client {self.client_id}, Restaurant {self.restaurant_id}, Table {self.table_number}, Quantity {self.quantity}>'
+        return (f'<Order {self.id}, Client {self.client_id}, Restaurant {self.restaurant_id}, '
+                f'Table {self.table_number}, Meal {self.meal}, Quantity {self.quantity}, '
+                f'Price {self.price}, Total {self.total}>')
+
 
     
     
