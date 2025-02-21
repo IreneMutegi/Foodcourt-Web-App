@@ -188,25 +188,38 @@ def manage_meal(meal_id):
 
 @app.route('/orders', methods=['POST'])
 def place_order():
-    data = request.get_json()
-    client_id, restaurant_id, table_number, meals = data.get('client_id'), data.get('restaurant_id'), data.get('table_number'), data.get('meals')
-    if not client_id or not restaurant_id or not meals or not table_number:
-        return jsonify({"error": "Missing required fields"}), 400
+    try:
+        data = request.get_json()
+        client_id = data.get('client_id')
+        restaurant_id = data.get('restaurant_id')
+        table_number = data.get('table_number')
+        meals = data.get('meals')
+
+        if not client_id or not restaurant_id or not meals or not table_number:
+            return jsonify({"error": "Missing required fields"}), 400
+
+        for meal_entry in meals:
+            meal = Menu.query.get(meal_entry.get('meal_id'))
+            if meal:
+                new_order = Order(
+                    client_id=client_id,
+                    restaurant_id=restaurant_id,
+                    meal_id=meal.id,
+                    table_number=table_number,
+                    quantity=meal_entry.get('quantity', 1), 
+                    price=meal.price,
+                    total=meal_entry.get('quantity', 1) * meal.price
+                )
+                db.session.add(new_order)
+
+        db.session.commit()
+        return jsonify({"message": "Order placed successfully"}), 201
     
-    for meal_entry in meals:
-        meal = Menu.query.get(meal_entry.get('meal_id'))
-        if meal:
-            new_order = Order(
-                client_id=client_id,
-                restaurant_id=restaurant_id,
-                meal_id=meal.id,
-                table_number=table_number,
-                quantity=meal_entry.get('quantity', 1)
-            )
-            db.session.add(new_order)
-    
-    db.session.commit()
-    return jsonify({"message": "Order placed successfully"}), 201
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error placing order: {str(e)}")  # Log the actual error
+        return jsonify({"error": "Failed to place order", "details": str(e)}), 500
+
 
 @app.route('/orders/client/<int:client_id>', methods=['GET'])
 def get_client_orders(client_id):

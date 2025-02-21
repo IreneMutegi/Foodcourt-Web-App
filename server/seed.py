@@ -63,10 +63,10 @@ def seed_data():
             order2 = Order.query.filter_by(client_id=client2.id, restaurant_id=restaurant2.id, table_number=3).first()
 
             if not order1:
-                order1 = Order(client_id=client1.id, restaurant_id=restaurant1.id, table_number=5, meal="Pasta", quantity=2, price=12, total=24)
+                order1 = Order(client_id=client1.id, restaurant_id=restaurant1.id, table_number=5, meal_id=menu1.id, quantity=2, price=menu1.price, total=menu1.price * 2)
                 db.session.add(order1)
             if not order2:
-               order2 = Order(client_id=client2.id, restaurant_id=restaurant2.id, table_number=3, meal="Buger", quantity=1, price=8, total=8)
+               order2 = Order(client_id=client2.id, restaurant_id=restaurant2.id, table_number=3, meal_id=menu2.id, quantity=1, price=menu2.price, total=menu2.price)
                db.session.add(order2)
             print("Orders seeded.")
             
