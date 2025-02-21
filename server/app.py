@@ -107,30 +107,7 @@ class UserSignUp(Resource):
         db.session.commit()
 
         return {"message": f"{table.capitalize()} signed up successfully!", "user": {"id": user.id, "role": table}}, 201
-    
-    def get(self, table):
-       
-        email = request.args.get("email")
 
-        if not email:
-            return {"message": "Email is required"}, 400
-
-        if table == "client":
-            user = Client.query.filter_by(email=email).first()
-        elif table == "restaurant":
-            user = Restaurant.query.filter_by(email=email).first()
-        elif table == "admin":
-            user = Admin.query.filter_by(email=email).first()
-        else:
-            return {"message": "Invalid user type"}, 400
-
-        if not user:
-            return {"message": "User not found"}, 404
-
-        return {
-            "message": f"{table.capitalize()} user found!",
-            "user": {"id": user.id, "email": user.email, "role": table}
-        }, 200
 
 api.add_resource(UserSignUp, "/<string:table>/signup")
 
