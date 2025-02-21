@@ -10,7 +10,8 @@ const Header = ({ setIsModalOpen }) => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname(); // Get the current route
   const isRestaurantPage = pathname.startsWith("/restaurant");
-    
+  const isAdminPage = pathname.startsWith("/admin"); // Check if it's an admin page
+
   return (
     <header className="header">
       <div className="logo">Next Gen</div>
@@ -22,32 +23,32 @@ const Header = ({ setIsModalOpen }) => {
 
       {/* Navigation Links */}
       <nav className={isOpen ? "nav open" : "nav"}>
-      <ul className="navList">
-        {isRestaurantPage ? (
-          <>
-            <li><Link href="/" onClick={() => setIsOpen(false)}>Home</Link></li>
-            <li><Link href="/orders" onClick={() => setIsOpen(false)}>Orders</Link></li>
+        <ul className="navList">
+          {isAdminPage ? (
             <li><Link href="/logout" onClick={() => setIsOpen(false)}>Logout</Link></li>
-          </>
-        ) : (
-          <>
-            <li><Link href="/" onClick={() => setIsOpen(false)}>Home</Link></li>
-            <li><Link href="/cart" onClick={() => setIsOpen(false)}>Cart</Link></li>
-            <li><Link href="/about" onClick={() => setIsOpen(false)}>About</Link></li>
-            <li>
-            {/* Open the Login Modal */}
-            <button className="login-btn" onClick={() => setIsModalOpen(true)}>
-              Login
-            </button>
-          </li>
-          </>
-        )}
-      </ul>
-    </nav>
-  </header>
+          ) : isRestaurantPage ? (
+            <>
+              <li><Link href="/restaurant" onClick={() => setIsOpen(false)}>Home</Link></li>
+              <li><Link href="/orders" onClick={() => setIsOpen(false)}>Orders</Link></li>
+              <li><Link href="/logout" onClick={() => setIsOpen(false)}>Logout</Link></li>
+            </>
+          ) : (
+            <>
+              <li><Link href="/" onClick={() => setIsOpen(false)}>Home</Link></li>
+              <li><Link href="/cart" onClick={() => setIsOpen(false)}>Cart</Link></li>
+              <li><Link href="/about" onClick={() => setIsOpen(false)}>About</Link></li>
+              <li>
+                {/* Open the Login Modal */}
+                <button className="login-btn" onClick={() => setIsModalOpen(true)}>
+                  Login
+                </button>
+              </li>
+            </>
+          )}
+        </ul>
+      </nav>
+    </header>
   );
 };
 
 export default Header;
-
-    
