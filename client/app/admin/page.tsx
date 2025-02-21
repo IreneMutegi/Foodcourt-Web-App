@@ -80,16 +80,55 @@ const AdminDashboard = () => {
 
       {/* Add/Edit Restaurant Form */}
       {showForm && (
-        <div className="form-container">
-          <form onSubmit={handleFormSubmit}>
-            <input type="text" name="name" placeholder="Restaurant Name" required value={restaurantData.name} onChange={(e) => setRestaurantData({ ...restaurantData, name: e.target.value })} />
-            <input type="text" name="cuisine" placeholder="Cuisine" required value={restaurantData.cuisine} onChange={(e) => setRestaurantData({ ...restaurantData, cuisine: e.target.value })} />
-            <input type="email" name="email" placeholder="Email" required value={restaurantData.email} onChange={(e) => setRestaurantData({ ...restaurantData, email: e.target.value })} />
-            <input type="password" name="password" placeholder="Password" required value={restaurantData.password} onChange={(e) => setRestaurantData({ ...restaurantData, password: e.target.value })} />
-            <button type="submit">{editIndex !== null ? "Update Restaurant" : "Add Restaurant"}</button>
-            <button type="button" onClick={() => { setShowForm(false); setEditIndex(null); }}>Cancel</button>
-          </form>
+  <div className="restaurant-form-overlay">
+    <div className="restaurant-form-container">
+      <h3>{editIndex !== null ? "Edit Restaurant" : "Add Restaurant"}</h3>
+      <form onSubmit={handleFormSubmit}>
+        <input
+          type="text"
+          name="name"
+          placeholder="Restaurant Name"
+          required
+          value={restaurantData.name}
+          onChange={(e) => setRestaurantData({ ...restaurantData, name: e.target.value })}
+        />
+
+        <input
+          type="text"
+          name="cuisine"
+          placeholder="Cuisine"
+          required
+          value={restaurantData.cuisine}
+          onChange={(e) => setRestaurantData({ ...restaurantData, cuisine: e.target.value })}
+        />
+
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          required
+          value={restaurantData.email}
+          onChange={(e) => setRestaurantData({ ...restaurantData, email: e.target.value })}
+        />
+
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          required
+          value={restaurantData.password}
+          onChange={(e) => setRestaurantData({ ...restaurantData, password: e.target.value })}
+        />
+
+        <div className="form-buttons">
+          <button type="submit">{editIndex !== null ? "Update Restaurant" : "Add Restaurant"}</button>
+          <button type="button" onClick={() => { setShowForm(false); setEditIndex(null); }}>
+            Cancel
+          </button>
         </div>
+      </form>
+    </div>
+  </div>
       )}
     </div>
   );
