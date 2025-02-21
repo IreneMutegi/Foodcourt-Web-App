@@ -8,15 +8,16 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
   const { data: session } = useSession();
   const [selectedRole, setSelectedRole] = useState(null);
   const [hasAccount, setHasAccount] = useState(true);
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
   
   React.useEffect(() => {
     if (isOpen) {
-      setSelectedRole(isAdminLogin ? "admin" : null);
+      setSelectedRole((prevRole) => prevRole || (isAdminLogin ? "admin" : null));
     }
+
   }, [isOpen, isAdminLogin]);
 
   if (!isOpen) return null;
@@ -26,8 +27,9 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
     e.preventDefault();
     setError("");
     setSuccessMessage("");
+    console.log("Form submitted", selectedRole);
 
-    const tables = ["admin", "client", "restaurants"];
+    const tables = [selectedRole, ...["admin", "client", "restaurant"].filter(role => role !== selectedRole)];
     let user = null;
     let userRole = null;
 
@@ -36,25 +38,29 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
       if (hasAccount) {
         // Check each table for the user
         for (const table of tables) {
-          const response = await fetch(`http://localhost:3001/${table}?email=${formData.email}`);
-          const users = await response.json();
-
-          if (users.length > 0) {
-            user = users[0];
+          const response = await fetch(`http://localhost:5555/${table}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: formData.email, password: formData.password }),
+          });
+    
+          if (response.ok) {
+            const data = await response.json();
+            user = data.user;
             userRole = table;
-            break;
+            break; // Stop checking after first successful login
           }
         }
-
+    
         if (!user) {
           setError("User not found. Please sign up.");
           return;
-        }
+        }    
 
-        if (user.password !== formData.password) {
-          setError("Invalid email or password.");
-          return;
-        }
+        // if (user.password !== formData.password) {
+        //   setError("Invalid email or password.");
+        //   return;
+        // }
 
         if (userRole !== selectedRole) {
           setError(`You are registered as a ${userRole}.`);
@@ -77,15 +83,15 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
             setSuccessMessage("");
             onClose();
             redirectUser(userRole);
-          },);
+          },2000);
         }
         
       } 
-      // For Sign-Up
-      else {
+       // For Sign-Up
+       else {
         // Check if the email already exists in any table
         for (const table of tables) {
-          const response = await fetch(`http://localhost:3001/${table}?email=${formData.email}`);
+          const response = await fetch(`http://localhost:5555/${selectedRole}/signup?email=${formData.email}`);
           const existingUsers = await response.json();
           if (existingUsers.length > 0) {
             setError("Email is already registered.");
@@ -95,12 +101,13 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
 
         // Add new user to the selected role table
         const newUser = {
+          name: formData.name,
           email: formData.email,
           password: formData.password, // Should be hashed in the backend
           role: selectedRole,
         };
 
-        const response = await fetch(`http://localhost:3001/${selectedRole}`, {
+        const response = await fetch(`http://localhost:5555/${selectedRole}/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newUser),
@@ -111,7 +118,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
           setTimeout(() => {
             setSuccessMessage("");
             setHasAccount(true);
-          }, 1000);
+          }, 2000);
         } else {
           setError("Signup failed. Try again.");
         }
@@ -121,12 +128,13 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
     }
   };
 
+
   // Redirect user based on role
   const redirectUser = (role) => {
-    if (role === "restaurants") {
+    if (role === "restaurant") {
       router.push("/restaurant");
     } else if (role === "client") {
-      router.push("/home");
+      router.push("/");
     } else if (role === "admin") {
       router.push("/admin");
     }
@@ -148,7 +156,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
                 <button className="client-btn" onClick={() => setSelectedRole("client")}>
                   Client
                 </button>
-                <button className="restaurant-btn" onClick={() => setSelectedRole("restaurants")}>
+                <button className="restaurant-btn" onClick={() => setSelectedRole("restaurant")}>
                   Restaurant
                 </button>
               </div>
@@ -167,7 +175,14 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
             <form onSubmit={handleAuth} className="flex flex-col items-center w-full">
               {/* Full Name Field (only for Sign Up) */}
               {!hasAccount && (
-                <input type="text" placeholder="Full Name" className="form-input" required />
+  <input
+    type="text"
+    placeholder="Full Name"
+    className="form-input"
+    value={formData.name}  // Ensure this is bound to state
+    onChange={(e) => setFormData({ ...formData, name: e.target.value })}  // Update state
+    required
+  />
               )}
   
               <input
