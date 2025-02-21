@@ -1,30 +1,18 @@
 "use client";
 import "./page.css";
-import { FcEmptyTrash } from "react-icons/fc";
-import { useCart } from "../context/CartContext";
+import { useState } from "react";
 
-export default function Cart() {
-  const { cart, setCart } = useCart();
-  console.log("cart in Cart page", cart);
-
+export default function Cart({ cart = [], setCart }) {
   const removeItem = (index) => {
-    setCart((prevCart) => prevCart.filter((_, i) => i !== index));
+    setCart(cart.filter((_, i) => i !== index));
   };
 
-  const totalAmount = parseFloat(
-    cart.reduce((sum, item) => sum + item.total, 0).toFixed(2)
-  );
-  if (cart.length === 0) {
-    return (
-      <div className="empty-cart">
-        <div>
-        <FcEmptyTrash size={60} color="#4db6ac" />
+  const totalAmount = (cart || []).reduce((sum, item) => sum + item.total, 0);
+  if (cart.length === 0){
+    return (<div className="cart-container">
         <p>No Meals In Cart</p>
-        </div>
-      </div>
-    );
+    </div>)
   }
-
   return (
     <div className="cart-container">
       <h2>Cart</h2>

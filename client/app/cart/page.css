@@ -7,25 +7,6 @@
   gap: 30px;
   margin: auto;
 }
-.empty-cart {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-.empty-cart div {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-.empty-cart div p {
-  color: #4db6ac;
-  font-weight: 500;
-  font-size: large;
-}
-
 .cart-container table {
   width: 100%;
   border-collapse: collapse;
