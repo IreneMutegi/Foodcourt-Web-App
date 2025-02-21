@@ -1,269 +1,535 @@
-from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, Admin, Client, Restaurant, Menu, Order
+from flask_restful import Api, Resource
+from flask_migrate import Migrate
+from models import db, Client, Admin, Restaurant, Menu, orders_association  
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://cullen:kaberere@localhost/malldb'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://irene:password@localhost:5432/malldb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your_secret_key'
-
-migrate = Migrate(app, db)
-
-CORS(app)  # Enable CORS for frontend communication
 
 db.init_app(app)
-@app.route('/')
-def home():
-    return jsonify({"message": "Welcome to NEXTGEN Food App!"})
+api = Api(app)
+migrate = Migrate(app, db)
+CORS(app)
 
-@app.route('/clients', methods=['GET'])
-def get_clients():
-    clients = Client.query.all()
-    if not clients:
-        return jsonify({"message": "No clients found"}), 404
-    clients_list = [{"id": c.id, "name": c.name, "email": c.email} for c in clients]
-    return jsonify(clients_list), 200
+class Welcome(Resource):
+    def get(self):
+        return {"message": "Welcome to NEXTGEN Food App!"}
 
-@app.route('/clients/<int:client_id>', methods=['GET'])
-def get_client_by_id(client_id):
-    client = Client.query.get(client_id)
-    if not client:
-        return jsonify({"error": "Client not found"}), 404
-    return jsonify({"id": client.id, "name": client.name, "email": client.email}), 200
+api.add_resource(Welcome, '/')
 
-@app.route('/admins', methods=['GET'])
-def get_admins():
-    admins = Admin.query.all()
-    admins_list = [{"id": a.id, "name": a.name, "email": a.email} for a in admins]
-    return jsonify(admins_list), 200
 
-# @app.route('/restaurants', methods=['GET'])
-# def get_restaurants():
-#     restaurants = Restaurant.query.all()
-#     restaurants_list = [
-#         {"id": r.id, "name": r.name, "cuisine": r.cuisine, "email": r.email, "image_url": r.image_url}
-#         for r in restaurants
-#     ]
-#     return jsonify(restaurants_list), 200
-
-# @app.route('/menus', methods=['GET'])
-# def get_menus():
-#     menus = Menu.query.all()
-#     menus_list = [{"id": m.id, "name": m.name, "price": m.price, "category": m.category} for m in menus]
-#     return jsonify(menus_list), 200
-
-# @app.route('/orders', methods=['GET'])
-# def get_orders():
-#     orders = Order.query.all()
-#     orders_list = [
-#         {"id": o.id, "client_id": o.client_id, "restaurant_id": o.restaurant_id, "table_number": o.table_number, "quantity": o.quantity}
-#         for o in orders
-#     ]
-#     return jsonify(orders_list), 200
-
-# CLIENT SIGNUP ROUTE
-@app.route('/clients/signup', methods=['POST'])
-def client_signup():
-    data = request.get_json()
-
-    # Ensure required fields are present
-    if not data or not all(key in data for key in ("name", "email", "password")):
-        return jsonify({"error": "Name, email, and password are required"}), 400
-
-    # Check if the email already exists
-    existing_client = Client.query.filter_by(email=data["email"]).first()
-    if existing_client:
-        return jsonify({"error": "Email already in use"}), 409
-
-    # Hash the password before storing
-    hashed_password = generate_password_hash(data["password"])
-    new_client = Client(name=data["name"], email=data["email"], password=hashed_password)
-
-    db.session.add(new_client)
-    db.session.commit()
-
-    return jsonify({
-        "message": "Signup successful",
-        "client_id": new_client.id,
-        "name": new_client.name,
-        "email": new_client.email
-    }), 201
-
-# CLIENT LOGIN ROUTE
-@app.route('/clients/login', methods=['POST'])
-def client_login():
-    data = request.get_json()
-
-    # Ensure required fields are present
-    if not data or not all(key in data for key in ("email", "password")):
-        return jsonify({"error": "Email and password are required"}), 400
-
-    # Find client by email
-    client = Client.query.filter_by(email=data["email"]).first()
-
-    # Verify password
-    if client and check_password_hash(client.password, data["password"]):
-        return jsonify({
-            "message": "Login successful",
-            "client_id": client.id,
-            "name": client.name,
-            "email": client.email
-        }), 200
-
-    return jsonify({"error": "Invalid email or password"}), 401
-
-# Restaurants
-@app.route('/restaurants', methods=['GET'])
-def get_restaurants():
-    restaurants = Restaurant.query.all()
-    return jsonify([{ "id": r.id, "name": r.name, "cuisine": r.cuisine, "email": r.email } for r in restaurants]), 200
-
-@app.route('/restaurants/register', methods=['POST'])
-def register_restaurant():
-    data = request.get_json()
-    new_restaurant = Restaurant(
-        name=data.get('name'),
-        email=data.get('email'),
-        password=generate_password_hash(data.get('password')),
-        cuisine=data.get('cuisine'),
-        admin_id=data.get('admin_id')
-    )
-    db.session.add(new_restaurant)
-    db.session.commit()
-    return jsonify({"message": "Restaurant registered successfully"}), 201
-
-@app.route('/restaurants/update', methods=['PATCH'])
-def update_restaurant():
-    data = request.get_json()
-    restaurant = Restaurant.query.get(data.get('id'))
-    if not restaurant:
-        return jsonify({"error": "Restaurant not found"}), 404
+class UserLogin(Resource):
     
-    restaurant.name = data.get('name', restaurant.name)
-    restaurant.cuisine = data.get('cuisine', restaurant.cuisine)
-    db.session.commit()
-    return jsonify({"message": "Restaurant updated successfully"}), 200
+    def post(self, table):
+        data = request.get_json()
 
-@app.route('/meals', methods=['GET', 'POST'])
-def handle_meals():
-    if request.method == 'GET':
-        meals = Menu.query.all()
-        return jsonify([{ "id": meal.id, "name": meal.name, "category": meal.category, "price": meal.price, "image_url": meal.image_url } for meal in meals]), 200
-    
-    data = request.get_json()
-    new_meal = Menu(
-        name=data.get('name'),
-        category=data.get('category'),
-        price=data.get('price'),
-        image_url=data.get('image_url')
-    )
-    db.session.add(new_meal)
-    db.session.commit()
-    return jsonify({"message": "Meal added successfully"}), 201
+        email = data.get("email")
+        password = data.get("password")
 
-@app.route('/meal/<int:meal_id>', methods=['GET', 'PUT', 'DELETE'])
-def manage_meal(meal_id):
-    meal = Menu.query.get(meal_id)
-    if not meal:
-        return jsonify({"error": "Meal not found"}), 404
-    
-    if request.method == 'GET':
-        return jsonify({ "id": meal.id, "name": meal.name, "category": meal.category, "price": meal.price, "image_url": meal.image_url }), 200
-    
-    if request.method == 'PUT':
+        if not email or not password:
+            return {"message": "Email and password are required"}, 400
+
+        return self.authenticate_user(table, email, password)
+
+    def authenticate_user(self, table, email, password):
+        
+        if table == "client":
+            user = Client.query.filter_by(email=email).first()
+        elif table == "restaurant":
+            user = Restaurant.query.filter_by(email=email).first()
+        elif table == "admin":
+            user = Admin.query.filter_by(email=email).first()
+        else:
+            return {"message": "Invalid user type"}, 400
+
+        if not user or user.password != password:
+            return {"message": "Invalid credentials"}, 401
+
+        return {
+            "message": f"{table.capitalize()} login successful!",
+            "user": {"id": user.id, "role": table}
+        }, 200
+
+    def get(self, table):
+       
+        email = request.args.get("email")
+
+        if not email:
+            return {"message": "Email is required"}, 400
+
+        if table == "client":
+            user = Client.query.filter_by(email=email).first()
+        elif table == "restaurant":
+            user = Restaurant.query.filter_by(email=email).first()
+        elif table == "admin":
+            user = Admin.query.filter_by(email=email).first()
+        else:
+            return {"message": "Invalid user type"}, 400
+
+        if not user:
+            return {"message": "User not found"}, 404
+
+        return {
+            "message": f"{table.capitalize()} user found!",
+            "user": {"id": user.id, "email": user.email, "role": table}
+        }, 200
+api.add_resource(UserLogin, "/<string:table>/login")
+
+
+class UserSignUp(Resource):
+    def post(self, table):
+        data = request.get_json()
+        name = data.get("name")
+        email = data.get("email")
+        password = data.get("password")  
+
+        if not name or not email or not password:
+            return {"message": "Name, email, and password are required"}, 400
+
+        if table == "client":
+            if Client.query.filter_by(email=email).first():
+                return {"message": "Email already exists!"}, 400
+            user = Client(name=name, email=email, password=password)
+        elif table == "restaurant":
+            admin_id = data.get("admin_id")
+            if Restaurant.query.filter_by(email=email).first():
+                return {"message": "Email already exists!"}, 400
+            user = Restaurant(name=name, email=email, password=password, admin_id=admin_id)
+        elif table == "admin":
+            if Admin.query.filter_by(email=email).first():
+                return {"message": "Email already exists!"}, 400
+            user = Admin(name=name, email=email, password=password)
+        else:
+            return {"message": "Invalid user type"}, 400
+
+        db.session.add(user)
+        db.session.commit()
+
+        return {"message": f"{table.capitalize()} signed up successfully!", "user": {"id": user.id, "role": table}}, 201
+
+
+
+api.add_resource(UserSignUp, "/<string:table>/signup")
+
+
+
+
+class ClientList(Resource):
+    def get(self):
+        clients = Client.query.all()
+        if not clients:
+            return jsonify({"message": "No clients found"}), 404
+        clients_list = [{"id": c.id, "name": c.name, "email": c.email} for c in clients]
+        return jsonify(clients_list), 200
+
+api.add_resource(ClientList, '/clients')
+
+# Restaurant Registration
+class RegisterRestaurant(Resource):
+    def post(self):
+        data = request.get_json()
+        name = data.get('name')
+        email = data.get('email')
+        password = data.get('password')
+        cuisine = data.get('cuisine')
+        admin_id = admin_id = data.get('admin_id') 
+        
+        restaurant = Restaurant(name=name, email=email, password=password, cuisine=cuisine, admin_id=admin_id)
+        db.session.add(restaurant)
+        db.session.commit()
+        return {"message": "Restaurant registered successfully"}, 201
+
+api.add_resource(RegisterRestaurant, '/register/restaurant')
+
+class RestaurantList(Resource):
+    def get(self):
+        restaurants = Restaurant.query.all()
+        return jsonify([{
+            "id": r.id, "name": r.name, "cuisine": r.cuisine, "email": r.email
+        } for r in restaurants]), 200
+
+api.add_resource(RestaurantList, '/restaurants')
+
+class RestaurantUpdate(Resource):
+    def patch(self):
+        data = request.get_json()
+
+        restaurant_id = data.get('id')
+        name = data.get('name')
+        cuisine = data.get('cuisine')
+
+        if not restaurant_id:
+            return {"error": "Restaurant ID is required for update"}, 400
+
+        restaurant = Restaurant.query.get(restaurant_id)
+        if not restaurant:
+            return {"error": "Restaurant not found"}, 404
+
+        if name:
+            restaurant.name = name
+        if cuisine:
+            restaurant.cuisine = cuisine
+
+        db.session.commit()
+
+        return {"message": "Restaurant updated successfully"}, 200
+
+api.add_resource(RestaurantUpdate, '/restaurants/update')
+
+
+
+
+class RestaurantByName(Resource):
+    def get(self, name):
+        restaurants = Restaurant.query.filter_by(name=name).all()
+        if not restaurants:
+            return {"error": "No restaurants found with that name"}, 404
+        return [{"id": r.id, "name": r.name, "cuisine": r.cuisine} for r in restaurants], 200
+
+api.add_resource(RestaurantByName, '/restaurants/name/<string:name>')
+
+
+class RestaurantByCuisine(Resource):
+    def get(self, cuisine):
+        restaurants = Restaurant.query.filter_by(cuisine=cuisine).all()
+        if not restaurants:
+            return {"error": "No restaurants found with that cuisine"}, 404
+        return [{"id": r.id, "name": r.name, "cuisine": r.cuisine} for r in restaurants], 200
+
+api.add_resource(RestaurantByCuisine, '/restaurants/cuisine/<string:cuisine>')
+
+#meal list for a particular restaurant 
+class MealList(Resource):
+    def get(self, restaurant_id):
+        meals = Menu.query.filter_by(restaurant_id=restaurant_id).all()
+        if not meals:
+            return {"error": "No meals found for this restaurant"}, 404
+
+        meal_list = []
+        for meal in meals:
+            meal_list.append({
+                "id": meal.id,
+                "name": meal.name,
+                "category": meal.category,
+                "price": meal.price,
+                "image_url": meal.image_url
+            })
+        return {"meals": meal_list}, 200
+
+    def post(self, restaurant_id):
+        data = request.get_json()
+        name = data.get('name')
+        category = data.get('category')
+        price = data.get('price')
+        image_url = data.get('image_url')
+        
+        restaurant = Restaurant.query.get(restaurant_id)
+        if not restaurant:
+            return {"error": "Restaurant not found"}, 404
+
+        meal = Menu(name=name, category=category, price=price, image_url=image_url, restaurant_id=restaurant_id)
+        db.session.add(meal)
+        db.session.commit()
+        return {"message": "Meal added successfully"}, 201
+api.add_resource(MealList, '/meals/restaurant/<int:restaurant_id>')  
+
+#for a single meal associated to a restaurant
+class Meal(Resource):
+    def get(self, restaurant_id, meal_id):
+        meal = Menu.query.filter_by(id=meal_id, restaurant_id=restaurant_id).first()
+        if not meal:
+            return {"error": "Meal not found for this restaurant"}, 404
+        return {
+            "id": meal.id,
+            "name": meal.name,
+            "category": meal.category,
+            "price": meal.price,
+            "image_url": meal.image_url
+        }, 200
+
+    def patch(self, restaurant_id, meal_id):
+        meal = Menu.query.filter_by(id=meal_id, restaurant_id=restaurant_id).first()
+        if not meal:
+            return {"error": "Meal not found for this restaurant"}, 404
+
         data = request.get_json()
         meal.name = data.get('name', meal.name)
         meal.category = data.get('category', meal.category)
         meal.price = data.get('price', meal.price)
         meal.image_url = data.get('image_url', meal.image_url)
         db.session.commit()
-        return jsonify({"message": "Meal updated successfully"}), 200
-    
-    db.session.delete(meal)
-    db.session.commit()
-    return jsonify({"message": "Meal deleted successfully"}), 200
+        return {"message": "Meal updated successfully"}, 200
 
-@app.route('/orders', methods=['POST'])
-def place_order():
-    try:
-        data = request.get_json()
-        client_id = data.get('client_id')
-        restaurant_id = data.get('restaurant_id')
-        table_number = data.get('table_number')
-        meals = data.get('meals')
-
-        if not client_id or not restaurant_id or not meals or not table_number:
-            return jsonify({"error": "Missing required fields"}), 400
-
-        for meal_entry in meals:
-            meal = Menu.query.get(meal_entry.get('meal_id'))
-            if meal:
-                new_order = Order(
-                    client_id=client_id,
-                    restaurant_id=restaurant_id,
-                    meal_id=meal.id,
-                    table_number=table_number,
-                    quantity=meal_entry.get('quantity', 1), 
-                    price=meal.price,
-                    total=meal_entry.get('quantity', 1) * meal.price
-                )
-                db.session.add(new_order)
-
+    def delete(self, restaurant_id, meal_id):
+        meal = Menu.query.filter_by(id=meal_id, restaurant_id=restaurant_id).first()
+        if not meal:
+            return {"error": "Meal not found for this restaurant"}, 404
+        db.session.delete(meal)
         db.session.commit()
-        return jsonify({"message": "Order placed successfully"}), 201
+        return {"message": "Meal deleted successfully"}, 200
     
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error placing order: {str(e)}")  # Log the actual error
-        return jsonify({"error": "Failed to place order", "details": str(e)}), 500
+api.add_resource(Meal, '/meal/restaurant/<int:restaurant_id>/<int:meal_id>')
 
 
-@app.route('/orders/client/<int:client_id>', methods=['GET'])
-def get_client_orders(client_id):
-    orders = Order.query.filter_by(client_id=client_id).all()
-    if not orders:
-        return jsonify({"message": "No orders found"}), 404
-    return jsonify([{ "restaurant_id": o.restaurant_id, "meal_id": o.meal_id, "table_number": o.table_number, "quantity": o.quantity } for o in orders]), 200
+class OrderGetById(Resource):
+    def get(self, order_id):
+        order = db.session.execute(
+            orders_association.select().where(
+                (orders_association.c.client_id == order_id)
+            )
+        ).fetchone()
 
-@app.route('/orders/restaurant/<int:restaurant_id>', methods=['GET'])
-def get_restaurant_orders(restaurant_id):
-    orders = Order.query.filter_by(restaurant_id=restaurant_id).all()
-    if not orders:
-        return jsonify({"message": "No orders found"}), 404
-    return jsonify([{ "client_id": o.client_id, "meal_id": o.meal_id, "table_number": o.table_number, "quantity": o.quantity } for o in orders]), 200
-#get orders
-@app.route('/orders', methods=['GET'])
-def get_orders():
-    orders = Order.query.all()
-    if not orders:
-        return jsonify({"message": "No orders found"}), 404
-    return jsonify([
-        {
-            "id": o.id,
-            "client_id": o.client_id,
-            "restaurant_id": o.restaurant_id,
-            "meal_id": o.meal_id,
-            "table_number": o.table_number,
-            "quantity": o.quantity
+        if not order:
+            return {"error": "Order not found"}, 404
+
+        client_id = order[0]
+        restaurant_id = order[1]
+        meal_id = order[2]
+        table_number = order[3]
+        quantity = order[4]
+
+        meal = Menu.query.get(meal_id)
+        client = Client.query.get(client_id)
+        restaurant = Restaurant.query.get(restaurant_id)
+
+        order_details = {
+            "client_id": client_id,
+            "client_name": client.name if client else "Unknown Client",
+            "restaurant_id": restaurant_id,
+            "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
+            "meal_id": meal_id,
+            "meal_name": meal.name if meal else "Unknown Meal",
+            "category": meal.category if meal else "Unknown Category",
+            "table_number": table_number,
+            "quantity": quantity,
+            "price": meal.price if meal else "Unknown Price",
+            "total": meal.price * quantity if meal else "Unknown Total"
         }
-        for o in orders
-    ]), 200
 
-@app.route('/orders/<int:order_id>', methods=['DELETE'])
-def delete_order(order_id):
-    order = Order.query.get(order_id)
-    if not order:
-        return jsonify({"error": "Order not found"}), 404
-    
-    db.session.delete(order)
-    db.session.commit()
-    
-    return jsonify({"message": "Order deleted successfully"}), 200
+        return {"order": order_details}, 200
 
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()  # Ensure tables are created
+api.add_resource(OrderGetById, '/orders/<int:order_id>')
+
+
+
+class ClientOrderPost(Resource):
+    def post(self):
+        data = request.get_json()
+
+        client_id = data.get("client_id")
+        restaurant_id = data.get("restaurant_id")
+        meal_id = data.get("meal_id")
+        table_number = data.get("table_number")
+        quantity = data.get("quantity")
+
+        if not client_id or not restaurant_id or not meal_id or not table_number or not quantity:
+            return {"error": "client_id, restaurant_id, table_number, meal_id, and quantity are required"}, 400
+
+        meal = Menu.query.get(meal_id)
+        if not meal:
+            return {"error": "Invalid meal_id"}, 400
+
+        restaurant = Restaurant.query.get(restaurant_id)
+        if not restaurant:
+            return {"error": "Invalid restaurant_id"}, 400
+
+        price = meal.price
+        total = price * quantity
+
+        try:
+            new_order = orders_association.insert().values(
+                client_id=client_id,
+                restaurant_id=restaurant_id,
+                meal_id=meal_id,
+                table_number=table_number,
+                quantity=quantity,
+                price=price,
+                total=total
+            )
+            db.session.execute(new_order)
+            db.session.commit()
+
+            return {"message": "Order created successfully"}, 201
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+api.add_resource(ClientOrderPost, '/orders')
+
+
+class OrderPatch(Resource):
+    def patch(self, order_id):
+        order = db.session.execute(
+            orders_association.select().where(
+                (orders_association.c.client_id == order_id)
+            )
+        ).fetchone()
+
+        if not order:
+            return {"error": "Order not found"}, 404
+
+        client_id = order[0]
+        restaurant_id = order[1]
+        meal_id = order[2]
+        table_number = order[3]
+        quantity = order[4]
+
+        meal = Menu.query.get(meal_id)
+        client = Client.query.get(client_id)
+        restaurant = Restaurant.query.get(restaurant_id)
+
+        data = request.get_json()
+
+        if "table_number" in data:
+            table_number = data["table_number"]
+        if "quantity" in data:
+            quantity = data["quantity"]
+
+        db.session.execute(
+            orders_association.update().where(
+                (orders_association.c.client_id == client_id) &
+                (orders_association.c.restaurant_id == restaurant_id) &
+                (orders_association.c.meal_id == meal_id)
+            ).values(
+                table_number=table_number,
+                quantity=quantity
+            )
+        )
+        db.session.commit()
+
+        total = meal.price * quantity if meal else 0
+
+        order_details = {
+            "client_id": client_id,
+            "client_name": client.name if client else "Unknown Client",
+            "restaurant_id": restaurant_id,
+            "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
+            "meal_id": meal_id,
+            "meal_name": meal.name if meal else "Unknown Meal",
+            "category": meal.category if meal else "Unknown Category",
+            "table_number": table_number,
+            "quantity": quantity,
+            "price": meal.price if meal else "Unknown Price",
+            "total": total
+        }
+
+        return {"order": order_details}, 200
+
+api.add_resource(OrderPatch, '/orders/patch/<int:order_id>')
+
+
+class ClientOrderDelete(Resource):
+    def delete(self, order_id):
+        order = db.session.execute(
+            orders_association.select().where(orders_association.c.id == order_id)
+        ).fetchone()
+
+        if not order:
+            return {"message": "Order not found"}, 404
+
+        db.session.execute(
+            orders_association.delete().where(orders_association.c.id == order_id)
+        )
+        db.session.commit()
+
+        return {"message": "Order deleted successfully"}, 200
+api.add_resource(ClientOrderDelete, '/orders/<int:order_id>')
+
+
+
+class RestaurantOrderGet(Resource):
+    def get(self, restaurant_id, client_id, meal_id):
+        order = db.session.execute(
+            orders_association.select().where(
+                (orders_association.c.restaurant_id == restaurant_id) &
+                (orders_association.c.client_id == client_id) &
+                (orders_association.c.meal_id == meal_id)
+            )
+        ).fetchone()
+
+        if not order:
+            return {"error": "Order not found for this restaurant"}, 404
+
+        table_number = order.table_number
+        quantity = order.quantity
+
+        meal = Menu.query.get(meal_id)
+        client = Client.query.get(client_id)
+
+        order_details = {
+            "client_id": client_id,
+            "client_name": client.name if client else "Unknown Client",
+            "restaurant_id": restaurant_id,
+            "meal_id": meal_id,
+            "meal_name": meal.name if meal else "Unknown Meal",
+            "category": meal.category if meal else "Unknown Category",
+            "table_number": table_number,
+            "quantity": quantity,
+            "price": meal.price if meal else "Unknown Price",
+            "total": meal.price * quantity if meal else "Unknown Total"
+        }
+
+        return {"order": order_details}, 200
+
+api.add_resource(RestaurantOrderGet, '/restaurant/<int:restaurant_id>/order/<int:client_id>/<int:meal_id>')
+
+# Restaurant Order Delete
+class RestaurantOrderDelete(Resource):
+    def delete(self, restaurant_id, order_id):
+        order = db.session.execute(
+            orders_association.select().where(
+                (orders_association.c.restaurant_id == restaurant_id) &
+                (orders_association.c.id == order_id)
+            )
+        ).fetchone()
+
+        if not order:
+            return {"error": "Order not found for this restaurant"}, 404
+
+        db.session.execute(
+            orders_association.delete().where(
+                (orders_association.c.restaurant_id == restaurant_id) &
+                (orders_association.c.id == order_id)
+            )
+        )
+        db.session.commit()
+
+        return {"message": "Order deleted successfully"}, 200
+api.add_resource(RestaurantOrderDelete, '/restaurant/<int:restaurant_id>/order/<int:order_id>/delete')
+
+# Restaurant Order Patch (update)
+# class OrderPatch(Resource):
+#     def patch(self, restaurant_id, order_id):
+#         data = request.get_json()
+
+#         # Get order details
+#         order = db.session.execute(
+#             orders_association.select().where(
+#                 (orders_association.c.restaurant_id == restaurant_id) &
+#                 (orders_association.c.id == order_id)
+#             )
+#         ).fetchone()
+
+#         if not order:
+#             return {"error": "Order not found for this restaurant"}, 404
+
+#         # Update fields if provided
+#         table_number = data.get("table_number", order[3])
+#         quantity = data.get("quantity", order[4])
+
+#         db.session.execute(
+#             orders_association.update().where(
+#                 (orders_association.c.restaurant_id == restaurant_id) &
+#                 (orders_association.c.id == order_id)
+#             ).values(table_number=table_number, quantity=quantity)
+#         )
+#         db.session.commit()
+
+#         return {"message": "Order updated successfully"}, 200
+
+# api.add_resource(OrderPatch, '/restaurant/<int:restaurant_id>/order/<int:order_id>/update')
+
+if __name__ == "__main__":
     app.run(debug=True, port=5555)
