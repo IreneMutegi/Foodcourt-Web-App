@@ -25,12 +25,13 @@ const Header = ({ setIsModalOpen }) => {
       <ul className="navList">
         {isRestaurantPage ? (
           <>
-            <li><Link href="/home" onClick={() => setIsOpen(false)}>Home</Link></li>
+            <li><Link href="/" onClick={() => setIsOpen(false)}>Home</Link></li>
             <li><Link href="/orders" onClick={() => setIsOpen(false)}>Orders</Link></li>
             <li><Link href="/logout" onClick={() => setIsOpen(false)}>Logout</Link></li>
           </>
         ) : (
           <>
+            <li><Link href="/" onClick={() => setIsOpen(false)}>Home</Link></li>
             <li><Link href="/cart" onClick={() => setIsOpen(false)}>Cart</Link></li>
             <li><Link href="/about" onClick={() => setIsOpen(false)}>About</Link></li>
             <li>
