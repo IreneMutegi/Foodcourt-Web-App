@@ -17,9 +17,9 @@ def seed_data():
 
         try:
             # Seeding Admins
-            admin1 = Admin.query.filter_by(email='admin1@example.com').first()
+            admin1 = Admin.query.filter_by(email='admin@gmail.com').first()
             if not admin1:
-                admin1 = Admin(name='Admin One', email='admin1@example.com', password='securepassword1')
+                admin1 = Admin(name='Admin One', email='admin@gmail.com', password='admin')
                 db.session.add(admin1)
                 db.session.commit()
                 print("Admin seeded.")

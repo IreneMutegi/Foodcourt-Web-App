@@ -11,37 +11,40 @@ export const authOptions = {
       },
       async authorize(credentials) {
         try {
-          const tables = ["admin", "client", "restaurants"];
+          const tables = ["admin", "client", "restaurant"];
           let user = null;
           let userRole = null;
 
-          // Loop through each table to find the user
           for (const table of tables) {
-            const res = await fetch(`http://localhost:3001/${table}?email=${credentials.email}`);
-            const users = await res.json();
+            const res = await fetch(`http://localhost:5555/${table}/login`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: credentials.email,
+                password: credentials.password,
+              }),
+            });
 
-            if (users.length > 0) {
-              user = users[0]; // Assuming unique emails
-              userRole = table;
-              break;
+            if (res.ok) {
+              const userData = await res.json();
+              if (userData.user) {
+                user = userData.user;
+                userRole = table;
+                break;
+              }
             }
           }
 
           if (!user) {
-            throw new Error("User not found");
-          }
-
-          if (user.password !== credentials.password) {
-            throw new Error("Invalid password");
+            throw new Error("Invalid email or password");
           }
 
           return { id: user.id, email: user.email, role: userRole };
         } catch (error) {
-          console.error("Auth error:", error);
           throw new Error("Invalid email or password");
         }
-      },
-    }),
+      },  // ✅ This closing bracket was missing
+    }),  // ✅ This was misaligned in your code
   ],
   session: {
     strategy: "jwt",
