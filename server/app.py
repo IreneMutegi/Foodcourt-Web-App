@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from models import db, Client, Admin, Restaurant, Menu, orders_association  
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://irene:password@localhost:5432/malldb'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://irene:irene@localhost:5432/malldb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -24,7 +24,6 @@ class UserLogin(Resource):
     
     def post(self, table):
         data = request.get_json()
-
         email = data.get("email")
         password = data.get("password")
 
@@ -49,7 +48,7 @@ class UserLogin(Resource):
 
         return {
             "message": f"{table.capitalize()} login successful!",
-            "user": {"id": user.id, "role": table}
+            "user": {"id": user.id, "email": user.email, "role": table}
         }, 200
 
     def get(self, table):
@@ -108,8 +107,30 @@ class UserSignUp(Resource):
         db.session.commit()
 
         return {"message": f"{table.capitalize()} signed up successfully!", "user": {"id": user.id, "role": table}}, 201
+    
+    def get(self, table):
+       
+        email = request.args.get("email")
 
+        if not email:
+            return {"message": "Email is required"}, 400
 
+        if table == "client":
+            user = Client.query.filter_by(email=email).first()
+        elif table == "restaurant":
+            user = Restaurant.query.filter_by(email=email).first()
+        elif table == "admin":
+            user = Admin.query.filter_by(email=email).first()
+        else:
+            return {"message": "Invalid user type"}, 400
+
+        if not user:
+            return {"message": "User not found"}, 404
+
+        return {
+            "message": f"{table.capitalize()} user found!",
+            "user": {"id": user.id, "email": user.email, "role": table}
+        }, 200
 
 api.add_resource(UserSignUp, "/<string:table>/signup")
 

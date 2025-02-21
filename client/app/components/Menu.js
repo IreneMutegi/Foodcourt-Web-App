@@ -1,6 +1,6 @@
 import "./Menu.css";
 import { useState } from "react";
-export default function Menu({ restaurant, onClose }) {
+export default function Menu({ restaurant, onClose, addToCart }) {
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [orderDetails, setOrderDetails] = useState({
@@ -19,10 +19,16 @@ export default function Menu({ restaurant, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Order submitted:", {
-      item: selectedItem,
-      ...orderDetails,
-    });
+    
+    const order = {
+      meal: selectedItem.name,
+      price: selectedItem.price,
+      quantity: parseInt(orderDetails.quantity),
+      total: selectedItem.price * parseInt(orderDetails.quantity),
+      tableNumber: orderDetails.tableNumber,
+    }
+
+    addToCart(order)
 
     setShowOrderForm(false);
     setOrderDetails({ quantity: "", tableNumber: "" });
@@ -86,7 +92,7 @@ export default function Menu({ restaurant, onClose }) {
               />
 
               <div className="form-buttons">
-                <button type="submit">Submit Order</button>
+                <button type="submit">Add Meal</button>
                 <button type="button" onClick={() => setShowOrderForm(false)}>
                   Cancel
                 </button>

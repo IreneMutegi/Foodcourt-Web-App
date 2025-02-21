@@ -1,15 +1,24 @@
 /* Base Header Styling */
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    background: #333;
-    color: white;
-    position: relative;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Drop shadow added */
-  }
-  
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: #333;
+  color: white;
+  position: fixed; /* Keeps the header fixed at the top */
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000; /* Ensures the header stays above other elements */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Drop shadow added */
+}
+
+/* Add padding to the body to prevent content from being hidden behind the fixed header */
+body {
+  padding-top: 70px; /* Adjust according to the header height */
+}
+
   /* Logo Styling */
   .logo {
     font-size: 1.5rem;
