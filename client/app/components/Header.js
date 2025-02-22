@@ -5,13 +5,17 @@ import { FiMenu, FiX } from "react-icons/fi"; // Import icons for hamburger menu
 import LoginModal from "./LoginModal";
 import "./Header.css";
 import { usePathname } from "next/navigation"; // Import usePathname to get the current route
+import { signOut } from "next-auth/react";
 
 const Header = ({ setIsModalOpen }) => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname(); // Get the current route
   const isRestaurantPage = pathname.startsWith("/restaurant");
   const isAdminPage = pathname.startsWith("/admin"); // Check if it's an admin page
-
+  const logout =()=>{
+    signOut({callbackUrl:"/"})
+    setIsOpen(false)
+  }
   return (
     <header className="header">
       <div className="logo">Next Gen</div>
@@ -25,7 +29,7 @@ const Header = ({ setIsModalOpen }) => {
       <nav className={isOpen ? "nav open" : "nav"}>
         <ul className="navList">
           {isAdminPage ? (
-            <li><Link href="/logout" onClick={() => setIsOpen(false)}>Logout</Link></li>
+            <li><Link  onClick={() => logout()}>Logout</Link></li>
           ) : isRestaurantPage ? (
             <>
               <li><Link href="/restaurant" onClick={() => setIsOpen(false)}>Home</Link></li>

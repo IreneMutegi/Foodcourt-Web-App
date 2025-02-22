@@ -3,9 +3,11 @@ from flask_cors import CORS
 from flask_restful import Api, Resource
 from flask_migrate import Migrate
 from models import db, Client, Admin, Restaurant, Menu, orders_association  
+import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://irene:irene@localhost:5432/malldb'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'postgresql://irene:password@localhost:5432/malldb')
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -24,6 +26,7 @@ class UserLogin(Resource):
     
     def post(self, table):
         data = request.get_json()
+
         email = data.get("email")
         password = data.get("password")
 
@@ -48,7 +51,7 @@ class UserLogin(Resource):
 
         return {
             "message": f"{table.capitalize()} login successful!",
-            "user": {"id": user.id, "email": user.email, "role": table}
+            "user": {"id": user.id, "role": table}
         }, 200
 
     def get(self, table):
@@ -107,30 +110,8 @@ class UserSignUp(Resource):
         db.session.commit()
 
         return {"message": f"{table.capitalize()} signed up successfully!", "user": {"id": user.id, "role": table}}, 201
-    
-    def get(self, table):
-       
-        email = request.args.get("email")
 
-        if not email:
-            return {"message": "Email is required"}, 400
 
-        if table == "client":
-            user = Client.query.filter_by(email=email).first()
-        elif table == "restaurant":
-            user = Restaurant.query.filter_by(email=email).first()
-        elif table == "admin":
-            user = Admin.query.filter_by(email=email).first()
-        else:
-            return {"message": "Invalid user type"}, 400
-
-        if not user:
-            return {"message": "User not found"}, 404
-
-        return {
-            "message": f"{table.capitalize()} user found!",
-            "user": {"id": user.id, "email": user.email, "role": table}
-        }, 200
 
 api.add_resource(UserSignUp, "/<string:table>/signup")
 
@@ -140,10 +121,10 @@ class ClientList(Resource):
     def get(self):
         clients = Client.query.all()
         if not clients:
-            return {"message": "No clients found"}, 404  # No jsonify needed
+            return {"message": "No clients found"}, 404 
         
         clients_list = [{"id": c.id, "name": c.name, "email": c.email} for c in clients]
-        return clients_list, 200  # Flask-RESTful will serialize it automatically
+        return clients_list, 200  
 
 api.add_resource(ClientList, '/clients')
 
@@ -168,16 +149,11 @@ api.add_resource(RegisterRestaurant, '/register/restaurant')
 class RestaurantList(Resource):
     def get(self):
         restaurants = Restaurant.query.all()
-        
-        if not restaurants:
-            return {"message": "No restaurants found"}, 404  # No need for jsonify
-        
-        return [{
+        return jsonify([{
             "id": r.id, "name": r.name, "cuisine": r.cuisine, "email": r.email
-        } for r in restaurants], 200  # Just return the list
+        } for r in restaurants]), 200
 
 api.add_resource(RestaurantList, '/restaurants')
-
 
 class RestaurantUpdate(Resource):
     def patch(self):
