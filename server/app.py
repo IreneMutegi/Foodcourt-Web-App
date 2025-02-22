@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_restful import Api, Resource
 from flask_migrate import Migrate
-from server.models import db, Client, Admin, Restaurant, Menu, orders_association  
+from models import db, Client, Admin, Restaurant, Menu, orders_association  
 import os
 
 app = Flask(__name__)
