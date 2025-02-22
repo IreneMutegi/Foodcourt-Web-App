@@ -6,7 +6,7 @@ from server.models import db, Client, Admin, Restaurant, Menu, orders_associatio
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'postgresql://irene:password@localhost:5432/malldb')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'postgresql://irene:password@foodcourt-db-instance.onrender.com:5432/malldb')
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
