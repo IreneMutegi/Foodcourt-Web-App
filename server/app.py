@@ -148,10 +148,22 @@ api.add_resource(RegisterRestaurant, '/register/restaurant')
 
 class RestaurantList(Resource):
     def get(self):
+        # Fetch all restaurants
         restaurants = Restaurant.query.all()
-        return jsonify([{
-            "id": r.id, "name": r.name, "cuisine": r.cuisine, "email": r.email
-        } for r in restaurants]), 200
+        
+        if not restaurants:
+            return {"message": "No restaurants found"}, 404
+        
+        
+        restaurant_list = [{
+            "id": r.id,
+            "name": r.name,
+            "cuisine": r.cuisine,
+            "email": r.email
+        } for r in restaurants]
+        
+        
+        return restaurant_list, 200
 
 api.add_resource(RestaurantList, '/restaurants')
 
