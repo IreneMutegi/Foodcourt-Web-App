@@ -128,12 +128,6 @@ class ClientList(Resource):
 
 api.add_resource(ClientList, '/clients')
 
-
-from flask_restful import Resource, Api
-from flask import request, jsonify
-
-api = Api(app)
-
 class RestaurantResource(Resource):
     def post(self):
         data = request.get_json()
@@ -146,11 +140,9 @@ class RestaurantResource(Resource):
         admin_id = data.get('admin_id')
         image_url = data.get('image_url')
 
-        # Validation checks
         if not name or not email or not password or not admin_id:
             return {"error": "Missing required fields"}, 400
 
-        # Create a new restaurant object
         restaurant = Restaurant(
             name=name,
             email=email,
@@ -282,14 +274,17 @@ class Menu(Resource):
         category = data.get('category')
         price = data.get('price')
         image_url = data.get('image_url')
-        
+
+    
         restaurant = Restaurant.query.get(restaurant_id)
         if not restaurant:
             return {"error": "Restaurant not found"}, 404
 
+       
         meal = Menu(name=name, category=category, price=price, image_url=image_url, restaurant_id=restaurant_id)
         db.session.add(meal)
         db.session.commit()
+
         return {"message": "Meal added successfully"}, 201
 
     def patch(self, restaurant_id, meal_id):
@@ -299,10 +294,12 @@ class Menu(Resource):
         price = data.get('price')
         image_url = data.get('image_url')
 
+        
         meal = Menu.query.filter_by(id=meal_id, restaurant_id=restaurant_id).first()
         if not meal:
             return {"error": "Meal not found"}, 404
-        
+
+        # Update the meal properties
         if name:
             meal.name = name
         if category:
@@ -313,18 +310,24 @@ class Menu(Resource):
             meal.image_url = image_url
 
         db.session.commit()
+
         return {"message": "Meal updated successfully"}, 200
 
     def delete(self, restaurant_id, meal_id):
+       
         meal = Menu.query.filter_by(id=meal_id, restaurant_id=restaurant_id).first()
         if not meal:
             return {"error": "Meal not found"}, 404
 
+       
         db.session.delete(meal)
         db.session.commit()
+
         return {"message": "Meal deleted successfully"}, 200
 
-api.add_resource(Menu, '/menu/restaurant/<int:restaurant_id>/meal', '/menu/restaurant/<int:restaurant_id>/meal/<int:meal_id>')
+# Define the route for Menu with the restaurant ID and meal ID for PATCH and DELETE
+api.add_resource(Menu, '/menu/restaurant/<int:restaurant_id>/meal/<int:meal_id>', '/menu/restaurant/<int:restaurant_id>')
+
 
 #for a single meal associated to a restaurant
 # class Meal(Resource):
