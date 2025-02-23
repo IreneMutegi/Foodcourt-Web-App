@@ -129,68 +129,54 @@ class ClientList(Resource):
 api.add_resource(ClientList, '/clients')
 
 
-class Restaurant(Resource):
-    
-    # POST request for creating a new restaurant
+from flask_restful import Resource, Api
+from flask import request, jsonify
+
+api = Api(app)
+
+class RestaurantResource(Resource):
     def post(self):
         data = request.get_json()
 
+        # Get data from the body
         name = data.get('name')
         email = data.get('email')
         password = data.get('password')
         cuisine = data.get('cuisine')
         admin_id = data.get('admin_id')
-        image_url = data.get('image_url')  
+        image_url = data.get('image_url')
 
-        # Validation
-        if not name or not email or not password or not cuisine or not admin_id:
-            return {"message": "All fields are required"}, 400
+        # Validation checks
+        if not name or not email or not password or not admin_id:
+            return {"error": "Missing required fields"}, 400
 
-        # Creating a new restaurant
+        # Create a new restaurant object
         restaurant = Restaurant(
             name=name,
             email=email,
             password=password,
             cuisine=cuisine,
             admin_id=admin_id,
-            image_url=image_url 
+            image_url=image_url
         )
-        
+
+      
         db.session.add(restaurant)
         db.session.commit()
 
-        # Return a dictionary, Flask automatically serializes it to JSON
-        return {
-            "message": "Restaurant registered successfully", 
-            "restaurant": {
-                "id": restaurant.id,
-                "name": restaurant.name,
-                "email": restaurant.email,
-                "cuisine": restaurant.cuisine,
-                "image_url": restaurant.image_url
-            }
-        }, 201
+        return {"message": "Restaurant registered successfully"}, 201
 
-    # GET request to get all restaurants
     def get(self):
         restaurants = Restaurant.query.all()
 
         if not restaurants:
             return {"message": "No restaurants found"}, 404
-        
-        # Prepare the response as a list of dictionaries
-        restaurant_list = [{
-            "id": r.id,
-            "name": r.name,
-            "cuisine": r.cuisine,
-            "email": r.email,
-            "image_url": r.image_url  
-        } for r in restaurants]
 
-        # Return the list as JSON automatically handled by Flask
+        # Create a list of restaurants
+        restaurant_list = [{"id": r.id, "name": r.name, "cuisine": r.cuisine, "email": r.email, "image_url": r.image_url} for r in restaurants]
+
         return restaurant_list, 200
 
-    # PATCH request for updating restaurant details
     def patch(self):
         data = request.get_json()
 
@@ -198,16 +184,13 @@ class Restaurant(Resource):
         name = data.get('name')
         cuisine = data.get('cuisine')
 
-        # Validation
         if not restaurant_id:
             return {"error": "Restaurant ID is required for update"}, 400
 
-        # Fetch restaurant by ID
         restaurant = Restaurant.query.get(restaurant_id)
         if not restaurant:
             return {"error": "Restaurant not found"}, 404
 
-        # Update restaurant fields
         if name:
             restaurant.name = name
         if cuisine:
@@ -215,28 +198,15 @@ class Restaurant(Resource):
 
         db.session.commit()
 
-        # Return the updated restaurant in dictionary format
-        return {
-            "message": "Restaurant updated successfully",
-            "restaurant": {
-                "id": restaurant.id,
-                "name": restaurant.name,
-                "email": restaurant.email,
-                "cuisine": restaurant.cuisine,
-                "image_url": restaurant.image_url
-            }
-        }, 200
+        return {"message": "Restaurant updated successfully"}, 200
 
-    # DELETE request to delete a restaurant by ID
     def delete(self):
         data = request.get_json()
         restaurant_id = data.get('id')
 
-        # Validation
         if not restaurant_id:
             return {"error": "Restaurant ID is required for deletion"}, 400
 
-        # Fetch restaurant by ID
         restaurant = Restaurant.query.get(restaurant_id)
         if not restaurant:
             return {"error": "Restaurant not found"}, 404
@@ -247,7 +217,7 @@ class Restaurant(Resource):
         return {"message": "Restaurant deleted successfully"}, 200
 
 
-api.add_resource(Restaurant, '/restaurants')
+api.add_resource(RestaurantResource, '/restaurants')
 
 
 
