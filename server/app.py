@@ -159,6 +159,9 @@ class RestaurantList(Resource):
     def get(self):
         restaurants = Restaurant.query.all()
 
+        if not restaurants:
+            return {"message": "No restaurants found"}, 404
+        
         restaurant_list = [{
             "id": r.id,
             "name": r.name,
@@ -166,9 +169,10 @@ class RestaurantList(Resource):
             "email": r.email
         } for r in restaurants]
 
-        return jsonify(restaurant_list), 200
+        return restaurant_list, 200  
 
 api.add_resource(RestaurantList, '/restaurants')
+
 
 
 class RestaurantUpdate(Resource):
@@ -197,6 +201,21 @@ class RestaurantUpdate(Resource):
 
 api.add_resource(RestaurantUpdate, '/restaurants/update')
 
+class RestaurantByID(Resource):
+    def get(self, id):
+        restaurant = Restaurant.query.get(id)
+
+        if not restaurant:
+            return {"message": "Restaurant not found"}, 404
+        
+        return {
+            "id": restaurant.id,
+            "name": restaurant.name,
+            "cuisine": restaurant.cuisine,
+            "email": restaurant.email
+        }, 200
+
+api.add_resource(RestaurantByID, '/restaurants/<int:id>')
 
 
 
@@ -376,28 +395,35 @@ class ClientOrder(Resource):
             return {"error": str(e)}, 500
 
     def get(self):
+        # Query all the orders from the orders_association table
         orders = db.session.query(orders_association).all()
 
         if not orders:
             return {"message": "No orders found"}, 404
 
+        # Create a list of orders formatted as dictionaries
         order_list = []
         for order in orders:
             restaurant = Restaurant.query.get(order.restaurant_id)
             meal = Menu.query.get(order.meal_id)
             client = Client.query.get(order.client_id)
+
+            # Check if any of the related objects are None
+            if not restaurant or not meal or not client:
+                continue  # Skip this order if related objects are missing
+
             order_list.append({
                 "order_id": order.id,
-                "client_name": client.name,  # Optional, showing client name
+                "client_name": client.name,
                 "restaurant_name": restaurant.name,
                 "meal_name": meal.name,
                 "quantity": order.quantity,
                 "total": order.total,
                 "table_number": order.table_number,
-                "status": order.status  # Optional if you have an order status
+                "status": order.status
             })
 
-        return {"orders": order_list}, 200
+        return order_list, 200  # Return the list of orders
 
 api.add_resource(ClientOrder, '/orders')
 
