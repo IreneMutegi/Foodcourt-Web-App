@@ -117,6 +117,16 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
   }
 };
 
+const handleClose = () => {
+  setSelectedRole(null);  
+  setHasAccount(true); 
+  setFormData({ name: "", email: "", password: "" }); 
+  setError(""); 
+  setSuccessMessage(""); 
+  onClose();  
+};
+
+
 
   // Redirect user based on role
   const redirectUser = (role) => {
@@ -137,7 +147,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-content">
               {/* Close Button */}
-              <button className="close-btn" onClick={onClose}>X</button>
+              <button className="close-btn" onClick={handleClose}>X</button>
   
               {/* Role Selection */}
               <div className="role-selection">
@@ -158,7 +168,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
       {selectedRole && (
         <div className="auth-form-container-overlay">
           <div className="auth-form-container">
-            <button className="close-btn" onClick={onClose}>X</button>
+            <button className="close-btn" onClick={handleClose}>X</button>
             <h3 className="text-white">{hasAccount ? `Sign In` : `Sign Up`} as {selectedRole}</h3>
             {successMessage && <p className="success-text">{successMessage}</p>}
             <form onSubmit={handleAuth} className="flex flex-col items-center w-full">

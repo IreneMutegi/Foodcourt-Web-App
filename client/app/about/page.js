@@ -61,10 +61,9 @@ export default function AboutPage() {
 
 // Restaurant Data
 const restaurants = [
-  { image: "/restaurants/chickeninn.jpg" },
-  { image: "/restaurants/pizzainn.jpg"},
   {image: "/restaurants/artcaffe.webp"},
-  
+  { image: "/restaurants/chickeninn.jpg" },
+  { image: "/restaurants/pizzainn.jpg"}, 
 ];
 
 // Inline styles
@@ -75,7 +74,11 @@ const styles = {
     margin: "auto",
     fontFamily: "Arial, sans-serif",
     textAlign: "center",
-    background: "#5655553f",
+    backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/restaurants/mall.png')", // Set background image
+    backgroundSize: "cover", // Cover the entire screen
+    backgroundPosition: "center", // Center the image
+    backgroundRepeat: "no-repeat", // Prevent repetition
+    minHeight: "auto",
   },
   heading: {
     fontSize: "4em",
@@ -89,7 +92,7 @@ const styles = {
   text: {
     fontSize: "1.4em",
     lineHeight: "1.6",
-    color: "#666",
+    color: "white",
   },
   list: {
     textAlign: "center",
@@ -97,6 +100,7 @@ const styles = {
     margin: "10px 0",
     paddingLeft: "0",
     listStyle: "none",
+    color: "white"
   },
   imageContainer: {
     display: "grid",
