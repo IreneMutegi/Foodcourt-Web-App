@@ -1,4 +1,4 @@
-"use client"; // Ensure it's a client component
+"use client"; 
 import { useState } from "react";
 import Link from "next/link";
 import { FiMenu, FiX } from "react-icons/fi"; // Import icons for hamburger menu
