@@ -129,10 +129,9 @@ class ClientList(Resource):
 api.add_resource(ClientList, '/clients')
 
 
-# Restaurant Registration
 class Restaurant(Resource):
     
-    # POST request for creating a new restaurant
+   
     def post(self):
         data = request.get_json()
 
@@ -147,7 +146,7 @@ class Restaurant(Resource):
         if not name or not email or not password or not cuisine or not admin_id:
             return {"message": "All fields are required"}, 400
 
-        # Creating a new restaurant
+        
         restaurant = Restaurant(
             name=name,
             email=email,
@@ -160,14 +159,16 @@ class Restaurant(Resource):
         db.session.add(restaurant)
         db.session.commit()
 
-        return {"message": "Restaurant registered successfully", 
-                "restaurant": {
-                    "id": restaurant.id,
-                    "name": restaurant.name,
-                    "email": restaurant.email,
-                    "cuisine": restaurant.cuisine,
-                    "image_url": restaurant.image_url
-                }
+       
+        return {
+            "message": "Restaurant registered successfully", 
+            "restaurant": {
+                "id": restaurant.id,
+                "name": restaurant.name,
+                "email": restaurant.email,
+                "cuisine": restaurant.cuisine,
+                "image_url": restaurant.image_url
+            }
         }, 201
 
     # GET request to get all restaurants
@@ -177,6 +178,7 @@ class Restaurant(Resource):
         if not restaurants:
             return {"message": "No restaurants found"}, 404
         
+    
         restaurant_list = [{
             "id": r.id,
             "name": r.name,
@@ -185,9 +187,10 @@ class Restaurant(Resource):
             "image_url": r.image_url  
         } for r in restaurants]
 
+   
         return restaurant_list, 200
 
-    # PATCH request for updating restaurant details
+ 
     def patch(self):
         data = request.get_json()
 
@@ -195,11 +198,11 @@ class Restaurant(Resource):
         name = data.get('name')
         cuisine = data.get('cuisine')
 
-        # Validation
+      
         if not restaurant_id:
             return {"error": "Restaurant ID is required for update"}, 400
 
-        # Fetch restaurant by ID
+       
         restaurant = Restaurant.query.get(restaurant_id)
         if not restaurant:
             return {"error": "Restaurant not found"}, 404
@@ -212,6 +215,7 @@ class Restaurant(Resource):
 
         db.session.commit()
 
+       
         return {
             "message": "Restaurant updated successfully",
             "restaurant": {
@@ -228,11 +232,11 @@ class Restaurant(Resource):
         data = request.get_json()
         restaurant_id = data.get('id')
 
-        # Validation
+    
         if not restaurant_id:
             return {"error": "Restaurant ID is required for deletion"}, 400
 
-        # Fetch restaurant by ID
+    
         restaurant = Restaurant.query.get(restaurant_id)
         if not restaurant:
             return {"error": "Restaurant not found"}, 404
@@ -242,7 +246,9 @@ class Restaurant(Resource):
 
         return {"message": "Restaurant deleted successfully"}, 200
 
+
 api.add_resource(Restaurant, '/restaurants')
+
 
 class RestaurantByID(Resource):
     def get(self, id):
