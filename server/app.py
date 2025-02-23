@@ -251,12 +251,15 @@ class RestaurantByCuisine(Resource):
 api.add_resource(RestaurantByCuisine, '/restaurants/cuisine/<string:cuisine>')
 
 
+
 class Menu(Resource):
     def get(self, restaurant_id):
+        # Fetch meals associated with the given restaurant_id
         meals = Menu.query.filter_by(restaurant_id=restaurant_id).all()
         if not meals:
-            return {"error": "No meals found for this restaurant"}, 404
+            return jsonify({"error": "No meals found for this restaurant"}), 404
 
+        # Prepare a list of meal data to return
         meal_list = []
         for meal in meals:
             meal_list.append({
@@ -266,40 +269,42 @@ class Menu(Resource):
                 "price": meal.price,
                 "image_url": meal.image_url
             })
-        return {"meals": meal_list}, 200
+        return jsonify({"meals": meal_list}), 200
 
     def post(self, restaurant_id):
+        # Get the data from the request
         data = request.get_json()
         name = data.get('name')
         category = data.get('category')
         price = data.get('price')
         image_url = data.get('image_url')
 
-    
+        # Check if the restaurant exists
         restaurant = Restaurant.query.get(restaurant_id)
         if not restaurant:
-            return {"error": "Restaurant not found"}, 404
+            return jsonify({"error": "Restaurant not found"}), 404
 
-       
+        # Create and add the new meal
         meal = Menu(name=name, category=category, price=price, image_url=image_url, restaurant_id=restaurant_id)
         db.session.add(meal)
         db.session.commit()
 
-        return {"message": "Meal added successfully"}, 201
+        return jsonify({"message": "Meal added successfully"}), 201
 
     def patch(self, restaurant_id, meal_id):
+        # Get the data from the request
         data = request.get_json()
         name = data.get('name')
         category = data.get('category')
         price = data.get('price')
         image_url = data.get('image_url')
 
-        
+        # Find the meal for the given restaurant_id and meal_id
         meal = Menu.query.filter_by(id=meal_id, restaurant_id=restaurant_id).first()
         if not meal:
-            return {"error": "Meal not found"}, 404
+            return jsonify({"error": "Meal not found"}), 404
 
-        # Update the meal properties
+        # Update the meal attributes if provided
         if name:
             meal.name = name
         if category:
@@ -311,22 +316,23 @@ class Menu(Resource):
 
         db.session.commit()
 
-        return {"message": "Meal updated successfully"}, 200
+        return jsonify({"message": "Meal updated successfully"}), 200
 
     def delete(self, restaurant_id, meal_id):
-       
+        # Find the meal for the given restaurant_id and meal_id
         meal = Menu.query.filter_by(id=meal_id, restaurant_id=restaurant_id).first()
         if not meal:
-            return {"error": "Meal not found"}, 404
+            return jsonify({"error": "Meal not found"}), 404
 
-       
+        # Delete the meal
         db.session.delete(meal)
         db.session.commit()
 
-        return {"message": "Meal deleted successfully"}, 200
+        return jsonify({"message": "Meal deleted successfully"}), 200
 
-# Define the route for Menu with the restaurant ID and meal ID for PATCH and DELETE
+# Define the routes for Menu resource
 api.add_resource(Menu, '/menu/restaurant/<int:restaurant_id>/meal/<int:meal_id>', '/menu/restaurant/<int:restaurant_id>')
+
 
 
 #for a single meal associated to a restaurant
