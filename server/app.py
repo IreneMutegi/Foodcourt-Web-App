@@ -131,15 +131,24 @@ api.add_resource(ClientList, '/clients')
 
 # Restaurant Registration
 class RegisterRestaurant(Resource):
-    def post(self):
+   def post(self):
         data = request.get_json()
         name = data.get('name')
         email = data.get('email')
         password = data.get('password')
         cuisine = data.get('cuisine')
-        admin_id = admin_id = data.get('admin_id') 
+        admin_id = data.get('admin_id')
+        image_url = data.get('image_url')  
+
+        restaurant = Restaurant(
+            name=name,
+            email=email,
+            password=password,
+            cuisine=cuisine,
+            admin_id=admin_id,
+            image_url=image_url 
+        )
         
-        restaurant = Restaurant(name=name, email=email, password=password, cuisine=cuisine, admin_id=admin_id)
         db.session.add(restaurant)
         db.session.commit()
         return {"message": "Restaurant registered successfully"}, 201
@@ -148,7 +157,6 @@ api.add_resource(RegisterRestaurant, '/register/restaurant')
 
 class RestaurantList(Resource):
     def get(self):
-        # Fetch all restaurants
         restaurants = Restaurant.query.all()
 
         restaurant_list = [{
@@ -325,7 +333,8 @@ api.add_resource(OrderGetById, '/orders/<int:order_id>')
 
 
 
-class ClientOrderPost(Resource):
+class ClientOrder(Resource):
+    # POST request to create an order
     def post(self):
         data = request.get_json()
 
@@ -367,7 +376,32 @@ class ClientOrderPost(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-api.add_resource(ClientOrderPost, '/orders')
+    # GET request to retrieve all orders
+    def get(self):
+        orders = db.session.query(orders_association).all()
+
+        if not orders:
+            return {"message": "No orders found"}, 404
+
+        order_list = []
+        for order in orders:
+            restaurant = Restaurant.query.get(order.restaurant_id)
+            meal = Menu.query.get(order.meal_id)
+            client = Client.query.get(order.client_id)
+            order_list.append({
+                "order_id": order.id,
+                "client_name": client.name,  # Optional, showing client name
+                "restaurant_name": restaurant.name,
+                "meal_name": meal.name,
+                "quantity": order.quantity,
+                "total": order.total,
+                "table_number": order.table_number,
+                "status": order.status  # Optional if you have an order status
+            })
+
+        return {"orders": order_list}, 200
+
+api.add_resource(ClientOrder, '/orders')
 
 
 class OrderPatch(Resource):
