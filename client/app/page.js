@@ -4,18 +4,14 @@ import restaurants from "../public/data";
 import Menu from "./components/Menu";
 import Cart from "./cart/page";
 import { useState } from "react";
-import { useCart } from "./context/CartContext";
 import "./page.css";
-
 export default function Home() {
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
-  const { cart, setCart } = useCart();
+  const [cart, setCart] = useState([]);
 
   const addToCart = (order) => {
-    console.log("Adding order", order);
     setCart((prevCart) => [...prevCart, order]);
   };
-  console.log(cart);
   return (
     <>
       <section>
