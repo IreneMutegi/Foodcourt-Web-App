@@ -334,7 +334,6 @@ api.add_resource(OrderGetById, '/orders/<int:order_id>')
 
 
 class ClientOrder(Resource):
-    # POST request to create an order
     def post(self):
         data = request.get_json()
 
@@ -376,7 +375,6 @@ class ClientOrder(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-    # GET request to retrieve all orders
     def get(self):
         orders = db.session.query(orders_association).all()
 
