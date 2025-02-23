@@ -3,10 +3,6 @@
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
-    height: auto; /* Ensures it grows with content */
-    min-height: 100vh; /* Ensures it at least fills the screen */
-    display: flex;
-    flex-direction: column; /* Ensures children stack properly */
   }
   
   /* Header */

@@ -2,11 +2,10 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://127.0.0.1:5555",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "PORT=3000 next start",
+    "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {

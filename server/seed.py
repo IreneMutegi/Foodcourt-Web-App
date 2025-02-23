@@ -3,10 +3,12 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from models import db, Admin, Client, Restaurant, Menu, orders_association
 
+# Initialize Flask and SQLAlchemy once
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://irene:password@localhost:5432/malldb'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://irene:password@localhost/malldb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Use the same `db` instance from models, no need to create a new one here
 db.init_app(app)
 
 def seed_data():
@@ -15,9 +17,9 @@ def seed_data():
 
         try:
             # Seeding Admins
-            admin1 = Admin.query.filter_by(email='admin@gmail.com').first()
+            admin1 = Admin.query.filter_by(email='admin1@example.com').first()
             if not admin1:
-                admin1 = Admin(name='Admin One', email='admin@gmail.com', password='admin')
+                admin1 = Admin(name='Admin One', email='admin1@example.com', password='securepassword1')
                 db.session.add(admin1)
                 db.session.commit()
                 print("Admin seeded.")
@@ -46,14 +48,14 @@ def seed_data():
             db.session.commit()
             print("Restaurants seeded.")
 
-            # Seeding Menu Items (✅ Fix: Use `restaurant_id`)
+            # Seeding Menu Items
             menu1 = Menu.query.filter_by(name='Pasta Carbonara').first()
             menu2 = Menu.query.filter_by(name='Sushi Roll').first()
             if not menu1:
-                menu1 = Menu(name='Pasta Carbonara', price=15, category='Main Course', restaurant_id=restaurant1.id)  # ✅ Fixed
+                menu1 = Menu(name='Pasta Carbonara', price=15, category='Main Course', restaurant=restaurant1)
                 db.session.add(menu1)
             if not menu2:
-                menu2 = Menu(name='Sushi Roll', price=12, category='Appetizer', restaurant_id=restaurant2.id)  # ✅ Fixed
+                menu2 = Menu(name='Sushi Roll', price=12, category='Appetizer', restaurant=restaurant2)
                 db.session.add(menu2)
             db.session.commit()
             print("Menus seeded.")
@@ -67,24 +69,21 @@ def seed_data():
             ).fetchone()
 
             if not order_exists:
+                # Add the `meal_id` (menu item id) for each order
                 db.session.execute(orders_association.insert().values(
                     client_id=client1.id, 
                     restaurant_id=restaurant1.id, 
-                    meal_id=menu1.id,
                     table_number=5, 
                     quantity=2,
-                    price=15,
-                    total=30
+                    meal_id=menu1.id  # Specify the meal_id for the order
                 ))
 
                 db.session.execute(orders_association.insert().values(
                     client_id=client2.id, 
                     restaurant_id=restaurant2.id, 
-                    meal_id=menu2.id,
                     table_number=3, 
                     quantity=1,
-                    price=12,
-                    total=12
+                    meal_id=menu2.id  # Specify the meal_id for the order
                 ))
 
                 db.session.commit()
@@ -98,5 +97,6 @@ def seed_data():
             db.session.rollback()
             print(f"Error: Integrity constraint violation. Rolling back. Details: {e}")
 
-if __name__ == '__main__':  # ✅ Fixed typo (should be __main__, not 'main')
+
+if __name__ == '__main__':
     seed_data()

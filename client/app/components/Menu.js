@@ -14,21 +14,22 @@ export default function Menu({ restaurant, onClose, addToCart }) {
   };
 
   const handleChange = (e) => {
-    setOrderDetails({ ...orderDetails, [e.target.name]: [e.target.value] });
+    setOrderDetails({ ...orderDetails, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const order = {
       meal: selectedItem.name,
       price: selectedItem.price,
-      quantity: parseInt(orderDetails.quantity),
+      quantity: parseInt(orderDetails.quantity, 10),
       total: selectedItem.price * parseInt(orderDetails.quantity),
       tableNumber: orderDetails.tableNumber,
-    }
+    };
 
-    addToCart(order)
+    addToCart(order);
+    alert("Meal added to cart");
 
     setShowOrderForm(false);
     setOrderDetails({ quantity: "", tableNumber: "" });
