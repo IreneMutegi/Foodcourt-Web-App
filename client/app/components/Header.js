@@ -1,7 +1,7 @@
 "use client"; 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FiMenu, FiX } from "react-icons/fi"; // Import icons for hamburger menu
+import { FiMenu, FiX, FiUser } from "react-icons/fi"; // Import icons for hamburger menu
 import LoginModal from "./LoginModal";
 import "./Header.css";
 import { usePathname } from "next/navigation"; // Import usePathname to get the current route
@@ -14,6 +14,24 @@ const Header = ({ setIsModalOpen }) => {
   const isAdminPage = pathname.startsWith("/admin"); // Check if it's an admin page
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { data: session } = useSession();
+  const [showWelcome, setShowWelcome] = useState(true);
+
+  useEffect(() => {
+    if (session) {
+      setShowWelcome(true); // Show welcome when user logs in
+      const timer = setTimeout(() => {
+        setShowWelcome(false); // Hide welcome after 3 seconds
+      }, 3000);
+
+      return () => clearTimeout(timer); // Cleanup timer on re-renders
+    }
+  }, [session]); // Runs every time session changes
+
+  // Close dropdown when navigating to a different page
+  useEffect(() => {
+    setDropdownOpen(false);
+  }, [pathname]); // Runs whenever the pathname changes
+
 
 
   const logout =()=>{
@@ -48,7 +66,7 @@ const Header = ({ setIsModalOpen }) => {
                 {session ? (
                   <div className="user-container">
                     {/* Name Button to Toggle Dropdown */}
-                    <button className="name-btn" onClick={() => setDropdownOpen(!dropdownOpen)}>{session.user.name}</button>
+                    <button className="name-btn" onClick={() => setDropdownOpen(!dropdownOpen)}> {showWelcome ? `Welcome ${session.user.name}` : <FiUser size={20} />}</button>
                     {dropdownOpen && (
                       <div className="dropdown-menu">
                         <button onClick={logout}>Logout</button>
