@@ -1,49 +1,105 @@
-
 "use client";
-import restaurants from "../public/data";
-import Menu from "./components/Menu";
-import Cart from "./cart/page";
-import { useState } from "react";
 import "./page.css";
-export default function Home() {
-  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
-  const [cart, setCart] = useState([]);
+import { FcEmptyTrash } from "react-icons/fc";
+import { useCart } from "../context/CartContext-temp";
 
-  const addToCart = (order) => {
-    setCart((prevCart) => [...prevCart, order]);
+export default function Cart() {
+  const { cart, setCart } = useCart();
+  console.log("cart in Cart page", cart);
+
+  const removeItem = (index) => {
+    setCart((prevCart) => prevCart.filter((_, i) => i !== index));
   };
+
+  const updateCartItem = (index, field, value) => {
+    setCart((prevCart) =>
+      prevCart.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              [field]: value,
+              total:
+                item.price * (field === "quantity" ? value : item.quantity),
+            }
+          : item
+      )
+    );
+  };
+
+  const totalAmount = parseFloat(
+    cart.reduce((sum, item) => sum + item.total, 0).toFixed(2)
+  );
+  if (cart.length === 0) {
+    return (
+      <div className="empty-cart">
+        <div>
+          <FcEmptyTrash size={60} color="#4db6ac" />
+          <p>Your Cart is empty</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <>
-      <section>
-        <div className="search-form-container">
-          <h3>RESTAURANTS</h3>
-          <form>
-            <input type="text" placeholder="search (cuisine/name/category)" />
-          </form>
-        </div>
-        <div className="restaurant-card-container">
-          {restaurants.map((restaurant, index) => (
-            <div
-              className="restaurant-card"
-              key={index}
-              onClick={() => setSelectedRestaurant(restaurant)}
-            >
-              <div className="image-container">
-                <img src={restaurant.image} alt={restaurant.name} />
-              </div>
-              <p>{restaurant.name}</p>
-            </div>
+    <div className="cart-container">
+      <h2>Cart</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Meal</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Table Number</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {cart.map((item, index) => (
+            <tr key={index}>
+              <td>{item.meal}</td>
+              <td>{item.price}</td>
+              <td>
+                <input
+                  type="number"
+                  placeholder="Quantity"
+                  value={item.quantity}
+                  onChange={(e) =>
+                    updateCartItem(
+                      index,
+                      "quantity",
+                      parseInt(e.target.value) || 1
+                    )
+                  }
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  placeholder="Table Number"
+                  value={item.tableNumber}
+                  onChange={(e) =>
+                    updateCartItem(index, "tableNumber", e.target.value)
+                  }
+                />
+              </td>
+              <td>{item.total}</td>
+              <td>
+                <button id="remove-btn" onClick={() => removeItem(index)}>
+                  X
+                </button>
+              </td>
+            </tr>
           ))}
-        </div>
-        {selectedRestaurant && (
-          <Menu
-            restaurant={selectedRestaurant}
-            onClose={() => setSelectedRestaurant(null)}
-            addToCart={addToCart}
-          />
-        )}
-        <Cart cart={cart} setCart={setCart} />
-      </section>
-    </>
+        </tbody>
+      </table>
+      <div className="checkout-section">
+        <h3>
+          Total: <span>{totalAmount}</span>
+        </h3>
+        <button id="make-order-btn" type="submit">
+          Make order
+        </button>
+      </div>
+    </div>
   );
 }

@@ -37,10 +37,12 @@
   cursor: pointer;
   background-color: #4db6ac;
   color: white;
-  border-radius: 5px;
   text-decoration: none;
   font-weight: bold;
   border: none;
+  padding: 5px;
+  width: 100px;
+  height: 30px;
 }
 .menu-container button#order-btn:hover {
   background-color: #388e8e;
