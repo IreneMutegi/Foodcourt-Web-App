@@ -51,7 +51,7 @@ class UserLogin(Resource):
 
         return {
             "message": f"{table.capitalize()} login successful!",
-            "user": {"id": user.id, "role": table}
+            "user": {"id": user.id, "email": user.email, "role": table, "name": user.name}
         }, 200
 
     def get(self, table):
@@ -283,7 +283,6 @@ class MenuResource(Resource):
         db.session.commit()
         return {"message": "Meal deleted successfully"}, 200
 
-# Define the route for Menu with the restaurant ID and meal ID for PATCH and DELETE
 api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:meal_id>', '/menu/restaurant/<int:restaurant_id>')
 
 
