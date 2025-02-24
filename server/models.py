@@ -31,7 +31,7 @@ class Admin(db.Model):
 
     restaurants = db.relationship('Restaurant', back_populates='admin')
 
-    def _repr_(self):
+    def __repr__(self):
         return f'<Admin {self.id}, {self.name}, {self.email}>'
 
 # Client Model
@@ -44,7 +44,7 @@ class Client(db.Model):
 
     restaurants = db.relationship('Restaurant', secondary=orders_association, back_populates='clients')
 
-    def _repr_(self):  
+    def __repr__(self):  
         return f'<Client {self.id}, {self.name}, {self.email}>'
 
 # Restaurant Model

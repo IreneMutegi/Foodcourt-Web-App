@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
-from models import db, Admin, Client, Restaurant, Menu, orders_association
+from server.models import db, Admin, Client, Restaurant, Menu, orders_association
 
 app = Flask(__name__)
 import os
@@ -48,7 +48,7 @@ def seed_data():
             db.session.commit()
             print("Restaurants seeded.")
 
-            # Seeding Menu Items (✅ Fix: Use restaurant_id)
+            # Seeding Menu Items (✅ Fix: Use `restaurant_id`)
             menu1 = Menu.query.filter_by(name='Pasta Carbonara').first()
             menu2 = Menu.query.filter_by(name='Sushi Roll').first()
             if not menu1:
