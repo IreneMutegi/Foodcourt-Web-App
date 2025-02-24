@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_restful import Api, Resource
 from flask_migrate import Migrate
-from models import db, Client, Admin, Restaurant, Menu, orders_association  
+from server.models import db, Client, Admin, Restaurant, Menu, orders_association  
 import os
 
 app = Flask(__name__)
@@ -21,11 +21,12 @@ class Welcome(Resource):
 
 api.add_resource(Welcome, '/')
 
-# UserLogin class handles user login (POST) and retrieving user details (GET) based on user type (client, restaurant, admin).
+
 class UserLogin(Resource):
     
     def post(self, table):
         data = request.get_json()
+
         email = data.get("email")
         password = data.get("password")
 
@@ -50,7 +51,7 @@ class UserLogin(Resource):
 
         return {
             "message": f"{table.capitalize()} login successful!",
-            "user": {"id": user.id, "email": user.email, "role": table, "name": user.name}
+            "user": {"id": user.id, "role": table}
         }, 200
 
     def get(self, table):
@@ -78,7 +79,6 @@ class UserLogin(Resource):
         }, 200
 api.add_resource(UserLogin, "/<string:table>/login")
 
-# UserSignUp class handles user registration (POST) for different user types (client, restaurant, admin).
 
 class UserSignUp(Resource):
     def post(self, table):
@@ -112,7 +112,10 @@ class UserSignUp(Resource):
         return {"message": f"{table.capitalize()} signed up successfully!", "user": {"id": user.id, "role": table}}, 201
 
 
+
 api.add_resource(UserSignUp, "/<string:table>/signup")
+
+
 
 class ClientList(Resource):
     def get(self):
@@ -166,47 +169,39 @@ class RestaurantResource(Resource):
 
         return restaurant_list, 200
 
-    def patch(self):
-        data = request.get_json()
+def patch(self, restaurant_id):
+    data = request.get_json()
 
-        restaurant_id = data.get('id')
-        name = data.get('name')
-        cuisine = data.get('cuisine')
+    name = data.get('name')
+    cuisine = data.get('cuisine')
 
-        if not restaurant_id:
-            return {"error": "Restaurant ID is required for update"}, 400
+    restaurant = Restaurant.query.get(restaurant_id)
+    if not restaurant:
+        return {"error": "Restaurant not found"}, 404
 
-        restaurant = Restaurant.query.get(restaurant_id)
-        if not restaurant:
-            return {"error": "Restaurant not found"}, 404
+    if name:
+        restaurant.name = name
+    if cuisine:
+        restaurant.cuisine = cuisine
 
-        if name:
-            restaurant.name = name
-        if cuisine:
-            restaurant.cuisine = cuisine
+    db.session.commit()
 
-        db.session.commit()
-
-        return {"message": "Restaurant updated successfully"}, 200
-
-    def delete(self):
-        data = request.get_json()
-        restaurant_id = data.get('id')
-
-        if not restaurant_id:
-            return {"error": "Restaurant ID is required for deletion"}, 400
-
-        restaurant = Restaurant.query.get(restaurant_id)
-        if not restaurant:
-            return {"error": "Restaurant not found"}, 404
-
-        db.session.delete(restaurant)
-        db.session.commit()
-
-        return {"message": "Restaurant deleted successfully"}, 200
+    return {"message": "Restaurant updated successfully"}, 200
 
 
-api.add_resource(RestaurantResource, '/restaurants')
+
+def delete(self, restaurant_id):
+    restaurant = Restaurant.query.get(restaurant_id)
+    if not restaurant:
+        return {"error": "Restaurant not found"}, 404
+
+    db.session.delete(restaurant)
+    db.session.commit()
+
+    return {"message": "Restaurant deleted successfully"}, 200
+
+
+api.add_resource(RestaurantResource, '/restaurants', '/restaurants/<int:restaurant_id>')
 
 
 
