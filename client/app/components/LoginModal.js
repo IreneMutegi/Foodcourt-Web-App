@@ -27,7 +27,6 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
     e.preventDefault();
     setError("");
     setSuccessMessage("");
-    console.log("Form submitted", selectedRole);
 
     const tables = [selectedRole, ...["admin", "client", "restaurant"].filter(role => role !== selectedRole)];
     let user = null;
@@ -57,11 +56,6 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
           return;
         }    
 
-        // if (user.password !== formData.password) {
-        //   setError("Invalid email or password.");
-        //   return;
-        // }
-
         if (userRole !== selectedRole) {
           setError(`You are registered as a ${userRole}.`);
           return;
@@ -83,23 +77,13 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
             setSuccessMessage("");
             onClose();
             redirectUser(userRole);
-          },2000);
+          },1000);
         }
         
       } 
-       // For Sign-Up
-       else {
-        // Check if the email already exists in any table
-        for (const table of tables) {
-          const response = await fetch(`http://localhost:5555/${selectedRole}/signup?email=${formData.email}`);
-          const existingUsers = await response.json();
-          if (existingUsers.length > 0) {
-            setError("Email is already registered.");
-            return;
-          }
-        }
 
-        // Add new user to the selected role table
+      // for signup
+        else{
         const newUser = {
           name: formData.name,
           email: formData.email,
@@ -118,15 +102,30 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
           setTimeout(() => {
             setSuccessMessage("");
             setHasAccount(true);
-          }, 2000);
+          }, 1000);
+        } else {
+        const data = await response.json();
+        if (data.message === "Email already exists!") {
+          setError("Email is already registered.");
         } else {
           setError("Signup failed. Try again.");
         }
       }
-    } catch (error) {
-      setError("Something went wrong. Please try again.");
     }
-  };
+  } catch (error) {
+    setError("Something went wrong. Please try again.");
+  }
+};
+
+const handleClose = () => {
+  setSelectedRole(null);  
+  setHasAccount(true); 
+  setFormData({ name: "", email: "", password: "" }); 
+  setError(""); 
+  setSuccessMessage(""); 
+  onClose();  
+};
+
 
 
   // Redirect user based on role
@@ -148,7 +147,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-content">
               {/* Close Button */}
-              <button className="close-btn" onClick={onClose}>X</button>
+              <button className="close-btn" onClick={handleClose}>X</button>
   
               {/* Role Selection */}
               <div className="role-selection">
@@ -169,7 +168,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
       {selectedRole && (
         <div className="auth-form-container-overlay">
           <div className="auth-form-container">
-            <button className="close-btn" onClick={onClose}>X</button>
+            <button className="close-btn" onClick={handleClose}>X</button>
             <h3 className="text-white">{hasAccount ? `Sign In` : `Sign Up`} as {selectedRole}</h3>
             {successMessage && <p className="success-text">{successMessage}</p>}
             <form onSubmit={handleAuth} className="flex flex-col items-center w-full">
