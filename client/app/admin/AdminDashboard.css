@@ -16,21 +16,25 @@
   .menu-title {
     font-size: 24px;
     font-weight: bold;
+    color: white;
   }
   
   /* Add Restaurant Button */
   .add-restaurant-btn {
-    background: #4DB6AC;
+    background: #03b4a2;
     color: white;
-    padding: 10px 15px;
-    border-radius: 5px;
+    padding: 10px 20px;
+    border-radius: 8px;
     border: none;
     font-weight: bold;
     cursor: pointer;
+    font-size: 16px;
+    transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
   }
   
   .add-restaurant-btn:hover {
-    background: #388E8E;
+    background: #025c54;
+    transform: scale(1.09);
   }
   
   /* Table Styling */
@@ -41,35 +45,70 @@
   .restaurant-table {
     width: 100%;
     border-collapse: collapse;
+    background: #565555b5;
+    border-radius: 12px;
+    color: white;
   }
   
   .restaurant-table th,
   .restaurant-table td {
-    border: 1px solid #ddd;
+    border: 1px solid #037468;
     padding: 10px;
     text-align: left;
   }
   
   .restaurant-table th {
-    background-color: #f4f4f4;
+    background-color: #037468;
   }
+
+  /* Adjust table layout to fit image */
+.restaurant-table th:first-child, 
+.restaurant-table td:first-child {
+  width: 100px; /* Image column width */
+  text-align: center;
+}
+
+/* Style the restaurant images */
+.restaurant-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid #037468;
+}
+
   
-  /* Actions */
-  .actions {
+ /* Actions Container */
+.actions {
     display: flex;
     gap: 10px;
+    align-items: center;
+    justify-content: center; /* Center items */
+    white-space: nowrap;
+    height: 100%;
+  }
+
+  /* Ensure table cells maintain equal height */
+.restaurant-table td {
+    vertical-align: middle; /* Align content to the middle */
   }
   
-  /* Edit & Delete Buttons */
-  .edit-btn,
-  .delete-btn {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px 10px;
-    border: none;
-    cursor: pointer;
-  }
+  
+ /* Ensure buttons don't stretch and stay inline */
+.edit-btn, 
+.delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 12px; /* Slightly smaller padding */
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
+  height: 35px; /* Set fixed height */
+}
   
   .edit-btn {
     background: #FFD700;
@@ -83,51 +122,224 @@
   
   .edit-btn:hover {
     background: #E6C300;
+    transform: scale(1.09);
   }
   
   .delete-btn:hover {
     background: #D93636;
+    transform: scale(1.09);
   }
   
-  /* Form Styling */
+  /* Form Modal Styling */
+  .form-container-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
   .form-container {
-    background: white;
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    max-width: 400px;
-    margin: 20px auto;
+    width: 300px;
+    padding: 25px;
+    background: #565555b5;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 90%;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
   
-  form input {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  form button {
-    width: 100%;
-    padding: 10px;
-    border: none;
+  .form-container h3 {
     color: white;
+  }
+  
+  /* Form Inputs */
+  .form-input {
+    width: 100%;
+    max-width: 280px;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #037468;
+    border-radius: 6px;
+    font-size: 16px;
+    background: #f8f8f8;
+    outline: none;
+  }
+  
+  .form-input:focus {
+    border-color: #037468;
+    box-shadow: 0px 0px 5px rgba(3, 180, 162, 0.7);
+  }
+  
+  /* Submit and Cancel Buttons */
+  .form-button {
+    width: 100%;
+    padding: 12px;
+    background: #03b4a2;
+    color: white;
+    border: none;
+    border-radius: 6px;
     cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
   }
   
-  form button[type="submit"] {
-    background: #4DB6AC;
+  .form-button:hover {
+    background: #037468;
+    transform: scale(1.05);
   }
   
-  form button[type="button"] {
+  .cancel-button {
+    width: 100%;
+    padding: 12px;
     background: #ddd;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 5px;
+    transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
   }
   
-  form button[type="submit"]:hover {
-    background: #388E8E;
-  }
-  
-  form button[type="button"]:hover {
+  .cancel-button:hover {
     background: #ccc;
+    transform: scale(1.05);
   }
+  
+  /* Success & Error Messages */
+  .success-text {
+    color: #07f7df;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  
+  .error-text {
+    color: #05bca9;
+    font-size: 14px;
+    margin-top: 5px;
+  }
+  
+  /* Close Button */
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #07f7df;
+  }
+  /* Background overlay for restaurant form (full screen & centered) */
+.restaurant-form-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Dark overlay */
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Modal container for restaurant form */
+  .restaurant-form-container {
+    background: #222;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    width: 90%; /* Responsive width */
+    max-width: 400px; /* Prevents it from being too wide */
+    text-align: center;
+  }
+  
+  /* Form styling */
+  .restaurant-form-container form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  /* Input fields */
+  .restaurant-form-container form input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #333;
+    color: white;
+    font-size: 16px;
+  }
+  
+  /* Buttons */
+  .restaurant-form-container .form-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+  }
+  
+  .restaurant-form-container .form-buttons button {
+    background-color: #4db6ac;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: 0.3s;
+  }
+  
+  .restaurant-form-container .form-buttons button:hover {
+    background-color: #388e8e;
+  }
+  
+  /* Image Upload Button */
+.upload-btn {
+    background-color: #03b4a2;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  
+  .upload-btn:hover {
+    background-color: #025c54;
+  }
+  
+  .image-preview {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    margin-top: 10px;
+    display: block;
+  }
+
+  .restaurant-form-container input[type="text"],
+.restaurant-form-container input[type="email"],
+.restaurant-form-container input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
   
