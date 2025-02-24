@@ -1,7 +1,7 @@
 "use client";
 import Menu from "./components/Menu";
 import { useState, useEffect } from "react";
-import { useCart } from "./context/CartContext";
+import { useCart } from "./context/CartContext-temp";
 import "./page.css";
 import { fetchData } from "next-auth/client/_utils";
 

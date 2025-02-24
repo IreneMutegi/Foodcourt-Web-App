@@ -1,7 +1,7 @@
 "use client";
 import "./page.css";
 import { FcEmptyTrash } from "react-icons/fc";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../context/CartContext-temp";
 
 export default function Cart() {
   const { cart, setCart } = useCart();
