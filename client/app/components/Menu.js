@@ -1,4 +1,4 @@
-import { useCart } from "../context/CartContext";
+import { useCart } from "../context/CartContext-temp";
 import "./Menu.css";
 import { useState } from "react";
 export default function Menu({ restaurant, onClose, meals, addToCart }) {
@@ -9,7 +9,7 @@ export default function Menu({ restaurant, onClose, meals, addToCart }) {
   const handleCartToggle = (item) => {
     if (addedItems.includes(item.name)) {
       setAddedItems(addedItems.filter((name) => name !== item.name));
-      setCart(cart.filter((cartItem) => cartItem.meal !== item.name))
+      setCart(cart.filter((cartItem) => cartItem.meal !== item.name));
     } else {
       setAddedItems([...addedItems, item.name]);
       setCart([

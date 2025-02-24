@@ -1,6 +1,12 @@
 "use client";
 import "./page.css";
-import { useState } from "react";
+import { FcEmptyTrash } from "react-icons/fc";
+import { useCart } from "../context/CartContext-temp";
+
+export default function Cart() {
+  const { cart, setCart } = useCart();
+  console.log("cart in Cart page", cart);
+
 
 export default function Cart({ cart = [], setCart }) {
   const removeItem = (index) => {
