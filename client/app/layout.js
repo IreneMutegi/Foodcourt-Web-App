@@ -6,22 +6,17 @@ import Footer from "./components/Footer";
 import LoginModal from "./components/LoginModal";
 import { CartProvider } from "./context/CartContext-temp";
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }) {  
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  
   return (
     <html lang="en">
       <body>
         <SessionProvider>
-          <CartProvider>
-            <Header setIsModalOpen={setIsModalOpen} />
-            <LoginModal
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-            />
-            {children}
-            <Footer setIsModalOpen={setIsModalOpen} />
-          </CartProvider>
+          <Header setIsModalOpen={setIsModalOpen} />
+          <LoginModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+          {children}
+          <Footer setIsModalOpen={setIsModalOpen} />
         </SessionProvider>
       </body>
     </html>
