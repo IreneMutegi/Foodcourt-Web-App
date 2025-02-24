@@ -9,7 +9,6 @@
 !app/page.js
 !public/images
 !public/data.js
-!public/loading.svg
 
 # Keep Menu files (adjust the correct path)
 !app/components/Menu.js
