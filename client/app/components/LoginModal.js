@@ -37,7 +37,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
       if (hasAccount) {
         // Check each table for the user
         for (const table of tables) {
-          const response = await fetch(`http://localhost:5555/${table}/login`, {
+          const response = await fetch(`https://foodcourt-web-app-4.onrender.com/${table}/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: formData.email, password: formData.password }),
@@ -91,7 +91,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
           role: selectedRole,
         };
 
-        const response = await fetch(`http://localhost:5555/${selectedRole}/signup`, {
+        const response = await fetch(`https://foodcourt-web-app-4.onrender.com/${selectedRole}/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newUser),
