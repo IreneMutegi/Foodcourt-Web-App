@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     "app/components/Footer.js",
     "app/components/Header.js"
-  , "app/components/LoginModal.js", "app/components/Header.js", "app/components/Footer.js", "app/page.js", "app/layout.js", "app/admin/page.js"],
+  , "app/components/LoginModal.js", "app/components/Header.js", "app/components/Footer.js", "app/page.js", "app/layout.js", "app/admin/page.tsx"],
   "exclude": ["node_modules"]
 }

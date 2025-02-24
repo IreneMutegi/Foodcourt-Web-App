@@ -1,10 +1,12 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
-from models import db, Admin, Client, Restaurant, Menu, orders_association
+from server.models import db, Admin, Client, Restaurant, Menu, orders_association
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://irene:password@localhost:5432/malldb'
+import os
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'postgresql://malldb_u5p5_user:A5tnGchdaALQQYm2ylzxnT73oenbwn77@dpg-cusvqnbqf0us739q23rg-a.oregon-postgres.render.com/malldb_u5p5')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -98,5 +100,5 @@ def seed_data():
             db.session.rollback()
             print(f"Error: Integrity constraint violation. Rolling back. Details: {e}")
 
-if __name__ == '__main__':  # ✅ Fixed typo (should be __main__, not 'main')
+if __name__ == '__main__':  
     seed_data()

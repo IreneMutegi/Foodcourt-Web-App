@@ -15,9 +15,9 @@
 }
 
 /* Add padding to the body to prevent content from being hidden behind the fixed header */
-body {
-  padding-top: 70px; /* Adjust according to the header height */
-}
+/* body {
+  padding-top: 70px; 
+} */
 
   /* Logo Styling */
   .logo {

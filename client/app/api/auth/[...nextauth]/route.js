@@ -16,7 +16,7 @@ export const authOptions = {
           let userRole = null;
 
           for (const table of tables) {
-            const res = await fetch(`http://localhost:5555/${table}/login`, {
+            const res = await fetch(`https://foodcourt-web-app-4.onrender.com/${table}/login`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -24,14 +24,11 @@ export const authOptions = {
                 password: credentials.password,
               }),
             });
+            const apiResponse = await res.json()
 
-            if (res.ok) {
-              const userData = await res.json();
-              if (userData.user) {
-                user = userData.user;
-                userRole = table;
-                break;
-              }
+            if (res.ok && apiResponse.user) {  // ✅ Ensure res.ok is checked correctly
+              user = { ...apiResponse.user, role: table }; // ✅ Add role directly
+              break;
             }
           }
 
@@ -48,6 +45,7 @@ export const authOptions = {
   ],
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
     async jwt({ token, user }) {
