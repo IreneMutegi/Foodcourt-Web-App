@@ -51,9 +51,7 @@ export default function Menu({ restaurant, onClose, meals, addToCart }) {
                       id="order-btn"
                       onClick={() => handleCartToggle(item)}
                     >
-                      {addedItems.includes(item.name)
-                        ? "Remove"
-                        : "Add to Cart"}
+                      {addedItems.includes(item.name) ? "Remove" : "Add"}
                     </button>
                   </td>
                 </tr>
