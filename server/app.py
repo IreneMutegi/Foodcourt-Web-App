@@ -286,46 +286,6 @@ class MenuResource(Resource):
 api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:meal_id>', '/menu/restaurant/<int:restaurant_id>')
 
 
-
-
-#for a single meal associated to a restaurant
-# class Meal(Resource):
-#     def get(self, restaurant_id, meal_id):
-#         meal = Menu.query.filter_by(id=meal_id, restaurant_id=restaurant_id).first()
-#         if not meal:
-#             return {"error": "Meal not found for this restaurant"}, 404
-#         return {
-#             "id": meal.id,
-#             "name": meal.name,
-#             "category": meal.category,
-#             "price": meal.price,
-#             "image_url": meal.image_url
-#         }, 200
-
-#     def patch(self, restaurant_id, meal_id):
-#         meal = Menu.query.filter_by(id=meal_id, restaurant_id=restaurant_id).first()
-#         if not meal:
-#             return {"error": "Meal not found for this restaurant"}, 404
-
-#         data = request.get_json()
-#         meal.name = data.get('name', meal.name)
-#         meal.category = data.get('category', meal.category)
-#         meal.price = data.get('price', meal.price)
-#         meal.image_url = data.get('image_url', meal.image_url)
-#         db.session.commit()
-#         return {"message": "Meal updated successfully"}, 200
-
-#     def delete(self, restaurant_id, meal_id):
-#         meal = Menu.query.filter_by(id=meal_id, restaurant_id=restaurant_id).first()
-#         if not meal:
-#             return {"error": "Meal not found for this restaurant"}, 404
-#         db.session.delete(meal)
-#         db.session.commit()
-#         return {"message": "Meal deleted successfully"}, 200
-    
-# api.add_resource(Meal, '/meal/restaurant/<int:restaurant_id>/<int:meal_id>')
-
-
 class OrderGetById(Resource):
     def get(self, order_id):
         order = db.session.execute(
