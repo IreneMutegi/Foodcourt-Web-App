@@ -1,72 +1,75 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import MetaData, Column, Integer, String, ForeignKey, Table
+from sqlalchemy import MetaData, Table, Column, Integer, String, ForeignKey
 
-# Metadata (important for naming conventions)
+# Define metadata with naming convention
 metadata = MetaData(naming_convention={ 
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s", 
 })
 
 db = SQLAlchemy(metadata=metadata)
 
-orders_association = db.Table(
+# Association Table for Orders
+orders_association = Table(
     'orders',
-    db.Model.metadata,
-    db.Column('client_id', db.Integer, db.ForeignKey('client.id'), primary_key=True),
-    db.Column('restaurant_id', db.Integer, db.ForeignKey('restaurants.id'), primary_key=True),
-    db.Column('meal_id', db.Integer, db.ForeignKey('menu.id'), primary_key=True),
-    db.Column('table_number', db.Integer, nullable=False),
-    db.Column('quantity', db.Integer, nullable=False)
+    metadata,  
+    Column('client_id', Integer, ForeignKey('client.id'), primary_key=True),
+    Column('restaurant_id', Integer, ForeignKey('restaurants.id'), primary_key=True),
+    Column('meal_id', Integer, ForeignKey('menu.id'), primary_key=True),
+    Column('table_number', Integer, nullable=False),
+    Column('quantity', Integer, nullable=False),
+    Column('price', Integer, nullable=False),
+    Column('total', Integer, nullable=False)
 )
+
+# Admin Model
 class Admin(db.Model):  
-    __tablename__ = 'admin'  # Fixed typo
+    __tablename__ = 'admin'
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     email = Column(String(100), unique=True, nullable=False)
     password = Column(String(100), nullable=False)
+
     restaurants = db.relationship('Restaurant', back_populates='admin')
 
-    def _repr_(self):
+    def __repr__(self):
         return f'<Admin {self.id}, {self.name}, {self.email}>'
 
+# Client Model
 class Client(db.Model):  
-    __tablename__ = 'client'  # Fixed typo
+    __tablename__ = 'client'
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     email = Column(String(100), unique=True, nullable=False)
     password = Column(String(100), nullable=False)
-    restaurants = db.relationship('Restaurant', secondary='orders', back_populates='clients')  # Reference orders table directly
 
-    def _repr_(self):
+    restaurants = db.relationship('Restaurant', secondary=orders_association, back_populates='clients')
+
+    def __repr__(self):  
         return f'<Client {self.id}, {self.name}, {self.email}>'
 
+# Restaurant Model
 class Restaurant(db.Model):  
-    __tablename__ = 'restaurants'  # Fixed typo
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    cuisine = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(100),nullable=False)
-    admin_id = db.Column(db.Integer, db.ForeignKey('admin.id'), nullable=False)
-    image_url = db.Column(db.String, nullable=True)
-    menu_id = db.Column(db.Integer, db.ForeignKey('menu.id'), nullable=True) 
-    menu = db.relationship('Menu', back_populates='restaurant', uselist=False)  
-    clients = db.relationship('Client', secondary='orders', back_populates='restaurants')  # Reference orders table directly
+    __tablename__ = 'restaurants'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False)
+    cuisine = Column(String(100), nullable=False)
+    email = Column(String(100), unique=True, nullable=False)
+    password = Column(String(100), nullable=False)
+    admin_id = Column(Integer, ForeignKey('admin.id'), nullable=False)
+    image_url = Column(String, nullable=True)
+
+    menu_items = db.relationship('Menu', back_populates='restaurant')
+    clients = db.relationship('Client', secondary=orders_association, back_populates='restaurants')
     admin = db.relationship('Admin', back_populates='restaurants')
 
-    def _repr_(self):
-        return f'<Restaurant {self.id}, {self.name}, {self.cuisine}, Image: {self.image_url}>'
-
+# Menu Model
 class Menu(db.Model):  
-    __tablename__ = 'menu'  # Fixed typo
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    price = db.Column(db.Integer, nullable=False)
-    image_url = db.Column(db.String, nullable=True)
-    category = db.Column(db.String(100), nullable=False)
-    
-    restaurant = db.relationship('Restaurant', back_populates='menu', uselist=False)
+    __tablename__ = 'menu'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False)
+    price = Column(Integer, nullable=False)
+    category = Column(String(100), nullable=False)
+    image_url = Column(String, nullable=True)
+    restaurant_id = Column(Integer, ForeignKey('restaurants.id'), nullable=False)
 
-    def _repr_(self):
-        return f'<Menu {self.id}, {self.name}, {self.price}, Image: {self.image_url}>'
-
-# Now define the orders_association table after all the models
+    restaurant = db.relationship('Restaurant', back_populates='menu_items')

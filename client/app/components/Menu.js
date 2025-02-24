@@ -5,6 +5,7 @@ export default function Menu({ restaurant, onClose, meals, addToCart }) {
   const [addedItems, setAddedItems] = useState([]);
   const { cart, setCart } = useCart();
 
+
   const handleCartToggle = (item) => {
     if (addedItems.includes(item.name)) {
       setAddedItems(addedItems.filter((name) => name !== item.name));
@@ -22,6 +23,7 @@ export default function Menu({ restaurant, onClose, meals, addToCart }) {
         },
       ]);
     }
+
   };
 
   return (

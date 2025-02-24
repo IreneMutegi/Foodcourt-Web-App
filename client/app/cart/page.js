@@ -1,15 +1,12 @@
 "use client";
 import "./page.css";
+
 import { FcEmptyTrash } from "react-icons/fc";
 import { useCart } from "../context/CartContext-temp";
 
 export default function Cart() {
   const { cart, setCart } = useCart();
   console.log("cart in Cart page", cart);
-
-  const removeItem = (index) => {
-    setCart((prevCart) => prevCart.filter((_, i) => i !== index));
-  };
 
   const updateCartItem = (index, field, value) => {
     setCart((prevCart) =>
@@ -38,8 +35,8 @@ export default function Cart() {
         </div>
       </div>
     );
-  }
 
+  }
   return (
     <div className="cart-container">
       <h2>Cart</h2>
