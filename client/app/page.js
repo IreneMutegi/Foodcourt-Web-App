@@ -1,105 +1,116 @@
 "use client";
+import Menu from "./components/Menu";
+import { useState, useEffect } from "react";
+import { useCart } from "./context/CartContext-temp";
 import "./page.css";
-import { FcEmptyTrash } from "react-icons/fc";
-import { useCart } from "../context/CartContext-temp";
+import { fetchData } from "next-auth/client/_utils";
 
-export default function Cart() {
+export default function Home() {
+  const baseUrl = "https://foodcourt-web-app-4.onrender.com";
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const { cart, setCart } = useCart();
-  console.log("cart in Cart page", cart);
+  const [restaurants, setRestaurants] = useState([]);
+  const [restaurantMeals, setRestaurantMeals] = useState([]);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const removeItem = (index) => {
-    setCart((prevCart) => prevCart.filter((_, i) => i !== index));
+  const loadSvg = "/loading.svg";
+
+  const addToCart = (order) => {
+    console.log("Adding order", order);
+    setCart((prevCart) => [...prevCart, order]);
   };
 
-  const updateCartItem = (index, field, value) => {
-    setCart((prevCart) =>
-      prevCart.map((item, i) =>
-        i === index
-          ? {
-              ...item,
-              [field]: value,
-              total:
-                item.price * (field === "quantity" ? value : item.quantity),
-            }
-          : item
-      )
-    );
-  };
-
-  const totalAmount = parseFloat(
-    cart.reduce((sum, item) => sum + item.total, 0).toFixed(2)
+  const filteredRestaurants = restaurants.filter(
+    (restaurant) =>
+      restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (restaurant.category &&
+        restaurant.category.toLowerCase().includes(searchTerm.toLowerCase)) ||
+      (restaurant.cuisine &&
+        restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase()))
   );
-  if (cart.length === 0) {
-    return (
-      <div className="empty-cart">
-        <div>
-          <FcEmptyTrash size={60} color="#4db6ac" />
-          <p>Your Cart is empty</p>
-        </div>
-      </div>
-    );
-  }
 
+  useEffect(() => {
+    const fetchRestaurants = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${baseUrl}/restaurants`);
+        if (!response.ok) throw new Error("Network response was not ok");
+        const result = await response.json();
+        setRestaurants(result);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRestaurants();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedRestaurant) return;
+    const fetchMeals = async () => {
+      try {
+        const response = await fetch(
+          ${baseUrl}/menu/restaurant/${selectedRestaurant.id}
+        );
+        if (!response.ok) throw new Error("Failed to fetch meals");
+        const data = await response.json();
+        console.log("fetched meals data", data);
+        setRestaurantMeals(data.meals);
+      } catch (error) {
+        console.error("Error fetching meals:", error.message);
+      }
+    };
+    fetchMeals();
+  }, [selectedRestaurant]);
   return (
-    <div className="cart-container">
-      <h2>Cart</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Meal</th>
-            <th>Price</th>
-            <th>Quantity</th>
-            <th>Table Number</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {cart.map((item, index) => (
-            <tr key={index}>
-              <td>{item.meal}</td>
-              <td>{item.price}</td>
-              <td>
-                <input
-                  type="number"
-                  placeholder="Quantity"
-                  value={item.quantity}
-                  onChange={(e) =>
-                    updateCartItem(
-                      index,
-                      "quantity",
-                      parseInt(e.target.value) || 1
-                    )
-                  }
-                />
-              </td>
-              <td>
-                <input
-                  type="number"
-                  placeholder="Table Number"
-                  value={item.tableNumber}
-                  onChange={(e) =>
-                    updateCartItem(index, "tableNumber", e.target.value)
-                  }
-                />
-              </td>
-              <td>{item.total}</td>
-              <td>
-                <button id="remove-btn" onClick={() => removeItem(index)}>
-                  X
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="checkout-section">
-        <h3>
-          Total: <span>{totalAmount}</span>
-        </h3>
-        <button id="make-order-btn" type="submit">
-          Make order
-        </button>
-      </div>
-    </div>
+    <>
+      <section>
+        <div className="search-form-container">
+          <h3>RESTAURANTS</h3>
+          <form onSubmit={(e) => e.preventDefault()}>
+            <input
+              type="text"
+              placeholder="search (cuisine/name/category)"
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </form>
+        </div>
+        {loading ? (
+          <div className="loading-container" alt="Loading...">
+            <img src={loadSvg} />
+          </div>
+        ) : (
+          <div className="restaurant-card-container">
+            {filteredRestaurants.length > 0 ? (
+              filteredRestaurants.map((restaurant, index) => (
+                <div
+                  className="restaurant-card"
+                  key={index}
+                  onClick={() => setSelectedRestaurant(restaurant)}
+                >
+                  <div className="image-container">
+                    <img src={restaurant.image_url} alt={restaurant.name} />
+                  </div>
+                  <p>{restaurant.name}</p>
+                </div>
+              ))
+            ) : (
+              <p> No results found</p>
+            )}
+          </div>
+        )}
+        {selectedRestaurant && (
+          <Menu
+            restaurant={selectedRestaurant}
+            meals={restaurantMeals}
+            onClose={() => setSelectedRestaurant(null)}
+            addToCart={addToCart}
+          />
+        )}
+      </section>
+    </>
   );
 }
