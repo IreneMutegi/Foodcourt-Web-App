@@ -1,37 +1,46 @@
-/* Footer Styling */
+/* Ensure full height of the page */
+html, body {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensures the page takes full height */
+}
+
+/* Main content wrapper */
+.main-content {
+  flex-grow: 1; /* Allows content to push footer to the bottom */
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 20px; /* Prevents content from sticking to footer */
+}
+
+/* Footer */
 .footer {
-  position: fixed;
-  bottom:0;
   width: 100%;
   background: #222;
   color: white;
   padding: 20px 0;
-  box-shadow: 0px -4px 6px rgba(0, 0, 0, 0.1); /* Drop shadow at the top */
+  box-shadow: 0px -4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  margin-top: auto; /* Pushes footer to the bottom */
 }
 
-/* Footer Content */
-.footer-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-  flex-wrap: wrap;
-}
-
-/* Admin Button */
+/* Admin Section */
 .admin-section {
   flex: 1;
+  text-align: left;
 }
 
 .admin-btn {
   background: #4DB6AC;
   color: white;
-  padding: 10px 15px;
+  padding: 10px 20px;
   border-radius: 5px;
-  text-decoration: none;
   font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
 }
 
 .admin-btn:hover {
@@ -40,16 +49,11 @@
 
 /* Contacts Section */
 .contacts {
-  display: flex;
-  align-items: flex-start; /* Vertically aligns "Contact Us" with the details */
-  justify-content: flex-start;
   flex: 2;
-  flex-wrap: wrap;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   text-align: left;
-}
-
-.contacts-title {
-  margin-right: 20px; /* Adds space between the title and details */
 }
 
 .contacts h3 {
@@ -58,23 +62,27 @@
 }
 
 .contacts p {
-  margin: 5px 0;
   display: flex;
   align-items: center;
+  gap: 10px;
+  margin: 5px 0;
 }
 
 .contacts a {
   color: #4DB6AC;
   text-decoration: none;
-  margin-left: 5px;
+  font-weight: bold;
+  transition: color 0.3s ease;
 }
 
 .contacts a:hover {
   text-decoration: underline;
+  color: #388E8E;
 }
 
 .contacts svg {
   color: #4DB6AC;
+  font-size: 18px;
 }
 
 /* Responsive Styling */
@@ -83,21 +91,40 @@
     flex-direction: column;
     text-align: center;
     align-items: center;
+    gap: 15px;
   }
 
   .admin-section {
+    width: 100%;
     text-align: center;
-    margin-bottom: 20px;
   }
 
   .contacts {
+    align-items: center;
     text-align: center;
-    align-items: center; /* Ensures contact details align center */
-    margin-top: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 15px 0;
   }
 
-  .contacts-title {
-    margin-right: 0; /* Remove right margin for small screens */
-    margin-bottom: 10px; /* Adds space below title */
+  .admin-btn {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .contacts h3 {
+    font-size: 1rem;
+  }
+
+  .contacts p {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .contacts a {
+    font-size: 0.9rem;
   }
 }

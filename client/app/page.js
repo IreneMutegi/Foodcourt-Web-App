@@ -5,6 +5,7 @@ import { useCart } from "./context/CartContext-temp";
 import "./page.css";
 import { fetchData } from "next-auth/client/_utils";
 
+
 export default function Home() {
   const baseUrl = "https://foodcourt-web-app-4.onrender.com";
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
@@ -18,10 +19,8 @@ export default function Home() {
   const loadSvg = "/loading.svg";
 
   const addToCart = (order) => {
-    console.log("Adding order", order);
     setCart((prevCart) => [...prevCart, order]);
   };
-
   const filteredRestaurants = restaurants.filter(
     (restaurant) =>
       restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

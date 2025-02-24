@@ -8,15 +8,16 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
   const { data: session } = useSession();
   const [selectedRole, setSelectedRole] = useState(null);
   const [hasAccount, setHasAccount] = useState(true);
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
   
   React.useEffect(() => {
     if (isOpen) {
-      setSelectedRole(isAdminLogin ? "admin" : null);
+      setSelectedRole((prevRole) => prevRole || (isAdminLogin ? "admin" : null));
     }
+
   }, [isOpen, isAdminLogin]);
 
   if (!isOpen) return null;
@@ -27,7 +28,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
     setError("");
     setSuccessMessage("");
 
-    const tables = ["admin", "client", "restaurants"];
+    const tables = [selectedRole, ...["admin", "client", "restaurant"].filter(role => role !== selectedRole)];
     let user = null;
     let userRole = null;
 
@@ -36,25 +37,24 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
       if (hasAccount) {
         // Check each table for the user
         for (const table of tables) {
-          const response = await fetch(`http://localhost:3001/${table}?email=${formData.email}`);
-          const users = await response.json();
-
-          if (users.length > 0) {
-            user = users[0];
+          const response = await fetch(`https://foodcourt-web-app-4.onrender.com/${table}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: formData.email, password: formData.password }),
+          });
+    
+          if (response.ok) {
+            const data = await response.json();
+            user = data.user;
             userRole = table;
-            break;
+            break; // Stop checking after first successful login
           }
         }
-
+    
         if (!user) {
           setError("User not found. Please sign up.");
           return;
-        }
-
-        if (user.password !== formData.password) {
-          setError("Invalid email or password.");
-          return;
-        }
+        }    
 
         if (userRole !== selectedRole) {
           setError(`You are registered as a ${userRole}.`);
@@ -77,30 +77,21 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
             setSuccessMessage("");
             onClose();
             redirectUser(userRole);
-          },);
+          },1000);
         }
         
       } 
-      // For Sign-Up
-      else {
-        // Check if the email already exists in any table
-        for (const table of tables) {
-          const response = await fetch(`http://localhost:3001/${table}?email=${formData.email}`);
-          const existingUsers = await response.json();
-          if (existingUsers.length > 0) {
-            setError("Email is already registered.");
-            return;
-          }
-        }
 
-        // Add new user to the selected role table
+      // for signup
+        else{
         const newUser = {
+          name: formData.name,
           email: formData.email,
           password: formData.password, // Should be hashed in the backend
           role: selectedRole,
         };
 
-        const response = await fetch(`http://localhost:3001/${selectedRole}`, {
+        const response = await fetch(`https://foodcourt-web-app-4.onrender.com/${selectedRole}/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newUser),
@@ -113,20 +104,36 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
             setHasAccount(true);
           }, 1000);
         } else {
+        const data = await response.json();
+        if (data.message === "Email already exists!") {
+          setError("Email is already registered.");
+        } else {
           setError("Signup failed. Try again.");
         }
       }
-    } catch (error) {
-      setError("Something went wrong. Please try again.");
     }
-  };
+  } catch (error) {
+    setError("Something went wrong. Please try again.");
+  }
+};
+
+const handleClose = () => {
+  setSelectedRole(null);  
+  setHasAccount(true); 
+  setFormData({ name: "", email: "", password: "" }); 
+  setError(""); 
+  setSuccessMessage(""); 
+  onClose();  
+};
+
+
 
   // Redirect user based on role
   const redirectUser = (role) => {
-    if (role === "restaurants") {
+    if (role === "restaurant") {
       router.push("/restaurant");
     } else if (role === "client") {
-      router.push("/home");
+      router.push("/");
     } else if (role === "admin") {
       router.push("/admin");
     }
@@ -140,7 +147,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-content">
               {/* Close Button */}
-              <button className="close-btn" onClick={onClose}>X</button>
+              <button className="close-btn" onClick={handleClose}>X</button>
   
               {/* Role Selection */}
               <div className="role-selection">
@@ -148,7 +155,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
                 <button className="client-btn" onClick={() => setSelectedRole("client")}>
                   Client
                 </button>
-                <button className="restaurant-btn" onClick={() => setSelectedRole("restaurants")}>
+                <button className="restaurant-btn" onClick={() => setSelectedRole("restaurant")}>
                   Restaurant
                 </button>
               </div>
@@ -161,13 +168,20 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
       {selectedRole && (
         <div className="auth-form-container-overlay">
           <div className="auth-form-container">
-            <button className="close-btn" onClick={onClose}>X</button>
+            <button className="close-btn" onClick={handleClose}>X</button>
             <h3 className="text-white">{hasAccount ? `Sign In` : `Sign Up`} as {selectedRole}</h3>
             {successMessage && <p className="success-text">{successMessage}</p>}
             <form onSubmit={handleAuth} className="flex flex-col items-center w-full">
               {/* Full Name Field (only for Sign Up) */}
               {!hasAccount && (
-                <input type="text" placeholder="Full Name" className="form-input" required />
+  <input
+    type="text"
+    placeholder="Full Name"
+    className="form-input"
+    value={formData.name}  // Ensure this is bound to state
+    onChange={(e) => setFormData({ ...formData, name: e.target.value })}  // Update state
+    required
+  />
               )}
   
               <input

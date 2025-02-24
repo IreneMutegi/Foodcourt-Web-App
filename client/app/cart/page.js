@@ -7,8 +7,10 @@ export default function Cart() {
   const { cart, setCart } = useCart();
   console.log("cart in Cart page", cart);
 
+
+export default function Cart({ cart = [], setCart }) {
   const removeItem = (index) => {
-    setCart((prevCart) => prevCart.filter((_, i) => i !== index));
+    setCart(cart.filter((_, i) => i !== index));
   };
 
   const updateCartItem = (index, field, value) => {
@@ -39,7 +41,6 @@ export default function Cart() {
       </div>
     );
   }
-
   return (
     <div className="cart-container">
       <h2>Cart</h2>
