@@ -127,7 +127,6 @@ class ClientList(Resource):
         return clients_list, 200  
 
 api.add_resource(ClientList, '/clients')
-
 class RestaurantResource(Resource):
     def post(self):
         data = request.get_json()
@@ -152,95 +151,78 @@ class RestaurantResource(Resource):
             image_url=image_url
         )
 
-      
         db.session.add(restaurant)
         db.session.commit()
 
         return {"message": "Restaurant registered successfully"}, 201
 
-    def get(self):
-        restaurants = Restaurant.query.all()
+    def get(self, restaurant_id=None, name=None, cuisine=None):
+        if restaurant_id:
+            # Fetch a single restaurant by ID
+            restaurant = Restaurant.query.get(restaurant_id)
+            if not restaurant:
+                return {"message": "Restaurant not found"}, 404
+            return {
+                "id": restaurant.id,
+                "name": restaurant.name,
+                "cuisine": restaurant.cuisine,
+                "email": restaurant.email,
+                "image_url": restaurant.image_url
+            }, 200
+        
+        if name:
+            restaurants = Restaurant.query.filter_by(name=name).all()
+            if not restaurants:
+                return {"error": "No restaurants found with that name"}, 404
+            return [{"id": r.id, "name": r.name, "cuisine": r.cuisine} for r in restaurants], 200
+        
+        if cuisine:
+            restaurants = Restaurant.query.filter_by(cuisine=cuisine).all()
+            if not restaurants:
+                return {"error": "No restaurants found with that cuisine"}, 404
+            return [{"id": r.id, "name": r.name, "cuisine": r.cuisine} for r in restaurants], 200
 
+        restaurants = Restaurant.query.all()
         if not restaurants:
             return {"message": "No restaurants found"}, 404
+        return [{"id": r.id, "name": r.name, "cuisine": r.cuisine, "email": r.email, "image_url": r.image_url} for r in restaurants], 200
 
-        # Create a list of restaurants
-        restaurant_list = [{"id": r.id, "name": r.name, "cuisine": r.cuisine, "email": r.email, "image_url": r.image_url} for r in restaurants]
+    def patch(self, restaurant_id):
+        data = request.get_json()
 
-        return restaurant_list, 200
+        name = data.get('name')
+        cuisine = data.get('cuisine')
 
-def patch(self, restaurant_id):
-    data = request.get_json()
-
-    name = data.get('name')
-    cuisine = data.get('cuisine')
-
-    restaurant = Restaurant.query.get(restaurant_id)
-    if not restaurant:
-        return {"error": "Restaurant not found"}, 404
-
-    if name:
-        restaurant.name = name
-    if cuisine:
-        restaurant.cuisine = cuisine
-
-    db.session.commit()
-
-    return {"message": "Restaurant updated successfully"}, 200
-
-
-
-def delete(self, restaurant_id):
-    restaurant = Restaurant.query.get(restaurant_id)
-    if not restaurant:
-        return {"error": "Restaurant not found"}, 404
-
-    db.session.delete(restaurant)
-    db.session.commit()
-
-    return {"message": "Restaurant deleted successfully"}, 200
-
-
-api.add_resource(RestaurantResource, '/restaurants', '/restaurants/<int:restaurant_id>')
-
-
-
-class RestaurantByID(Resource):
-    def get(self, id):
-        restaurant = Restaurant.query.get(id)
-
+        restaurant = Restaurant.query.get(restaurant_id)
         if not restaurant:
-            return {"message": "Restaurant not found"}, 404
-        
-        return {
-            "id": restaurant.id,
-            "name": restaurant.name,
-            "cuisine": restaurant.cuisine,
-            "email": restaurant.email
-        }, 200
+            return {"error": "Restaurant not found"}, 404
 
-api.add_resource(RestaurantByID, '/restaurants/<int:id>')
+        if name:
+            restaurant.name = name
+        if cuisine:
+            restaurant.cuisine = cuisine
+
+        db.session.commit()
+
+        return {"message": "Restaurant updated successfully"}, 200
+
+    def delete(self, restaurant_id):
+        restaurant = Restaurant.query.get(restaurant_id)
+        if not restaurant:
+            return {"error": "Restaurant not found"}, 404
+
+        db.session.delete(restaurant)
+        db.session.commit()
+
+        return {"message": "Restaurant deleted successfully"}, 200
 
 
+api.add_resource(RestaurantResource, 
+                 '/restaurants', 
+                 '/restaurants/<int:restaurant_id>', 
+                 '/restaurants/name/<string:name>',
+                 '/restaurants/cuisine/<string:cuisine>')
 
-class RestaurantByName(Resource):
-    def get(self, name):
-        restaurants = Restaurant.query.filter_by(name=name).all()
-        if not restaurants:
-            return {"error": "No restaurants found with that name"}, 404
-        return [{"id": r.id, "name": r.name, "cuisine": r.cuisine} for r in restaurants], 200
-
-api.add_resource(RestaurantByName, '/restaurants/name/<string:name>')
-
-
-class RestaurantByCuisine(Resource):
-    def get(self, cuisine):
-        restaurants = Restaurant.query.filter_by(cuisine=cuisine).all()
-        if not restaurants:
-            return {"error": "No restaurants found with that cuisine"}, 404
-        return [{"id": r.id, "name": r.name, "cuisine": r.cuisine} for r in restaurants], 200
-
-api.add_resource(RestaurantByCuisine, '/restaurants/cuisine/<string:cuisine>')
 
 
 
