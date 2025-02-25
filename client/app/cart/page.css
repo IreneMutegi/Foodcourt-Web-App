@@ -7,6 +7,14 @@
   margin: auto;
   height: 100vh;
 }
+.cart-container .empty-cart {
+  padding-top: 40vh;
+  display: flex;
+  text-align: center;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
 .cart-container table {
   width: 100%;
   border-collapse: collapse;
