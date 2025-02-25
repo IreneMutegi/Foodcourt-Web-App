@@ -352,7 +352,6 @@ class OrdersResource(Resource):
     def post(self):
         data = request.get_json()
 
-        # Extract data from request body
         client_id = data.get('client_id')
         restaurant_id = data.get('restaurant_id')
         meal_id = data.get('meal_id')
@@ -361,11 +360,10 @@ class OrdersResource(Resource):
         price = data.get('price')
         total = data.get('total')
 
-        if not client_id or not restaurant_id or not meal_id or not quantity or not price or not total:
+        if not all([client_id, restaurant_id, meal_id, quantity, price, total]):
             return {"error": "Missing required fields"}, 400
 
-        # Insert the order into the orders_association table
-        db.session.execute(
+        result = db.session.execute(
             orders_association.insert().values(
                 client_id=client_id,
                 restaurant_id=restaurant_id,
@@ -380,7 +378,16 @@ class OrdersResource(Resource):
         )
         db.session.commit()
 
-        return {"message": "Order placed successfully"}, 201
+        return {
+            "order_id": result.inserted_primary_key[0],
+            "client_id": client_id,
+            "restaurant_id": restaurant_id,
+            "meal_id": meal_id,
+            "table_number": table_number,
+            "quantity": quantity,
+            "price": price,
+            "total": total
+        }, 201
 
     def get(self, order_id=None, client_id=None):
         if order_id:
@@ -392,52 +399,53 @@ class OrdersResource(Resource):
                 return {"message": "Order not found"}, 404
 
             return {
-                "order_id": order[0],
-                "client_id": order[1],
-                "restaurant_id": order[2],
-                "meal_id": order[3],
-                "table_number": order[4],
-                "quantity": order[5],
-                "price": order[6],
-                "total": order[7]
+                "order_id": order.id,
+                "client_id": order.client_id,
+                "restaurant_id": order.restaurant_id,
+                "meal_id": order.meal_id,
+                "table_number": order.table_number,
+                "quantity": order.quantity,
+                "price": order.price,
+                "total": order.total
             }, 200
-        
+
         if client_id:
             orders = db.session.execute(
                 orders_association.select().where(orders_association.c.client_id == client_id)
             ).fetchall()
 
             if not orders:
-                return {"error": "No orders found for this client"}, 404
+                return {"message": "No orders found for this client"}, 404
 
             return [
                 {
-                    "order_id": order[0],
-                    "client_id": order[1],
-                    "restaurant_id": order[2],
-                    "meal_id": order[3],
-                    "table_number": order[4],
-                    "quantity": order[5],
-                    "price": order[6],
-                    "total": order[7]
+                    "order_id": order.id,
+                    "client_id": order.client_id,
+                    "restaurant_id": order.restaurant_id,
+                    "meal_id": order.meal_id,
+                    "table_number": order.table_number,
+                    "quantity": order.quantity,
+                    "price": order.price,
+                    "total": order.total
                 }
                 for order in orders
             ], 200
 
         orders = db.session.execute(orders_association.select()).fetchall()
+
         if not orders:
             return {"message": "No orders found"}, 404
 
         return [
             {
-                "order_id": order[0],
-                "client_id": order[1],
-                "restaurant_id": order[2],
-                "meal_id": order[3],
-                "table_number": order[4],
-                "quantity": order[5],
-                "price": order[6],
-                "total": order[7]
+                "order_id": order.id,
+                "client_id": order.client_id,
+                "restaurant_id": order.restaurant_id,
+                "meal_id": order.meal_id,
+                "table_number": order.table_number,
+                "quantity": order.quantity,
+                "price": order.price,
+                "total": order.total
             }
             for order in orders
         ], 200
@@ -497,6 +505,7 @@ api.add_resource(OrdersResource,
                  '/orders', 
                  '/orders/<int:order_id>', 
                  '/orders/client/<int:client_id>')
+
 
 
 
