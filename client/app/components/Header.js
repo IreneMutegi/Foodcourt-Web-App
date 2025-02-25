@@ -1,11 +1,11 @@
-"use client"; 
+"use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FiMenu, FiX, FiUser } from "react-icons/fi"; // Import icons for hamburger menu
+import { FiMenu, FiX, FiUser, FiHome, FiShoppingCart, FiInfo } from "react-icons/fi"; // Import icons
+import { signOut, useSession } from "next-auth/react";
+import { usePathname } from "next/navigation"; // Import usePathname to get the current route
 import LoginModal from "./LoginModal";
 import "./Header.css";
-import { usePathname } from "next/navigation"; // Import usePathname to get the current route
-import { signOut, useSession } from "next-auth/react";
 
 const Header = ({ setIsModalOpen }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,7 +15,7 @@ const Header = ({ setIsModalOpen }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { data: session } = useSession();
   const [showWelcome, setShowWelcome] = useState(true);
-
+  
   useEffect(() => {
     if (session) {
       setShowWelcome(true); // Show welcome when user logs in
@@ -32,41 +32,68 @@ const Header = ({ setIsModalOpen }) => {
     setDropdownOpen(false);
   }, [pathname]); // Runs whenever the pathname changes
 
+  const logout = () => {
+    signOut({ callbackUrl: "/" });
+    setIsOpen(false);
+  };
 
-
-  const logout =()=>{
-    signOut({callbackUrl:"/"})
-    setIsOpen(false)
-  }
   return (
     <header className="header">
       <div className="logo">Next Gen</div>
 
-      {/* Hamburger menu button for mobile */}
+      {/* Hamburger menu button */}
       <button className="menu-btn" onClick={() => setIsOpen(!isOpen)}>
-        {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+        {isOpen ? <FiX size={28} /> : <FiMenu size={28} />}
       </button>
 
-      {/* Navigation Links */}
-      <nav className={isOpen ? "nav open" : "nav"}>
+      {/* Navigation Menu */}
+      <nav className={`nav ${isOpen ? "open" : ""}`}>
         <ul className="navList">
-        {isAdminPage ? (
-        <li><button onClick={() => logout()} className="logout-btn">Logout</button></li>
-         ) : isRestaurantPage ? (
+          {isAdminPage ? (
+            <li><button onClick={logout} className="nav-item logout-btn">Logout</button></li>
+          ) : isRestaurantPage ? (
             <>
-              <li><Link href="/restaurant" onClick={() => setIsOpen(false)}>Home</Link></li>
-              <li><Link href="/orders" onClick={() => setIsOpen(false)}>Orders</Link></li>
+              <li>
+                <Link href="/restaurant" onClick={() => setIsOpen(false)} className="nav-item">
+                  <FiHome size={26} />
+                  <span>Home</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/orders" onClick={() => setIsOpen(false)} className="nav-item">
+                  <FiShoppingCart size={26} />
+                  <span>Orders</span>
+                </Link>
+              </li>
             </>
           ) : (
             <>
-              <li><Link href="/" onClick={() => setIsOpen(false)}>Home</Link></li>
-              <li><Link href="/cart" onClick={() => setIsOpen(false)}>Cart</Link></li>
-              <li><Link href="/about" onClick={() => setIsOpen(false)}>About</Link></li>
+              <li>
+                <Link href="/" onClick={() => setIsOpen(false)} className="nav-item">
+                  <FiHome size={26} />
+                  <span>Home</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/cart" onClick={() => setIsOpen(false)} className="nav-item">
+                  <FiShoppingCart size={26} />
+                  <span>Cart</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" onClick={() => setIsOpen(false)} className="nav-item">
+                  <FiInfo size={26} />
+                  <span>About</span>
+                </Link>
+              </li>
+
+              {/* User Dropdown */}
               <li className="user-dropdown">
                 {session ? (
                   <div className="user-container">
-                    {/* Name Button to Toggle Dropdown */}
-                    <button className="name-btn" onClick={() => setDropdownOpen(!dropdownOpen)}> {showWelcome ? `Welcome ${session.user.name}` : <FiUser size={20} />}</button>
+                    <button className="name-btn" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                      {showWelcome ? `Welcome ${session.user.name}` : <FiUser size={20} />}
+                    </button>
                     {dropdownOpen && (
                       <div className="dropdown-menu">
                         <button onClick={logout}>Logout</button>
@@ -74,7 +101,7 @@ const Header = ({ setIsModalOpen }) => {
                     )}
                   </div>
                 ) : (
-                  <button className="login-btn" onClick={() => setIsModalOpen(true)} >Login</button>
+                  <button className="login-btn" onClick={() => setIsModalOpen(true)}>Login</button>
                 )}
               </li>
             </>
@@ -86,4 +113,3 @@ const Header = ({ setIsModalOpen }) => {
 };
 
 export default Header;
-

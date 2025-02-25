@@ -3,15 +3,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  background: #333;
+  padding: 12px 20px;
+  background-color: #222;
   color: white;
-  position: relative; /* Keeps the header fixed at the top */
+  position: fixed;
   top: 0;
-  left: 0;
   width: 100%;
-  z-index: 1000; /* Ensures the header stays above other elements */
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Drop shadow added */
+  z-index: 1000;
+  height: 2.1cm;
+  margin: 0;
+  padding: 0;
+  display: flex; 
+  align-items: center;
 }
 
 /* Add padding to the body to prevent content from being hidden behind the fixed header */
@@ -20,10 +23,10 @@
 } */
 
   /* Logo Styling */
-  .logo {
+  /* .logo {
     font-size: 1.5rem;
     font-weight: bold;
-  }
+  } */
 
   .login-btn, .logout-btn {
     background: #4DB6AC;
@@ -84,8 +87,8 @@
   }
 
   .dropdown-menu button {
-    color: white;
-    background: #4db6ac18;
+    color: rgb(255, 255, 255);
+    background: #388E8E;
     border: none;
     font-weight: bold;
     cursor: pointer;
@@ -98,7 +101,7 @@
   }
 
   .dropdown-menu button:hover{
-    background: #388E8E;
+    background: #025c54;
   }
 
   
@@ -110,7 +113,7 @@
   .navList {
     list-style: none;
     display: flex;
-    gap: 20px;
+    gap: 90px;
   }
   
   .navList li {
@@ -172,4 +175,53 @@
       padding: 15px 0;
     }
   }
+
+  .navList a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.5rem; /* Make icons bigger */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   
+  .navList a:hover {
+    text-decoration: none;
+    color: #4DB6AC;
+  }
+  
+  /* Icons with Text */
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.nav-item span {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.user-btn{
+  background: #4DB6AC;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  cursor: pointer; 
+}
+
+  .user-btn:hover {
+    background: #4DB6AC;
+  }
+.logo{
+  font-size: 1.5rem; /* Adjust size if needed */
+  font-weight: bold;
+  margin-left: 20px; /* Add space from the left */
+  display: flex;
+  align-items: center;
+}
