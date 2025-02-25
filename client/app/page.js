@@ -3,7 +3,6 @@ import Menu from "./components/Menu";
 import { useState, useEffect } from "react";
 import { useCart } from "./context/CartContext-temp";
 import "./page.css";
-import { fetchData } from "next-auth/client/_utils";
 
 export default function Home() {
   const baseUrl = "https://foodcourt-web-app-4.onrender.com";
