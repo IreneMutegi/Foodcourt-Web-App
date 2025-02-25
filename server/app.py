@@ -288,37 +288,46 @@ class MenuResource(Resource):
 api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:meal_id>', '/menu/restaurant/<int:restaurant_id>')
 
 
-class OrdersResource(Resource):
-    # GET all orders
-    def get(self):
-        orders = db.session.execute(select(orders_association)).fetchall()
+cfrom sqlalchemy import select
 
-        if not orders:
-            return {"message": "No orders found"}, 404
+def get(self):
+    orders = db.session.execute(
+        select(
+            orders_association.c.client_id,
+            orders_association.c.restaurant_id,
+            orders_association.c.meal_id,
+            orders_association.c.table_number,
+            orders_association.c.quantity
+        )
+    ).fetchall()
 
-        orders_list = []
-        for order in orders:
-            client_id, restaurant_id, meal_id, table_number, quantity = order
+    if not orders:
+        return {"message": "No orders found"}, 404
 
-            meal = Menu.query.get(meal_id)
-            client = Client.query.get(client_id)
-            restaurant = Restaurant.query.get(restaurant_id)
+    orders_list = []
+    for order in orders:
+        client_id, restaurant_id, meal_id, table_number, quantity = order
 
-            orders_list.append({
-                "client_id": client_id,
-                "client_name": client.name if client else "Unknown Client",
-                "restaurant_id": restaurant_id,
-                "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
-                "meal_id": meal_id,
-                "meal_name": meal.name if meal else "Unknown Meal",
-                "category": meal.category if meal else "Unknown Category",
-                "table_number": table_number,
-                "quantity": quantity,
-                "price": meal.price if meal else "Unknown Price",
-                "total": meal.price * quantity if meal else "Unknown Total"
-            })
+        meal = Menu.query.get(meal_id)
+        client = Client.query.get(client_id)
+        restaurant = Restaurant.query.get(restaurant_id)
 
-        return {"orders": orders_list}, 200
+        orders_list.append({
+            "client_id": client_id,
+            "client_name": client.name if client else "Unknown Client",
+            "restaurant_id": restaurant_id,
+            "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
+            "meal_id": meal_id,
+            "meal_name": meal.name if meal else "Unknown Meal",
+            "category": meal.category if meal else "Unknown Category",
+            "table_number": table_number,
+            "quantity": quantity,
+            "price": meal.price if meal else "Unknown Price",
+            "total": meal.price * quantity if meal else "Unknown Total"
+        })
+
+    return {"orders": orders_list}, 200
+
 
     # POST a new order
     def post(self):
