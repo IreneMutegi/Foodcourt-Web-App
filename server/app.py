@@ -329,31 +329,45 @@ class OrdersResource(Resource):
 
     # POST a new orde
     def post(self):
-        data = request.get_json()  # Getting data from the POST request
-        
-        # Fetch the meal price from the Menu table
-        meal = Menu.query.get(data['meal_id'])
-        
+        data = request.get_json()
+
+        client_id = data.get("client_id")
+        restaurant_id = data.get("restaurant_id")
+        meal_id = data.get("meal_id")
+        table_number = data.get("table_number")
+        quantity = data.get("quantity")
+
+        if not client_id or not restaurant_id or not meal_id or not table_number or not quantity:
+            return {"error": "client_id, restaurant_id, table_number, meal_id, and quantity are required"}, 400
+
+        meal = Menu.query.get(meal_id)
         if not meal:
-            return {"message": "Meal not found"}, 404
-        
+            return {"error": "Invalid meal_id"}, 400
+
+        restaurant = Restaurant.query.get(restaurant_id)
+        if not restaurant:
+            return {"error": "Invalid restaurant_id"}, 400
+
+        price = meal.price
+        total = price * quantity
+
         try:
-            # Insert the order with the meal price included
-            db.session.execute(insert(orders_association).values(
-                client_id=data['client_id'],
-                restaurant_id=data['restaurant_id'],
-                meal_id=data['meal_id'],
-                table_number=data['table_number'],
-                quantity=data['quantity'],
-                price=meal.price  # Adding price to the insert statement
-            ))
-            db.session.commit()  # Committing transaction
-            
+            new_order = orders_association.insert().values(
+                client_id=client_id,
+                restaurant_id=restaurant_id,
+                meal_id=meal_id,
+                table_number=table_number,
+                quantity=quantity,
+                price=price,
+                total=total
+            )
+            db.session.execute(new_order)
+            db.session.commit()
+
             return {"message": "Order created successfully"}, 201
-        
         except Exception as e:
-            db.session.rollback()  # Rollback if there's any error
-            return {"message": str(e)}, 500
+            db.session.rollback()
+            return {"error": str(e)}, 500
 
 
 class OrderGetById(Resource):
