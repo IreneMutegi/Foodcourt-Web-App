@@ -289,7 +289,7 @@ api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:m
 
 
 
-
+class OrdersResource(Resource):
 def get(self):
     orders = db.session.execute(
         select(
