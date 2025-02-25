@@ -5,7 +5,6 @@ from flask_migrate import Migrate
 from server.models import db, Client, Admin, Restaurant, Menu, orders_association, reservation_association ,RestaurantTable
 from sqlalchemy import select, delete , DateTime
 import os
-from datetime import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'postgresql://malldb_u5p5_user:A5tnGchdaALQQYm2ylzxnT73oenbwn77@dpg-cusvqnbqf0us739q23rg-a.oregon-postgres.render.com/malldb_u5p5')
@@ -129,7 +128,6 @@ class ClientList(Resource):
         return clients_list, 200  
 
 api.add_resource(ClientList, '/clients')
-
 class RestaurantResource(Resource):
     def post(self):
         data = request.get_json()
@@ -329,30 +327,37 @@ api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:m
 # api.add_resource(OrderGetById, '/orders/<int:order_id>')
 
 
+
+
+
 class OrdersResource(Resource):
     def get(self, client_id=None):
         if client_id:
             orders = db.session.execute(
                 select(
                     orders_association.c.client_id,
+                    orders_association.c.reservation_id,
                     orders_association.c.restaurant_id,
                     orders_association.c.meal_id,
-                    orders_association.c.restaurant_table_id,  # Use restaurant_table_id instead of table_number
+                    orders_association.c.table_number,
                     orders_association.c.quantity,
                     orders_association.c.price,
-                    orders_association.c.total
+                    orders_association.c.total,
+                    orders_association.c.status  # Fetch status as well
                 ).where(orders_association.c.client_id == client_id)
             ).fetchall()
         else:
             orders = db.session.execute(
                 select(
                     orders_association.c.client_id,
+                    orders_association.c.reservation_id,  # Include reservation_id
                     orders_association.c.restaurant_id,
                     orders_association.c.meal_id,
-                    orders_association.c.restaurant_table_id,  # Use restaurant_table_id instead of table_number
+                    orders_association.c.table_number,
                     orders_association.c.quantity,
                     orders_association.c.price,
-                    orders_association.c.total
+                    orders_association.c.total,
+                    orders_association.c.status  # Fetch status as well
                 )
             ).fetchall()
 
@@ -361,7 +366,7 @@ class OrdersResource(Resource):
 
         orders_list = []
         for order in orders:
-            client_id, restaurant_id, meal_id, restaurant_table_id, quantity, price, total = order
+            client_id, reservation_id, restaurant_id, meal_id, table_number, quantity, price, total, status = order
 
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
@@ -370,15 +375,17 @@ class OrdersResource(Resource):
             orders_list.append({
                 "client_id": client_id,
                 "client_name": client.name if client else "Unknown Client",
+                "reservation_id": reservation_id,  # Include reservation_id
                 "restaurant_id": restaurant_id,
                 "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
                 "meal_id": meal_id,
                 "meal_name": meal.name if meal else "Unknown Meal",
                 "category": meal.category if meal else "Unknown Category",
-                "restaurant_table_id": restaurant_table_id,  # Use restaurant_table_id instead of table_number
+                "table_number": table_number,
                 "quantity": quantity,
                 "price": price,
-                "total": total
+                "total": total,
+                "status": status  # Include status in response
             })
 
         return {"orders": orders_list}, 200
@@ -389,11 +396,13 @@ class OrdersResource(Resource):
         client_id = data.get("client_id")
         restaurant_id = data.get("restaurant_id")
         meal_id = data.get("meal_id")
-        restaurant_table_id = data.get("restaurant_table_id")  # Use restaurant_table_id instead of table_number
+        table_number = data.get("table_number")
         quantity = data.get("quantity")
+        reservation_id = data.get("reservation_id")  # Include reservation_id
+        status = data.get("status", "Pending")  # Default to "Pending" if no status is provided
 
-        if not all([client_id, restaurant_id, meal_id, restaurant_table_id, quantity]):
-            return {"error": "client_id, restaurant_id, meal_id, quantity, and restaurant_table_id are required"}, 400
+        if not all([client_id, restaurant_id, meal_id, table_number, quantity, reservation_id]):
+            return {"error": "client_id, restaurant_id, table_number, meal_id, quantity, and reservation_id are required"}, 400
 
         meal = Menu.query.get(meal_id)
         if not meal:
@@ -411,10 +420,12 @@ class OrdersResource(Resource):
                 client_id=client_id,
                 restaurant_id=restaurant_id,
                 meal_id=meal_id,
-                restaurant_table_id=restaurant_table_id,  # Use restaurant_table_id instead of table_number
+                table_number=table_number,
                 quantity=quantity,
                 price=price,
-                total=total
+                total=total,
+                reservation_id=reservation_id,  # Include reservation_id
+                status=status  # Set the status to "Pending" or the provided status
             )
             db.session.execute(new_order)
             db.session.commit()
@@ -444,7 +455,7 @@ class OrdersResource(Resource):
             if not meal:
                 return {"error": "Invalid meal_id"}, 400
             update_data["meal_id"] = data["meal_id"]
-            update_data["price"] = meal.price
+            update_data["price"] = meal.price  
 
         if "quantity" in data:
             update_data["quantity"] = data["quantity"]
@@ -453,8 +464,14 @@ class OrdersResource(Resource):
             else:
                 update_data["total"] = order.total / order.quantity * data["quantity"]
 
-        if "restaurant_table_id" in data:  # Use restaurant_table_id instead of table_number
-            update_data["restaurant_table_id"] = data["restaurant_table_id"]
+        if "table_number" in data:
+            update_data["table_number"] = data["table_number"]
+
+        if "reservation_id" in data:  # Allow updating reservation_id
+            update_data["reservation_id"] = data["reservation_id"]
+
+        if "status" in data:  # Allow updating status
+            update_data["status"] = data["status"]
 
         if update_data:
             try:
@@ -492,7 +509,10 @@ class OrdersResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
+# Register the resource and the endpoints with the Api object
 api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>')
+
+
 
 
 class RestaurantOrderResource(Resource):
@@ -502,8 +522,10 @@ class RestaurantOrderResource(Resource):
             select(
                 orders_association.c.client_id,
                 orders_association.c.meal_id,
-                orders_association.c.restaurant_table_id,  # Changed to restaurant_table_id
-                orders_association.c.quantity
+                orders_association.c.restaurant_table_id,
+                orders_association.c.quantity,
+                orders_association.c.status,  # Include status in the GET response
+                orders_association.c.timestamp  # Include timestamp for better tracking
             ).where(orders_association.c.restaurant_id == restaurant_id)
         ).fetchall()
 
@@ -514,11 +536,14 @@ class RestaurantOrderResource(Resource):
         for order in orders:
             client_id = order[0]  # Access client_id by index
             meal_id = order[1]  # Access meal_id by index
-            restaurant_table_id = order[2]  # Access restaurant_table_id by index
+            table_id = order[2]  # Access restaurant_table_id by index
             quantity = order[3]  # Access quantity by index
+            status = order[4]  # Access order status by index
+            timestamp = order[5]  # Access timestamp for the order
 
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
+            restaurant_table = RestaurantTable.query.get(table_id)
 
             orders_list.append({
                 "client_id": client_id,
@@ -526,10 +551,12 @@ class RestaurantOrderResource(Resource):
                 "meal_id": meal_id,
                 "meal_name": meal.name if meal else "Unknown Meal",
                 "category": meal.category if meal else "Unknown Category",
-                "restaurant_table_id": restaurant_table_id,  # Changed to restaurant_table_id
+                "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
                 "quantity": quantity,
                 "price": meal.price if meal else "Unknown Price",
-                "total": meal.price * quantity if meal else "Unknown Total"
+                "total": meal.price * quantity if meal else "Unknown Total",
+                "status": status,
+                "timestamp": timestamp
             })
 
         return {"orders": orders_list}, 200
@@ -549,13 +576,16 @@ class RestaurantOrderResource(Resource):
         if not order:
             return {"error": "Order not found for this restaurant and client"}, 404
 
-        # Prepare the update data (quantity, restaurant_table_id, etc.)
+        # Prepare the update data (quantity, table_number, status, etc.)
         update_data = {}
         if "quantity" in data:
             update_data["quantity"] = data["quantity"]
 
-        if "restaurant_table_id" in data:  # Updated to restaurant_table_id
-            update_data["restaurant_table_id"] = data["restaurant_table_id"]
+        if "table_number" in data:
+            update_data["restaurant_table_id"] = data["table_number"]
+
+        if "status" in data:
+            update_data["status"] = data["status"]
 
         if not update_data:
             return {"error": "No fields to update"}, 400
@@ -601,24 +631,12 @@ class RestaurantOrderResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
+
 # Register the resource and the endpoints with the Api object
 api.add_resource(RestaurantOrderResource, 
                  '/orders/restaurants/<int:restaurant_id>', 
                  '/orders/restaurants/<int:restaurant_id>/client/<int:client_id>')
 
-
-
-
-# Helper function to serialize datetime fields
-def serialize_datetimes(obj):
-    """Recursively convert datetime objects to ISO format strings."""
-    if isinstance(obj, datetime):
-        return obj.isoformat()  # Convert datetime to ISO 8601 string
-    elif isinstance(obj, dict):
-        return {key: serialize_datetimes(value) for key, value in obj.items()}
-    elif isinstance(obj, list):
-        return [serialize_datetimes(item) for item in obj]
-    return obj
 
 class ReservationResource(Resource):
     # Get reservations (for a specific client or all reservations)
@@ -630,6 +648,7 @@ class ReservationResource(Resource):
                     reservation_association.c.client_id,
                     reservation_association.c.restaurant_table_id,
                     reservation_association.c.date,
+                    reservation_association.c.time,
                     reservation_association.c.timestamp
                 ).where(reservation_association.c.client_id == client_id)
             ).fetchall()
@@ -640,6 +659,7 @@ class ReservationResource(Resource):
                     reservation_association.c.client_id,
                     reservation_association.c.restaurant_table_id,
                     reservation_association.c.date,
+                    reservation_association.c.time,
                     reservation_association.c.timestamp
                 )
             ).fetchall()
@@ -649,25 +669,140 @@ class ReservationResource(Resource):
 
         reservations_list = []
         for reservation in reservations:
-            client_id, restaurant_table_id, date, timestamp = reservation
+            client_id, restaurant_table_id, date, time, timestamp = reservation
 
             # Get client and restaurant table details
             client = Client.query.get(client_id)
             restaurant_table = RestaurantTable.query.get(restaurant_table_id)
 
-            # Ensure datetime is serialized to ISO format (string)
-            timestamp_str = serialize_datetimes(timestamp)
-
+            # Combine date and time to return a full reservation datetime
+            reservation_datetime = f"{date} {time}" if time else date
             reservations_list.append({
                 "client_id": client_id,
                 "client_name": client.name if client else "Unknown Client",
                 "restaurant_table_id": restaurant_table_id,
                 "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
-                "reservation_date": date,
-                "timestamp": timestamp_str  # Convert datetime to string
+                "reservation_datetime": reservation_datetime,
+                "timestamp": timestamp
             })
 
-        return {"reservations": serialize_datetimes(reservations_list)}, 200
+        return {"reservations": reservations_list}, 200
+
+    # Create a new reservation
+    def post(self):
+        data = request.get_json()
+
+        client_id = data.get("client_id")
+        restaurant_table_id = data.get("restaurant_table_id")
+        reservation_date = data.get("reservation_date")  # Separate date
+        reservation_time = data.get("reservation_time")  # Separate time
+        
+        if not all([client_id, restaurant_table_id, reservation_date, reservation_time]):
+            return {"error": "client_id, restaurant_table_id, reservation_date, and reservation_time are required"}, 400
+
+        # Validate client and table existence
+        client = Client.query.get(client_id)
+        if not client:
+            return {"error": "Invalid client_id"}, 400
+
+        restaurant_table = RestaurantTable.query.get(restaurant_table_id)
+        if not restaurant_table:
+            return {"error": "Invalid restaurant_table_id"}, 400
+
+        # Combine the date and time to create the full timestamp
+        try:
+            reservation_datetime = DateTime.strptime(f"{reservation_date} {reservation_time}", '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            return {"error": "Invalid date or time format. Please use 'YYYY-MM-DD' for date and 'HH:MM:SS' for time."}, 400
+
+        try:
+            new_reservation = reservation_association.insert().values(
+                client_id=client_id,
+                restaurant_table_id=restaurant_table_id,
+                date=reservation_date,
+                time=reservation_time,
+                timestamp=reservation_datetime
+            )
+            db.session.execute(new_reservation)
+            db.session.commit()
+
+            return {"message": "Reservation created successfully"}, 201
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+    # Update an existing reservation
+    def patch(self, client_id):
+        data = request.get_json()
+
+        if not client_id:
+            return {"error": "client_id is required"}, 400
+
+        reservation = db.session.execute(
+            select(reservation_association).where(reservation_association.c.client_id == client_id)
+        ).fetchone()
+
+        if not reservation:
+            return {"error": "No reservation found for this client"}, 404
+
+        update_data = {}
+
+        # Check if restaurant_table_id is being updated
+        if "restaurant_table_id" in data:
+            restaurant_table = RestaurantTable.query.get(data["restaurant_table_id"])
+            if not restaurant_table:
+                return {"error": "Invalid restaurant_table_id"}, 400
+            update_data["restaurant_table_id"] = data["restaurant_table_id"]
+
+        # Check if reservation date is being updated
+        if "reservation_date" in data:
+            update_data["date"] = data["reservation_date"]
+
+        # Check if reservation time is being updated
+        if "reservation_time" in data:
+            try:
+                reservation_datetime = DateTime.strptime(f"{update_data.get('date', reservation.date)} {data['reservation_time']}", '%Y-%m-%d %H:%M:%S')
+                update_data["time"] = data["reservation_time"]
+                update_data["timestamp"] = reservation_datetime
+            except ValueError:
+                return {"error": "Invalid time format. Please use 'HH:MM:SS'."}, 400
+
+        if update_data:
+            try:
+                db.session.execute(
+                    reservation_association.update()
+                    .where(reservation_association.c.client_id == client_id)
+                    .values(update_data)
+                )
+                db.session.commit()
+                return {"message": "Reservation updated successfully"}, 200
+            except Exception as e:
+                db.session.rollback()
+                return {"error": str(e)}, 500
+
+        return {"message": "No updates provided"}, 400
+
+    # Delete a reservation (by client_id)
+    def delete(self, client_id):
+        if not client_id:
+            return {"error": "client_id is required"}, 400
+
+        reservation = db.session.execute(
+            select(reservation_association).where(reservation_association.c.client_id == client_id)
+        ).fetchone()
+
+        if not reservation:
+            return {"error": "No reservation found for this client"}, 404
+
+        try:
+            db.session.execute(
+                delete(reservation_association).where(reservation_association.c.client_id == client_id)
+            )
+            db.session.commit()
+            return {"message": "Reservation deleted successfully"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
 
 api.add_resource(ReservationResource, '/reservations', '/reservations/<int:client_id>')
 
@@ -756,5 +891,5 @@ api.add_resource(RestaurantTableResource,
 
 
 
-if __name__ == "__main__":
+if __name__ == "_main_":
     app.run(debug=True, port=5555)
