@@ -326,33 +326,25 @@ api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:m
 # api.add_resource(Meal, '/meal/restaurant/<int:restaurant_id>/<int:meal_id>')
 
 
-class OrderResource(Resource):
-    # POST method to create an order
+class OrdersResource(Resource):
     def post(self):
         data = request.get_json()
 
-        client_id = data.get("client_id")
-        restaurant_id = data.get("restaurant_id")
-        meal_id = data.get("meal_id")
-        table_number = data.get("table_number")
-        quantity = data.get("quantity")
+        # Extract data from request body
+        client_id = data.get('client_id')
+        restaurant_id = data.get('restaurant_id')
+        meal_id = data.get('meal_id')
+        table_number = data.get('table_number')
+        quantity = data.get('quantity')
+        price = data.get('price')
+        total = data.get('total')
 
-        if not client_id or not restaurant_id or not meal_id or not table_number or not quantity:
-            return {"error": "client_id, restaurant_id, table_number, meal_id, and quantity are required"}, 400
+        if not client_id or not restaurant_id or not meal_id or not quantity or not price or not total:
+            return {"error": "Missing required fields"}, 400
 
-        meal = Menu.query.get(meal_id)
-        if not meal:
-            return {"error": "Invalid meal_id"}, 400
-
-        restaurant = Restaurant.query.get(restaurant_id)
-        if not restaurant:
-            return {"error": "Invalid restaurant_id"}, 400
-
-        price = meal.price
-        total = price * quantity
-
-        try:
-            new_order = orders_association.insert().values(
+        # Insert the order into the orders_association table
+        db.session.execute(
+            orders_association.insert().values(
                 client_id=client_id,
                 restaurant_id=restaurant_id,
                 meal_id=meal_id,
@@ -361,155 +353,110 @@ class OrderResource(Resource):
                 price=price,
                 total=total
             )
-            db.session.execute(new_order)
-            db.session.commit()
-
-            return {"message": "Order created successfully"}, 201
-        except Exception as e:
-            db.session.rollback()
-            return {"error": str(e)}, 500
-
-    # GET method to retrieve order by ID
-    def get(self, order_id):
-        order = db.session.execute(
-            orders_association.select().where(
-                orders_association.c.id == order_id
-            )
-        ).fetchone()
-
-        if not order:
-            return {"error": "Order not found"}, 404
-
-        client_id = order[0]
-        restaurant_id = order[1]
-        meal_id = order[2]
-        table_number = order[3]
-        quantity = order[4]
-
-        meal = Menu.query.get(meal_id)
-        client = Client.query.get(client_id)
-        restaurant = Restaurant.query.get(restaurant_id)
-
-        order_details = {
-            "client_id": client_id,
-            "client_name": client.name if client else "Unknown Client",
-            "restaurant_id": restaurant_id,
-            "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
-            "meal_id": meal_id,
-            "meal_name": meal.name if meal else "Unknown Meal",
-            "category": meal.category if meal else "Unknown Category",
-            "table_number": table_number,
-            "quantity": quantity,
-            "price": meal.price if meal else "Unknown Price",
-            "total": meal.price * quantity if meal else "Unknown Total"
-        }
-
-        return {"order": order_details}, 200
-
-    # GET method to retrieve all orders
-    @staticmethod
-    def get_all():
-        try:
-            orders = db.session.execute(orders_association.select()).fetchall()
-            if not orders:
-                return {"message": "No orders found"}, 404
-
-            order_list = []
-            for order in orders:
-                client_id = order[0]
-                restaurant_id = order[1]
-                meal_id = order[2]
-                table_number = order[3]
-                quantity = order[4]
-
-                meal = Menu.query.get(meal_id)
-                client = Client.query.get(client_id)
-                restaurant = Restaurant.query.get(restaurant_id)
-
-                order_list.append({
-                    "client_id": client_id,
-                    "client_name": client.name if client else "Unknown Client",
-                    "restaurant_id": restaurant_id,
-                    "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
-                    "meal_id": meal_id,
-                    "meal_name": meal.name if meal else "Unknown Meal",
-                    "category": meal.category if meal else "Unknown Category",
-                    "table_number": table_number,
-                    "quantity": quantity,
-                    "price": meal.price if meal else "Unknown Price",
-                    "total": meal.price * quantity if meal else "Unknown Total"
-                })
-
-            return {"orders": order_list}, 200
-        except Exception as e:
-            return {"error": str(e)}, 500
-
-    # PATCH method to update an order
-    def patch(self, order_id):
-        order = db.session.execute(
-            orders_association.select().where(
-                orders_association.c.id == order_id
-            )
-        ).fetchone()
-
-        if not order:
-            return {"error": "Order not found"}, 404
-
-        client_id = order[0]
-        restaurant_id = order[1]
-        meal_id = order[2]
-        table_number = order[3]
-        quantity = order[4]
-
-        meal = Menu.query.get(meal_id)
-        client = Client.query.get(client_id)
-        restaurant = Restaurant.query.get(restaurant_id)
-
-        data = request.get_json()
-
-        if "table_number" in data:
-            table_number = data["table_number"]
-        if "quantity" in data:
-            quantity = data["quantity"]
-
-        db.session.execute(
-            orders_association.update().where(
-                (orders_association.c.client_id == client_id) & 
-                (orders_association.c.restaurant_id == restaurant_id) & 
-                (orders_association.c.meal_id == meal_id)
-            ).values(
-                table_number=table_number,
-                quantity=quantity
-            )
         )
         db.session.commit()
 
-        total = meal.price * quantity if meal else 0
+        return {"message": "Order placed successfully"}, 201
 
-        order_details = {
-            "client_id": client_id,
-            "client_name": client.name if client else "Unknown Client",
-            "restaurant_id": restaurant_id,
-            "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
-            "meal_id": meal_id,
-            "meal_name": meal.name if meal else "Unknown Meal",
-            "category": meal.category if meal else "Unknown Category",
-            "table_number": table_number,
-            "quantity": quantity,
-            "price": meal.price if meal else "Unknown Price",
-            "total": total
-        }
+    def get(self, order_id=None, client_id=None):
+        if order_id:
+            order = db.session.execute(
+                orders_association.select().where(orders_association.c.id == order_id)
+            ).fetchone()
 
-        return {"order": order_details}, 200
+            if not order:
+                return {"message": "Order not found"}, 404
 
-    # DELETE method to delete an order
+            return {
+                "order_id": order[0],
+                "client_id": order[1],
+                "restaurant_id": order[2],
+                "meal_id": order[3],
+                "table_number": order[4],
+                "quantity": order[5],
+                "price": order[6],
+                "total": order[7]
+            }, 200
+        
+        if client_id:
+            orders = db.session.execute(
+                orders_association.select().where(orders_association.c.client_id == client_id)
+            ).fetchall()
+
+            if not orders:
+                return {"error": "No orders found for this client"}, 404
+
+            return [
+                {
+                    "order_id": order[0],
+                    "client_id": order[1],
+                    "restaurant_id": order[2],
+                    "meal_id": order[3],
+                    "table_number": order[4],
+                    "quantity": order[5],
+                    "price": order[6],
+                    "total": order[7]
+                }
+                for order in orders
+            ], 200
+
+        orders = db.session.execute(orders_association.select()).fetchall()
+        if not orders:
+            return {"message": "No orders found"}, 404
+
+        return [
+            {
+                "order_id": order[0],
+                "client_id": order[1],
+                "restaurant_id": order[2],
+                "meal_id": order[3],
+                "table_number": order[4],
+                "quantity": order[5],
+                "price": order[6],
+                "total": order[7]
+            }
+            for order in orders
+        ], 200
+
+    def patch(self, order_id):
+        data = request.get_json()
+
+        quantity = data.get('quantity')
+        price = data.get('price')
+        total = data.get('total')
+
+        order = db.session.execute(
+            orders_association.select().where(orders_association.c.id == order_id)
+        ).fetchone()
+
+        if not order:
+            return {"error": "Order not found"}, 404
+
+        update_values = {}
+        if quantity is not None:
+            update_values["quantity"] = quantity
+        if price is not None:
+            update_values["price"] = price
+        if total is not None:
+            update_values["total"] = total
+
+        if update_values:
+            db.session.execute(
+                orders_association.update()
+                .where(orders_association.c.id == order_id)
+                .values(**update_values)
+            )
+            db.session.commit()
+
+        return {"message": "Order updated successfully"}, 200
+
     def delete(self, order_id):
         order = db.session.execute(
             orders_association.select().where(orders_association.c.id == order_id)
         ).fetchone()
 
         if not order:
-            return {"message": "Order not found"}, 404
+            return {"error": "Order not found"}, 404
 
         db.session.execute(
             orders_association.delete().where(orders_association.c.id == order_id)
@@ -518,8 +465,12 @@ class OrderResource(Resource):
 
         return {"message": "Order deleted successfully"}, 200
 
-# Define routes
-api.add_resource(OrderResource, '/orders', '/orders/<int:order_id>', '/orders/all')
+
+api.add_resource(OrdersResource, 
+                 '/orders', 
+                 '/orders/<int:order_id>', 
+                 '/orders/client/<int:client_id>')
+
 
 
 
