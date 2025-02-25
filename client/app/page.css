@@ -3,8 +3,76 @@ section {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 70px 0 100px 0;
+  padding: 0 0 100px 0;
   width: 100%;
+}
+.hero-section {
+  width: 100%;
+  background-color: black;
+  height: auto;
+  display: flex;
+  padding: 50px 0 0 0;
+  flex-direction: column;
+}
+.hero-section .hero-details {
+  display: flex;
+  padding: 20px;
+}
+.hero-section .hero-left {
+  width: 50%;
+  align-items: flex-start;
+}
+.hero-section .hero-left button {
+  background-color: #4db6ac;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  height: 40px;
+}
+.hero-section .hero-right {
+  overflow: hidden;
+  width: 40%;
+}
+.hero-section .hero-right img {
+  height: 100%;
+  width: 100%;
+  object-fit: fill;
+}
+.hero-section h2 {
+  color: #4db6ac;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 5vw, 3rem);
+}
+.hero-section p {
+  color: white;
+  font-weight: 500;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.image-slider {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  height: 200px; /* Adjust as needed */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.slider-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(100% * 8 / 3); /* 8 images, 3 visible */
+  transition: transform 0.8s ease-in-out;
+}
+
+.slider-wrapper img {
+  width: calc(100% / 3);
+  height: 100%;
+  object-fit: cover;
 }
 .search-form-container {
   display: flex;
@@ -14,7 +82,7 @@ section {
   align-items: center;
   width: 80%;
   height: 100px;
-  margin-bottom: 50px;
+  margin: 50px 0;
 }
 .search-form-container h3 {
   color: #4db6ac;
@@ -26,38 +94,68 @@ section {
   width: 100%;
   height: 15px;
   border: 2px solid #222;
+  border-radius: 10px;
   padding: 5px;
+  background-color: aliceblue;
+  transition: ease-in-out;
+}
+.search-form-container input:focus {
+  border: 3px solid #4db6ac;
 }
 .restaurant-card-container {
   display: flex;
-  flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 20px;
-  width: 80%;
+  column-gap: 20px;
+  row-gap: 40px;
+  width: 100%;
   margin-bottom: 50px;
 }
 .restaurant-card-container .restaurant-card {
   text-align: center;
   width: 30%;
-  height: 150px;
+  height: 200px;
   padding: 0 0 10px 0;
-  border: 1px solid #222;
+  border-radius: 15px;
   cursor: pointer;
+  transition: transform 0.3s ease-in-out;
+  background-color: #222;
+  box-shadow: 2px 2px 2px 2px rgb(198, 195, 195);
+  overflow: hidden;
+}
+.restaurant-card-container .restaurant-card:hover {
+  transform: translateY(5px);
 }
 .restaurant-card-container .restaurant-card .image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
   padding: 0;
   margin: 0;
-  height: 80%;
-}
-.restaurant-card-container .restaurant-card p {
-  color: #4db6ac;
+  height: 70%;
+  overflow: hidden;
 }
 .restaurant-card-container .restaurant-card .image-container img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+}
+.restaurant-card-container .restaurant-card .restaurant-details {
+  display: flex;
+  column-gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  height: 30%;
+}
+.restaurant-card-container .restaurant-card .restaurant-details p {
+  color: #4db6ac;
+  font-style: italic;
+}
+.restaurant-card-container .restaurant-card .restaurant-details h2 {
+  color: white;
+  font-size: larger;
 }
 /* 📺 Extra Large Screens (Above 1200px) */
 @media screen and (min-width: 1201px) {
@@ -77,9 +175,11 @@ section {
     flex-direction: column;
     align-items: center;
     margin-bottom: 70px;
+    gap: 50px;
   }
   .restaurant-card-container .restaurant-card {
     width: 50%;
+    height: 70%;
   }
   .menu-container {
     width: 100%;
@@ -99,9 +199,11 @@ section {
     flex-direction: column;
     align-items: center;
     margin-bottom: 100px;
+    gap: 50px;
   }
   .restaurant-card-container .restaurant-card {
-    width: 50%;
+    width: 80%;
+    height: 70%;
   }
   .menu-container {
     width: 100%;
