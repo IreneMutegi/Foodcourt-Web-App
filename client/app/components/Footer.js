@@ -1,41 +1,51 @@
 "use client"; // Ensures it's a client component
-import { FiMail, FiInstagram } from "react-icons/fi"; // Email and Instagram icons
+import { FiPhone, FiMapPin } from "react-icons/fi"; // Phone and Location icons
 import Link from "next/link";
 import { useState } from "react";
 import LoginModal from "./LoginModal";
 import "./Footer.css";
 
-const Footer = ({ setIsModalOpen }) => {
+const Footer = () => {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   return (
     <footer className="footer">
       <div className="footer-content">
-        {/* Admin Button */}
-        <div className="admin-section">
+        
+        {/* Admin Section */}
+        <div className="footer-section admin-section">
           <button className="admin-btn" onClick={() => setIsAdminOpen(true)}>Admin</button>
         </div>
 
-        {/* Contacts Section */}
-        <div className="contacts">
-          <div className="contacts-title">
-            <h3>Contact Us</h3>
-          </div>
-          <div className="contacts-details">
-            <p>
-              <FiMail />{" "}
-              <a href="mailto:nextgen@gmail.com">nextgen@gmail.com</a>
-            </p>
-            <p>
-              <FiInstagram />{" "}
-              <a href="https://instagram.com/nextgen" target="_blank" rel="noopener noreferrer">
-                @nextgen
-              </a>
-            </p>
-          </div>
+        {/* About Section */}
+        <div className="footer-section">
+          <h3>About Next Gen</h3>
+          <p>Welcome to Next Gen, your go-to destination for delicious food! We bring together the best restaurants to serve you top-quality meals, delivered fresh to your doorstep.</p>
         </div>
+
+        {/* Quick Links Section */}
+        <div className="footer-section">
+          <h3>Quick Links</h3>
+          <ul className="footer-links">
+            <li><Link href="/">Home</Link></li>
+            <li><Link href="/about">About</Link></li>
+            <li><Link href="/restaurants">Restaurants</Link></li>
+            <li><Link href="/contact">Contact</Link></li>
+          </ul>
+        </div>
+
+        {/* Contact Section */}
+        <div className="footer-section">
+          <h3>Contact</h3>
+          <p><FiPhone /> +254 734 719 052</p>
+          <p><FiMapPin /> Mombasa Road, Nairobi</p>
+        </div>
+        
       </div>
+
+      {/* Admin Login Modal */}
       {isAdminOpen && <LoginModal isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} isAdminLogin />}
+      
     </footer>
   );
 };
