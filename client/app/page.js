@@ -108,7 +108,7 @@ export default function Home() {
           </div>
         </div>
         <div className="search-form-container">
-          <h3>RESTAURANTS</h3>
+          <h3>OUR RESTAURANTS</h3>
           <form onSubmit={(e) => e.preventDefault()}>
             <input
               type="text"
