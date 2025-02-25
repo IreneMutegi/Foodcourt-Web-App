@@ -286,16 +286,6 @@ class MenuResource(Resource):
 api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:meal_id>', '/menu/restaurant/<int:restaurant_id>')
 
 
-from flask import request
-from flask_restful import Resource
-from server import db
-from server.models import Client, Restaurant, Menu
-from sqlalchemy import insert, delete, select
-
-# Assuming 'orders_association' is a SQLAlchemy Table object
-from server.models import orders_association
-
-
 class OrdersResource(Resource):
     # GET all orders
     def get(self):
