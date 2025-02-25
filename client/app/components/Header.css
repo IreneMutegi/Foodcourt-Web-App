@@ -87,8 +87,8 @@
   }
 
   .dropdown-menu button {
-    color: rgb(88, 84, 84);
-    background: #4db6ac18;
+    color: rgb(255, 255, 255);
+    background: #388E8E;
     border: none;
     font-weight: bold;
     cursor: pointer;
@@ -101,7 +101,7 @@
   }
 
   .dropdown-menu button:hover{
-    background: #388E8E;
+    background: #025c54;
   }
 
   
@@ -216,7 +216,7 @@
 }
 
   .user-btn:hover {
-    background: #0b3434;
+    background: #4DB6AC;
   }
 .logo{
   font-size: 1.5rem; /* Adjust size if needed */
