@@ -133,7 +133,10 @@ export default function Home() {
                   <div className="image-container">
                     <img src={restaurant.image_url} alt={restaurant.name} />
                   </div>
-                  <p>{restaurant.name}</p>
+                  <div className="restaurant-details">
+                    <h2>{restaurant.name}</h2>
+                    <p>{restaurant.cuisine}</p>
+                  </div>
                 </div>
               ))
             ) : (
