@@ -369,7 +369,7 @@ class OrdersResource(Resource):
 
     # PATCH request to update an order
     def patch(self):
-    data = request.get_json()
+        data = request.get_json()
     
     client_id = data.get("client_id")
     
