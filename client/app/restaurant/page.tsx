@@ -4,9 +4,10 @@ import { FiEdit, FiTrash2 } from "react-icons/fi";
 import "./Dashboard.css";
 
 const API_BASE_URL = "https://foodcourt-web-app-4.onrender.com";
-const RESTAURANT_ID = 1; // Replace this with the authenticated restaurant's ID
 
-// Define TypeScript interfaces
+// Get logged-in restaurant ID dynamically
+const getRestaurantId = () => localStorage.getItem("restaurantId") || "1";
+
 interface Dish {
   id?: number;
   name: string;
@@ -27,27 +28,30 @@ const Dashboard = () => {
     image_url: "",
   });
 
-  // Fetch restaurant menu
-  useEffect(() => {
-    const fetchMenu = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/menu/restaurant/${RESTAURANT_ID}`);
-        const data = await response.json();
-        if (data.meals) {
-          setDishes(data.meals);
-        }
-      } catch (error) {
-        console.error("Error fetching dishes:", error);
+  const restaurantId = getRestaurantId();
+
+  // Function to fetch the restaurant menu
+  const fetchMenu = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/menu/restaurant/${restaurantId}`);
+      const data = await response.json();
+      if (data.meals) {
+        setDishes(data.meals);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching dishes:", error);
+    }
+  };
+
+  // Fetch the menu when the component mounts
+  useEffect(() => {
     fetchMenu();
-  }, []);
+  }, [restaurantId]);
 
   // Handle form submission (Add or Edit Dish)
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    const newDish = { ...dishData, restaurant_id: RESTAURANT_ID };
+    const newDish = { ...dishData, restaurant_id: Number(restaurantId) };
 
     if (editIndex !== null) {
       // Update dish
@@ -55,15 +59,15 @@ const Dashboard = () => {
       if (!dishId) return;
 
       try {
-        await fetch(`${API_BASE_URL}/meals/${dishId}`, {
-          method: "PUT",
+        const response = await fetch(`${API_BASE_URL}/menu/restaurant/${restaurantId}/meal/${dishId}`, {
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newDish),
         });
 
-        const updatedDishes = [...dishes];
-        updatedDishes[editIndex] = { ...newDish, id: dishId };
-        setDishes(updatedDishes);
+        if (!response.ok) throw new Error("Failed to update dish");
+
+        await fetchMenu(); // Fetch updated menu
       } catch (error) {
         console.error("Error updating dish:", error);
       }
@@ -72,13 +76,15 @@ const Dashboard = () => {
     } else {
       // Add new dish
       try {
-        const response = await fetch(`${API_BASE_URL}/meals`, {
+        const response = await fetch(`${API_BASE_URL}/menu/restaurant/${restaurantId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newDish),
         });
-        const addedDish = await response.json();
-        setDishes([...dishes, { ...addedDish, id: addedDish.id || Date.now() }]);
+
+        if (!response.ok) throw new Error("Failed to add dish");
+
+        await fetchMenu(); // Fetch updated menu
       } catch (error) {
         console.error("Error adding dish:", error);
       }
@@ -101,8 +107,13 @@ const Dashboard = () => {
     if (!dishId) return;
 
     try {
-      await fetch(`${API_BASE_URL}/meals/${dishId}`, { method: "DELETE" });
-      setDishes(dishes.filter((_, i) => i !== index));
+      const response = await fetch(`${API_BASE_URL}/menu/restaurant/${restaurantId}/meal/${dishId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete dish");
+
+      await fetchMenu(); // Fetch updated menu
     } catch (error) {
       console.error("Error deleting dish:", error);
     }
