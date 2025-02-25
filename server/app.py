@@ -328,29 +328,25 @@ class OrdersResource(Resource):
 
 
     # POST a new order
-    def post(self):
-        data = request.get_json()
+     def post(self):
+        data = request.get_json()  # Getting data from the POST request
         
-        client_id = data.get('client_id')
-        restaurant_id = data.get('restaurant_id')
-        meal_id = data.get('meal_id')
-        table_number = data.get('table_number')
-        quantity = data.get('quantity')
-
-        if not all([client_id, restaurant_id, meal_id, table_number, quantity]):
-            return {"error": "Missing required fields"}, 400
-
-        # Insert order into association table
-        db.session.execute(insert(orders_association).values(
-            client_id=client_id,
-            restaurant_id=restaurant_id,
-            meal_id=meal_id,
-            table_number=table_number,
-            quantity=quantity
-        ))
-        db.session.commit()
-
-        return {"message": "Order placed successfully"}, 201
+        try:
+            # Inserting order
+            db.session.execute(insert(orders_association).values(
+                client_id=data['client_id'],
+                restaurant_id=data['restaurant_id'],
+                meal_id=data['meal_id'],
+                table_number=data['table_number'],
+                quantity=data['quantity']
+            ))
+            db.session.commit()  # Committing transaction
+            
+            return {"message": "Order created successfully"}, 201
+        
+        except Exception as e:
+            db.session.rollback()  # Rollback if there's any error
+            return {"message": str(e)}, 500
 
 
 class OrderGetById(Resource):
