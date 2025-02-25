@@ -521,7 +521,7 @@ class OrderDelete(Resource):
 # Registering API routes
 api.add_resource(OrderGetById, '/orders/<int:order_id>')  # GET order by order_id
 api.add_resource(OrderGetByClient, '/orders/client/<int:client_id>')  # GET orders by client_id
-api.add_resource(OrderDelete, '/orders/<int:order_id>/delete')  # DELETE order by order_id
+
 
 class RestaurantOrderGet(Resource):
     def get(self, restaurant_id, client_id, meal_id):
