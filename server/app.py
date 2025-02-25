@@ -326,8 +326,6 @@ class OrdersResource(Resource):
 
         return {"orders": orders_list}, 200
 
-
-    # POST a new orde
     def post(self):
         data = request.get_json()
 
@@ -369,6 +367,74 @@ class OrdersResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
+    # PATCH request to update an order
+    def patch(self):
+    data = request.get_json()
+    
+    client_id = data.get("client_id")
+    
+    if not client_id:
+        return {"error": "client_id is required"}, 400
+
+    # Find the existing orders for the client
+    orders = db.session.execute(
+        select(orders_association).where(orders_association.c.client_id == client_id)
+    ).fetchall()
+
+    if not orders:
+        return {"error": "No orders found for this client"}, 404
+
+    # Update the fields if provided
+    update_data = {}
+    if "quantity" in data:
+        update_data["quantity"] = data["quantity"]
+    
+    if "table_number" in data:
+        update_data["table_number"] = data["table_number"]
+
+    if update_data:
+        try:
+            db.session.execute(
+                orders_association.update()
+                .where(orders_association.c.client_id == client_id)
+                .values(update_data)
+            )
+            db.session.commit()
+            return {"message": "Orders updated successfully"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+    return {"message": "No updates provided"}, 400
+
+
+    # DELETE request to delete an order
+   def delete(self):
+    data = request.get_json()
+
+    client_id = data.get("client_id")
+
+    if not client_id:
+        return {"error": "client_id is required"}, 400
+
+    orders = db.session.execute(
+        select(orders_association).where(orders_association.c.client_id == client_id)
+    ).fetchall()
+
+    if not orders:
+        return {"error": "No orders found for this client"}, 404
+
+    try:
+        db.session.execute(
+            orders_association.delete().where(orders_association.c.client_id == client_id)
+        )
+        db.session.commit()
+        return {"message": "Orders deleted successfully"}, 200
+    except Exception as e:
+        db.session.rollback()
+        return {"error": str(e)}, 500
+
+api.add_resource(OrdersResource, '/orders')
 
 class OrderGetById(Resource):
     # GET a single order by order_id (referencing client_id)
@@ -453,7 +519,6 @@ class OrderDelete(Resource):
 
 
 # Registering API routes
-api.add_resource(OrdersResource, '/orders')  # GET all orders, POST new order
 api.add_resource(OrderGetById, '/orders/<int:order_id>')  # GET order by order_id
 api.add_resource(OrderGetByClient, '/orders/client/<int:client_id>')  # GET orders by client_id
 api.add_resource(OrderDelete, '/orders/<int:order_id>/delete')  # DELETE order by order_id
