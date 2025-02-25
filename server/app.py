@@ -331,14 +331,21 @@ class OrdersResource(Resource):
     def post(self):
         data = request.get_json()  # Getting data from the POST request
         
+        # Fetch the meal price from the Menu table
+        meal = Menu.query.get(data['meal_id'])
+        
+        if not meal:
+            return {"message": "Meal not found"}, 404
+        
         try:
-            # Inserting order
+            # Insert the order with the meal price included
             db.session.execute(insert(orders_association).values(
                 client_id=data['client_id'],
                 restaurant_id=data['restaurant_id'],
                 meal_id=data['meal_id'],
                 table_number=data['table_number'],
-                quantity=data['quantity']
+                quantity=data['quantity'],
+                price=meal.price  # Adding price to the insert statement
             ))
             db.session.commit()  # Committing transaction
             
