@@ -1,31 +1,29 @@
+import { useCart } from "../context/CartContext-temp";
 import "./Menu.css";
 import { useState } from "react";
-export default function Menu({ restaurant, onClose }) {
-  const [showOrderForm, setShowOrderForm] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [orderDetails, setOrderDetails] = useState({
-    quantity: "",
-    tableNumber: "",
-  });
+export default function Menu({ restaurant, onClose, meals, addToCart }) {
+  const [addedItems, setAddedItems] = useState([]);
+  const { cart, setCart } = useCart();
 
-  const handleOrderClick = (item) => {
-    setSelectedItem(item);
-    setShowOrderForm(true);
-  };
 
-  const handleChange = (e) => {
-    setOrderDetails({ ...orderDetails, [e.target.name]: [e.target.value] });
-  };
+  const handleCartToggle = (item) => {
+    if (addedItems.includes(item.name)) {
+      setAddedItems(addedItems.filter((name) => name !== item.name));
+      setCart(cart.filter((cartItem) => cartItem.meal !== item.name));
+    } else {
+      setAddedItems([...addedItems, item.name]);
+      setCart([
+        ...cart,
+        {
+          meal: item.name,
+          price: item.price,
+          quantity: 1,
+          tableNumber: "",
+          total: item.price,
+        },
+      ]);
+    }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Order submitted:", {
-      item: selectedItem,
-      ...orderDetails,
-    });
-
-    setShowOrderForm(false);
-    setOrderDetails({ quantity: "", tableNumber: "" });
   };
 
   return (
@@ -44,57 +42,32 @@ export default function Menu({ restaurant, onClose }) {
             </tr>
           </thead>
           <tbody>
-            {restaurant.menu.map((item, index) => (
-              <tr key={index}>
-                <td>{item.name}</td>
-                <td>{item.price}</td>
-                <td>{item.category}</td>
-                <td>
-                  <button id="order-btn" onClick={() => handleOrderClick(item)}>
-                    Order
-                  </button>
-                </td>
+            {meals.length > 0 ? (
+              meals.map((item, index) => (
+                <tr key={index}>
+                  <td>{item.name}</td>
+                  <td>{item.price}</td>
+                  <td>{item.category}</td>
+                  <td>
+                    <button
+                      id="order-btn"
+                      onClick={() => handleCartToggle(item)}
+                    >
+                      {addedItems.includes(item.name)
+                        ? "Remove"
+                        : "Add to Cart"}
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4">No meals available</td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
-      {/* OrderForm PopUp */}
-      {showOrderForm && (
-        <div className="order-form-overlay">
-          <div className="order-form-container">
-            <h3>Order: {selectedItem.name}</h3>
-            <form onSubmit={handleSubmit}>
-              <input
-                type="number"
-                name="quantity"
-                value={orderDetails.quantity}
-                onChange={handleChange}
-                min="1"
-                placeholder="Quantity"
-                required
-              />
-
-              <input
-                type="number"
-                name="tableNumber"
-                value={orderDetails.tableNumber}
-                onChange={handleChange}
-                min="1"
-                placeholder="Table Number"
-                required
-              />
-
-              <div className="form-buttons">
-                <button type="submit">Submit Order</button>
-                <button type="button" onClick={() => setShowOrderForm(false)}>
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

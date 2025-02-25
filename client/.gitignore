@@ -1,13 +1,20 @@
-#ignore all files
+# Ignore all files
 *
 
+# Allow specific files and directories
 !app/page.css
+!app/cart/page.js
+!app/cart/page.css
 !app/globals.css
 !app/page.js
 !public/images
 !public/data.js
-!components/Menu.js
-!components/Menu.css
+!public/loading.svg
+
+# Keep Menu files (adjust the correct path)
+!app/components/Menu.js
+!app/components/Menu.css
+
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -49,8 +56,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-# Ignore all files except /client/app
-*
 
-
+# Keep only the client/app directory from the main branch
 !client/app/

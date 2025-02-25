@@ -1,22 +1,12 @@
 /* General Dashboard Styling */
 .dashboard {
     padding: 20px;
-    width: 100%;
-    max-width: 100%;
-    margin: 0 auto;
-    box-sizing: border-box;
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .dashboard {
-      padding: 10px;
-    }
-  
-    .table-container {
-      width: 100%;
-      overflow-x: auto;
-    }
+
+    height: auto; /* Ensures it grows with content */
+    min-height: 100vh; /* Ensures it at least fills the screen */
+    display: flex;
+    flex-direction: column; /* Ensures children stack properly */
+
   }
   
   /* Header */
