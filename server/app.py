@@ -373,7 +373,7 @@ class OrderResource(Resource):
     def get(self, order_id):
         order = db.session.execute(
             orders_association.select().where(
-                (orders_association.c.client_id == order_id)
+                orders_association.c.id == order_id
             )
         ).fetchone()
 
@@ -406,11 +406,49 @@ class OrderResource(Resource):
 
         return {"order": order_details}, 200
 
+    # GET method to retrieve all orders
+    @staticmethod
+    def get_all():
+        try:
+            orders = db.session.execute(orders_association.select()).fetchall()
+            if not orders:
+                return {"message": "No orders found"}, 404
+
+            order_list = []
+            for order in orders:
+                client_id = order[0]
+                restaurant_id = order[1]
+                meal_id = order[2]
+                table_number = order[3]
+                quantity = order[4]
+
+                meal = Menu.query.get(meal_id)
+                client = Client.query.get(client_id)
+                restaurant = Restaurant.query.get(restaurant_id)
+
+                order_list.append({
+                    "client_id": client_id,
+                    "client_name": client.name if client else "Unknown Client",
+                    "restaurant_id": restaurant_id,
+                    "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
+                    "meal_id": meal_id,
+                    "meal_name": meal.name if meal else "Unknown Meal",
+                    "category": meal.category if meal else "Unknown Category",
+                    "table_number": table_number,
+                    "quantity": quantity,
+                    "price": meal.price if meal else "Unknown Price",
+                    "total": meal.price * quantity if meal else "Unknown Total"
+                })
+
+            return {"orders": order_list}, 200
+        except Exception as e:
+            return {"error": str(e)}, 500
+
     # PATCH method to update an order
     def patch(self, order_id):
         order = db.session.execute(
             orders_association.select().where(
-                (orders_association.c.client_id == order_id)
+                orders_association.c.id == order_id
             )
         ).fetchone()
 
@@ -436,8 +474,8 @@ class OrderResource(Resource):
 
         db.session.execute(
             orders_association.update().where(
-                (orders_association.c.client_id == client_id) &
-                (orders_association.c.restaurant_id == restaurant_id) &
+                (orders_association.c.client_id == client_id) & 
+                (orders_association.c.restaurant_id == restaurant_id) & 
                 (orders_association.c.meal_id == meal_id)
             ).values(
                 table_number=table_number,
@@ -481,7 +519,8 @@ class OrderResource(Resource):
         return {"message": "Order deleted successfully"}, 200
 
 # Define routes
-api.add_resource(OrderResource, '/orders', '/orders/<int:order_id>')
+api.add_resource(OrderResource, '/orders', '/orders/<int:order_id>', '/orders/all')
+
 
 
 
