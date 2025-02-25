@@ -288,7 +288,7 @@ class MenuResource(Resource):
 api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:meal_id>', '/menu/restaurant/<int:restaurant_id>')
 
 
-cfrom sqlalchemy import select
+
 
 def get(self):
     orders = db.session.execute(
