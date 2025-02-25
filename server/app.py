@@ -302,10 +302,10 @@ class OrdersResource(Resource):
         price = data.get('price')
         total = data.get('total')
 
-        if not all([client_id, restaurant_id, meal_id, quantity, price, total]):
+        if not client_id or not restaurant_id or not meal_id or not quantity or not price or not total:
             return {"error": "Missing required fields"}, 400
 
-        # Insert order into orders_association table
+        # Insert the order into the orders_association table
         db.session.execute(
             orders_association.insert().values(
                 client_id=client_id,
@@ -333,7 +333,7 @@ class OrdersResource(Resource):
                 return {"message": "Order not found"}, 404
 
             return {
-                "order_id": order[0],  # Access data via tuple indices
+                "order_id": order[0],
                 "client_id": order[1],
                 "restaurant_id": order[2],
                 "meal_id": order[3],
@@ -342,14 +342,14 @@ class OrdersResource(Resource):
                 "price": order[6],
                 "total": order[7]
             }, 200
-
+        
         if client_id:
             orders = db.session.execute(
                 orders_association.select().where(orders_association.c.client_id == client_id)
             ).fetchall()
 
             if not orders:
-                return {"message": "No orders found for this client"}, 404
+                return {"error": "No orders found for this client"}, 404
 
             return [
                 {
@@ -366,7 +366,6 @@ class OrdersResource(Resource):
             ], 200
 
         orders = db.session.execute(orders_association.select()).fetchall()
-
         if not orders:
             return {"message": "No orders found"}, 404
 
@@ -392,7 +391,7 @@ class OrdersResource(Resource):
         total = data.get('total')
 
         order = db.session.execute(
-            orders_association.select().where(orders_association.c.id == order_id)
+            orders_association.select().where(orders_association.c.client_id == order_id)
         ).fetchone()
 
         if not order:
@@ -409,7 +408,7 @@ class OrdersResource(Resource):
         if update_values:
             db.session.execute(
                 orders_association.update()
-                .where(orders_association.c.id == order_id)
+                .where(orders_association.c.client_id == order_id)
                 .values(**update_values)
             )
             db.session.commit()
@@ -418,27 +417,18 @@ class OrdersResource(Resource):
 
     def delete(self, order_id):
         order = db.session.execute(
-            orders_association.select().where(orders_association.c.id == order_id)
+            orders_association.select().where(orders_association.c.client_id == order_id)
         ).fetchone()
 
         if not order:
             return {"error": "Order not found"}, 404
 
         db.session.execute(
-            orders_association.delete().where(orders_association.c.id == order_id)
+            orders_association.delete().where(orders_association.c.client_id == order_id)
         )
         db.session.commit()
 
         return {"message": "Order deleted successfully"}, 200
-
-
-# Register the resource with API routes
-api.add_resource(
-    OrdersResource, 
-    '/orders', 
-    '/orders/<int:order_id>', 
-    '/orders/client/<int:client_id>'
-)
 
 
 class ClientOrderDelete(Resource):
