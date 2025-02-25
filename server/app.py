@@ -327,8 +327,8 @@ class OrdersResource(Resource):
         return {"orders": orders_list}, 200
 
 
-    # POST a new order
-     def post(self):
+    # POST a new orde
+    def post(self):
         data = request.get_json()  # Getting data from the POST request
         
         try:
