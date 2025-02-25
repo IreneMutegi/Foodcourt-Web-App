@@ -3,7 +3,7 @@ import Menu from "./components/Menu";
 import { useState, useEffect } from "react";
 import { useCart } from "./context/CartContext-temp";
 import "./page.css";
-import { fetchData } from "next-auth/client/_utils";
+import sliderImages from "../public/images";
 
 export default function Home() {
   const baseUrl = "https://foodcourt-web-app-4.onrender.com";
@@ -14,8 +14,10 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const loadSvg = "/loading.svg";
+  const imagesPerSlide = 3;
 
   const addToCart = (order) => {
     console.log("Adding order", order);
@@ -26,7 +28,7 @@ export default function Home() {
     (restaurant) =>
       restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (restaurant.category &&
-        restaurant.category.toLowerCase().includes(searchTerm.toLowerCase)) ||
+        restaurant.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (restaurant.cuisine &&
         restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -65,11 +67,48 @@ export default function Home() {
     };
     fetchMeals();
   }, [selectedRestaurant]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) =>
+        prevIndex + imagesPerSlide >= sliderImages.length
+          ? 0
+          : prevIndex + imagesPerSlide
+      );
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
   return (
     <>
       <section>
+        <div className="hero-section">
+          <div className="hero-details">
+            <div className="hero-left">
+              <h2>Discover Amazing Restaurants</h2>
+              <p>Find and order from restaurants within with ease </p>
+              <button>Book a reservation</button>
+            </div>
+            <div className="hero-right">
+              <img src="/images/hero-image.png" alt="Hero Image" />
+            </div>
+          </div>
+          <div className="image-slider">
+            <div
+              className="slider-wrapper"
+              style={{
+                transform: `translateX(-${
+                  currentIndex * (100 / imagesPerSlide)
+                }%)`,
+              }}
+            >
+              {sliderImages.map((image, index) => (
+                <img key={index} src={image} alt={`Slide ${index + 1}`} />
+              ))}
+            </div>
+          </div>
+        </div>
         <div className="search-form-container">
-          <h3>RESTAURANTS</h3>
+          <h3>OUR RESTAURANTS</h3>
           <form onSubmit={(e) => e.preventDefault()}>
             <input
               type="text"
@@ -94,7 +133,10 @@ export default function Home() {
                   <div className="image-container">
                     <img src={restaurant.image_url} alt={restaurant.name} />
                   </div>
-                  <p>{restaurant.name}</p>
+                  <div className="restaurant-details">
+                    <h2>{restaurant.name}</h2>
+                    <p>{restaurant.cuisine}</p>
+                  </div>
                 </div>
               ))
             ) : (
