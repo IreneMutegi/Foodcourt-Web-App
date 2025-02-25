@@ -1,35 +1,72 @@
-/* Ensure full height of the page */
-html, body {
-  height: 100%;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh; /* Ensures the page takes full height */
-}
-
-/* Main content wrapper */
-.main-content {
-  flex-grow: 1; /* Allows content to push footer to the bottom */
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 20px; /* Prevents content from sticking to footer */
-}
-
-/* Footer */
+/* Footer Styling */
 .footer {
   width: 100%;
-  background: #222;
-  color: white;
-  padding: 20px 0;
+  background: #222; /* Light background */
+  color: #ffffff;
+  padding: 30px 0;
+  text-align: left;
   box-shadow: 0px -4px 6px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  margin-top: auto; /* Pushes footer to the bottom */
+  margin-bottom: 0cm;
+  margin: 0;
+  padding: 0;
 }
 
-/* Admin Section */
-.admin-section {
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.footer-section {
   flex: 1;
-  text-align: left;
+  padding: 0 15px;
+}
+
+.footer-section h3 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.footer-section p {
+  color: #777;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-links li {
+  margin-bottom: 8px;
+}
+
+.footer-links a {
+  color: #555;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: #4DB6AC;
+  text-decoration: underline;
+}
+
+.footer-section p svg {
+  margin-right: 10px;
+  color: #4DB6AC;
+}
+
+/* Admin Button Styling */
+.admin-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
 }
 
 .admin-btn {
@@ -47,84 +84,23 @@ html, body {
   background: #388E8E;
 }
 
-/* Contacts Section */
-.contacts {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-}
-
-.contacts h3 {
-  font-size: 1.2rem;
-  margin-bottom: 10px;
-}
-
-.contacts p {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 5px 0;
-}
-
-.contacts a {
-  color: #4DB6AC;
-  text-decoration: none;
-  font-weight: bold;
-  transition: color 0.3s ease;
-}
-
-.contacts a:hover {
-  text-decoration: underline;
-  color: #388E8E;
-}
-
-.contacts svg {
-  color: #4DB6AC;
-  font-size: 18px;
-}
-
-/* Responsive Styling */
+/* Responsive Design */
 @media (max-width: 768px) {
   .footer-content {
     flex-direction: column;
     text-align: center;
-    align-items: center;
-    gap: 15px;
+    gap: 20px;
+  }
+
+  .footer-section {
+    text-align: center;
+  }
+
+  .footer-section p svg {
+    display: inline;
   }
 
   .admin-section {
-    width: 100%;
-    text-align: center;
-  }
-
-  .contacts {
-    align-items: center;
-    text-align: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .footer {
-    padding: 15px 0;
-  }
-
-  .admin-btn {
-    width: 100%;
-    padding: 12px;
-  }
-
-  .contacts h3 {
-    font-size: 1rem;
-  }
-
-  .contacts p {
-    flex-direction: column;
-    gap: 5px;
-  }
-
-  .contacts a {
-    font-size: 0.9rem;
+    margin-bottom: 15px;
   }
 }
