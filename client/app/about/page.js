@@ -1,113 +1,126 @@
-"use client";
-import Image from "next/image";
+import { Star, Utensils, ChefHat,  Lamp} from "lucide-react";
+import { Card, CardContent } from "./Card";  // Import Card and CardContent from the same folder
+import './page.css';  // Import your custom styles
 
 export default function AboutPage() {
   return (
-    <div style={styles.container}>
-      <h1 style={styles.heading}>About Us</h1>
-      <p style={styles.text}>
-        Welcome to <strong>Next Gen</strong>, your go-to destination for delicious food! 
-        We bring together the best restaurants to serve you top-quality meals, delivered fresh to your doorstep.
-      </p>
+    <main className="about-page">
+      {/* Hero Section */}
+      <section className="hero-section">
+        <div className="hero-overlay"></div>
+        <div className="hero-content">
+          <h1 className="hero-title">Discover Culinary Excellence</h1>
+          <p className="hero-description">
+            Experience a world of flavors at our premium dining destinations
+          </p>
+        </div>
+      </section>
 
-      {/* Restaurants Section */}
-      <h2 style={styles.subHeading}>🍽️ Our Restaurants</h2>
-      <div style={styles.imageContainer}>
-        {restaurants.map((restaurant) => (
-         <div key={restaurant.image} className="image-wrapper">
-         <Image 
-           src={restaurant.image} 
-           alt="Restaurant" 
-           layout="fill" 
-           objectFit="contain"
-           className="restaurant-image"
-         />
-       </div>
-        ))}
-      </div>
+      {/* What We Offer Section */}
+      <section className="what-we-offer">
+        <h2 className="section-title">What We Offer</h2>
+        <div className="cards-container">
+          {/* Card for Restaurants */}
+          <Card>
+            <div className="card-image restaurants"></div>
+            <CardContent>
+              <h3 className="card-title">Restaurants</h3>
+              <p className="card-description">Diverse selection of casual and family-friendly restaurants</p>
+              <div className="card-rating">
+                <Star className="star-icon" />
+                <span className="rating">4.8</span>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Services Section */}
-      <h2 style={styles.subHeading}>🚀 Our Services</h2>
-      <ul style={styles.list}>
-        <li><strong>Fast Delivery</strong> – Get your food delivered hot and fresh in no time.</li>
-        <li><strong>Easy Ordering</strong> – Order through our seamless online platform.</li>
-        <li><strong>Custom Meal Plans</strong> – Personalized meal subscriptions for busy schedules.</li>
-        <li><strong>24/7 Customer Support</strong> – We're here for you anytime, anywhere.</li>
-      </ul>
+          {/* Card for Fine Dining */}
+          <Card>
+            <div className="card-image fine-dining"></div>
+            <CardContent>
+              <h3 className="card-title">Fine Dining</h3>
+              <p className="card-description">Exquisite culinary experiences in elegant settings</p>
+              <div className="card-rating">
+                <Star className="star-icon" />
+                <span className="rating">4.9</span>
+              </div>
+            </CardContent>
+          </Card>
 
-      <p style={styles.text}>
-        At <strong>Next Gen</strong>, we believe food is more than just a meal—it's an experience!  
-        Thank you for choosing us. Bon appétit! 🍕🍜🍔 
-      </p>
+          <Card>
+      <div className="card-image cocktails"></div>
+      <CardContent>
+        <h3 className="card-title">Cocktails</h3>
+        <p className="card-description">Craft cocktails and an extensive drink menu in stylish atmospheres</p>
+        <div className="card-rating flex items-center gap-1">
+          <Star className="star-icon w-5 h-5 fill-yellow-400 text-yellow-400" />
+          <span className="rating text-yellow-400">4.7</span>
+        </div>
+      </CardContent>
+      </Card>
 
-      {/* Global Styles for Hover Effect */}
-      <style jsx>{`
-        .image-wrapper {
-          width: 250px;
-          height: 150px;
-          position: relative;
-          overflow: hidden;
-          border-radius: 20px;
-          transition: transform 0.3s ease-in-out;
-        }
+      <Card>
+      <div className="card-image deserts"></div>
+      <CardContent>
+        <h3 className="card-title">Deserts</h3>
+        <p className="card-description">Delicious and indulgent treats to satisfy your sweet tooth</p>
+        <div className="card-rating flex items-center gap-1">
+          <Star className="star-icon w-5 h-5 fill-yellow-400 text-yellow-400" />
+          <span className="rating text-yellow-400">4.8</span>
+        </div>
+      </CardContent>
+      </Card>
 
-        .image-wrapper:hover {
-          transform: scale(1.1);
-        }
-      `}</style>
-    </div>
+          {/* More cards... */}
+        </div>
+      </section>
+
+      {/* Why Choose Us Section */}
+      <section className="why-choose-us">
+        <div className="container">
+          <h2 className="section-title">Why Choose Our Restaurants</h2>
+          <div className="cards-container">
+            {/* Icon card for Diverse Cuisine */}
+            <div className="icon-card">
+              <div className="icon-circle">
+                <Utensils className="icon" />
+              </div>
+              <h3 className="card-title">Diverse Cuisine</h3>
+              <p className="card-description">Experience flavors from around the world</p>
+            </div>
+
+          {/* Icon card for Expert Chefs */}
+<div className="icon-card">
+  <div className="icon-circle">
+    <ChefHat className="icon" /> {/* Replaced image with ChefHat icon */}
+  </div>
+  <h3 className="card-title">Expert Chefs</h3>
+  <p className="card-description">Skilled chefs crafting exquisite dishes</p>
+</div>
+
+{/* Icon card for Cozy Ambience */}
+<div className="icon-card">
+  <div className="icon-circle">
+    <Lamp className="icon" /> {/* Replaced image with Lamp icon */}
+  </div>
+  <h3 className="card-title">Cozy Ambience</h3>
+  <p className="card-description">Relax and unwind in a welcoming atmosphere</p>
+</div>
+
+
+      {/* Icon card for Exceptional Service */}
+      <div className="icon-card">
+  <div className="icon-circle">
+    <Star className="icon" /> {/* Replaced image with the Star icon */}
+  </div>
+  <h3 className="card-title">Exceptional Service</h3>
+  <p className="card-description">Our staff ensures every meal is a memorable experience</p>
+</div>
+
+
+     
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
-
-// Restaurant Data
-const restaurants = [
-  {image: "/restaurants/artcaffe.webp"},
-  { image: "/restaurants/chickeninn.jpg" },
-  { image: "/restaurants/pizzainn.jpg"}, 
-];
-
-// Inline styles
-const styles = {
-  container: {
-    padding: "20px",
-    maxWidth: "100%",
-    margin: "auto",
-    fontFamily: "Arial, sans-serif",
-    textAlign: "center",
-    backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/restaurants/mall.png')", // Set background image
-    backgroundSize: "cover", // Cover the entire screen
-    backgroundPosition: "center", // Center the image
-    backgroundRepeat: "no-repeat", // Prevent repetition
-    minHeight: "auto",
-  },
-  heading: {
-    fontSize: "4em",
-    color: "#02a999",
-  },
-  subHeading: {
-    fontSize: "1.5em",
-    marginTop: "20px",
-    color: "#02a999",
-  },
-  text: {
-    fontSize: "1.4em",
-    lineHeight: "1.6",
-    color: "white",
-  },
-  list: {
-    textAlign: "center",
-    fontSize: "1.1em",
-    margin: "10px 0",
-    paddingLeft: "0",
-    listStyle: "none",
-    color: "white"
-  },
-  imageContainer: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-    gap: "20px",
-    justifyContent: "center",
-    padding: "20px",
-  },
-  
-};
