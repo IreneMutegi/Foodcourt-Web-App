@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { useCart } from "./context/CartContext-temp";
 import "./page.css";
 
-import sliderImages from "../public/images";
-
 export default function Home() {
   const baseUrl = "https://foodcourt-web-app-4.onrender.com";
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
@@ -16,11 +14,7 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-
   const loadSvg = "/loading.svg";
-  const imagesPerSlide = 3;
-
 
   const addToCart = (order) => {
     console.log("Adding order", order);
@@ -31,9 +25,7 @@ export default function Home() {
     (restaurant) =>
       restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (restaurant.category &&
-
-        restaurant.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
-
+        restaurant.category.toLowerCase().includes(searchTerm.toLowerCase)) ||
       (restaurant.cuisine &&
         restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -74,18 +66,6 @@ export default function Home() {
     };
     fetchMeals();
   }, [selectedRestaurant]);
-
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) =>
-        prevIndex + imagesPerSlide >= sliderImages.length
-          ? 0
-          : prevIndex + imagesPerSlide
-      );
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
   return (
     <>
       <section>
