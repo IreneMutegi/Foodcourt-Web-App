@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import LoginModal from "./components/LoginModal";
 import { CartProvider } from "./context/CartContext-temp";
+import "./globals.css";
 
 export default function RootLayout({ children }) {
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -3,10 +3,14 @@ import "./page.css";
 
 import { FcEmptyTrash } from "react-icons/fc";
 import { useCart } from "../context/CartContext-temp";
+import { useSession } from "next-auth/react";
+import LoginModal from "../components/LoginModal";
+import { useState } from "react";
 
 export default function Cart() {
   const { cart, setCart } = useCart();
-  console.log("cart in Cart page", cart);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const { data: session, status } = useSession();
 
   const updateCartItem = (index, field, value) => {
     setCart((prevCart) =>
@@ -26,16 +30,30 @@ export default function Cart() {
   const totalAmount = parseFloat(
     cart.reduce((sum, item) => sum + item.total, 0).toFixed(2)
   );
+
+  const removeItem = (index) => {
+    setCart((prevCart) => prevCart.filter((_, i) => i !== index));
+  };
+
+  const handleMakeOrder = () => {
+    if (!session) {
+      console.log("User not logged in, opening modal...");
+      setShowLoginModal(true);
+      return;
+    }
+    console.log(`order placed for ${session.user.id}`);
+  };
   if (cart.length === 0) {
     return (
-      <div className="empty-cart">
-        <div>
-          <FcEmptyTrash size={60} color="#4db6ac" />
-          <p>Your Cart is empty</p>
+      <div className="cart-container">
+        <div className="empty-cart">
+          <div>
+            <FcEmptyTrash size={60} color="#4db6ac" />
+            <p>Your Cart is empty</p>
+          </div>
         </div>
       </div>
     );
-
   }
   return (
     <div className="cart-container">
@@ -93,10 +111,13 @@ export default function Cart() {
         <h3>
           Total: <span>{totalAmount}</span>
         </h3>
-        <button id="make-order-btn" type="submit">
+        <button id="make-order-btn" type="submit" onClick={handleMakeOrder}>
           Make order
         </button>
       </div>
+      {showLoginModal && (
+        <LoginModal onClose={() => setShowLoginModal(false)} />
+      )}
     </div>
   );
 }
