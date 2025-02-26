@@ -1,36 +1,35 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FiMenu, FiX, FiUser, FiHome, FiShoppingCart, FiInfo } from "react-icons/fi"; // Import icons
+import { FiMenu, FiX, FiUser, FiHome, FiShoppingCart, FiInfo } from "react-icons/fi";
 import { signOut, useSession } from "next-auth/react";
-import { usePathname } from "next/navigation"; // Import usePathname to get the current route
-import LoginModal from "./LoginModal";
+import { usePathname } from "next/navigation";
+import OrdersPopup from "./ordersPopup";  // ✅ Import Orders Popup
 import "./Header.css";
 
 const Header = ({ setIsModalOpen }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname(); // Get the current route
+  const pathname = usePathname();
   const isRestaurantPage = pathname.startsWith("/restaurant");
-  const isAdminPage = pathname.startsWith("/admin"); // Check if it's an admin page
+  const isAdminPage = pathname.startsWith("/admin");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { data: session } = useSession();
   const [showWelcome, setShowWelcome] = useState(true);
-  
+  const [showOrdersPopup, setShowOrdersPopup] = useState(false); // ✅ State for Orders Popup
+
   useEffect(() => {
     if (session) {
-      setShowWelcome(true); // Show welcome when user logs in
+      setShowWelcome(true);
       const timer = setTimeout(() => {
-        setShowWelcome(false); // Hide welcome after 3 seconds
+        setShowWelcome(false);
       }, 3000);
-
-      return () => clearTimeout(timer); // Cleanup timer on re-renders
+      return () => clearTimeout(timer);
     }
-  }, [session]); // Runs every time session changes
+  }, [session]);
 
-  // Close dropdown when navigating to a different page
   useEffect(() => {
     setDropdownOpen(false);
-  }, [pathname]); // Runs whenever the pathname changes
+  }, [pathname]);
 
   const logout = () => {
     signOut({ callbackUrl: "/" });
@@ -41,12 +40,10 @@ const Header = ({ setIsModalOpen }) => {
     <header className="header">
       <div className="logo">Next Gen</div>
 
-      {/* Hamburger menu button */}
       <button className="menu-btn" onClick={() => setIsOpen(!isOpen)}>
         {isOpen ? <FiX size={28} /> : <FiMenu size={28} />}
       </button>
 
-      {/* Navigation Menu */}
       <nav className={`nav ${isOpen ? "open" : ""}`}>
         <ul className="navList">
           {isAdminPage ? (
@@ -60,10 +57,13 @@ const Header = ({ setIsModalOpen }) => {
                 </Link>
               </li>
               <li>
-                <Link href="/orders" onClick={() => setIsOpen(false)} className="nav-item">
+                <button 
+                  onClick={() => setShowOrdersPopup(true)}  // ✅ Open Orders Popup
+                  className="nav-item orders-btn"
+                >
                   <FiShoppingCart size={26} />
                   <span>Orders</span>
-                </Link>
+                </button>
               </li>
             </>
           ) : (
@@ -87,7 +87,6 @@ const Header = ({ setIsModalOpen }) => {
                 </Link>
               </li>
 
-              {/* User Dropdown */}
               <li className="user-dropdown">
                 {session ? (
                   <div className="user-container">
@@ -108,6 +107,9 @@ const Header = ({ setIsModalOpen }) => {
           )}
         </ul>
       </nav>
+
+      {/* ✅ Orders Pop-up */}
+      {showOrdersPopup && <OrdersPopup onClose={() => setShowOrdersPopup(false)} />}
     </header>
   );
 };
