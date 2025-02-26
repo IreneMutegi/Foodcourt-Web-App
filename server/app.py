@@ -339,7 +339,9 @@ class OrdersResource(Resource):
                     orders_association.c.restaurant_id,
                     orders_association.c.meal_id,
                     orders_association.c.table_number,
-                    orders_association.c.quantity
+                    orders_association.c.quantity,
+                    orders_association.c.price,
+                    orders_association.c.total
                 ).where(orders_association.c.client_id == client_id)
             ).fetchall()
         else:
@@ -350,7 +352,9 @@ class OrdersResource(Resource):
                     orders_association.c.restaurant_id,
                     orders_association.c.meal_id,
                     orders_association.c.table_number,
-                    orders_association.c.quantity
+                    orders_association.c.quantity,
+                    orders_association.c.price,
+                    orders_association.c.total
                 )
             ).fetchall()
 
@@ -359,7 +363,7 @@ class OrdersResource(Resource):
 
         orders_list = []
         for order in orders:
-            client_id, restaurant_id, meal_id, table_number, quantity = order
+            client_id, restaurant_id, meal_id, table_number, quantity, price, total = order
 
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
@@ -375,13 +379,13 @@ class OrdersResource(Resource):
                 "category": meal.category if meal else "Unknown Category",
                 "table_number": table_number,
                 "quantity": quantity,
-                "price": meal.price if meal else "Unknown Price",
-                "total": meal.price * quantity if meal else "Unknown Total"
+                "price": price,
+                "total": total
             })
 
         return {"orders": orders_list}, 200
 
-    # Post a new order
+    # Create a new order
     def post(self):
         data = request.get_json()
 
@@ -391,7 +395,7 @@ class OrdersResource(Resource):
         table_number = data.get("table_number")
         quantity = data.get("quantity")
 
-        if not client_id or not restaurant_id or not meal_id or not table_number or not quantity:
+        if not all([client_id, restaurant_id, meal_id, table_number, quantity]):
             return {"error": "client_id, restaurant_id, table_number, meal_id, and quantity are required"}, 400
 
         meal = Menu.query.get(meal_id)
@@ -423,25 +427,37 @@ class OrdersResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-    # Patch order (update order for a specific client)
+    # Update an existing order
     def patch(self, client_id):
         data = request.get_json()
-
+        
         if not client_id:
             return {"error": "client_id is required"}, 400
 
-        # Find the existing orders for the client
-        orders = db.session.execute(
+        order = db.session.execute(
             select(orders_association).where(orders_association.c.client_id == client_id)
-        ).fetchall()
+        ).fetchone()
 
-        if not orders:
-            return {"error": "No orders found for this client"}, 404
+        if not order:
+            return {"error": "No order found for this client"}, 404
 
-        # Update the fields if provided
         update_data = {}
+
+        # Check if meal_id is being updated, fetch new price
+        if "meal_id" in data:
+            meal = Menu.query.get(data["meal_id"])
+            if not meal:
+                return {"error": "Invalid meal_id"}, 400
+            update_data["meal_id"] = data["meal_id"]
+            update_data["price"] = meal.price  # Update price based on new meal
+
+        # Update quantity and recalculate total if quantity is changed
         if "quantity" in data:
             update_data["quantity"] = data["quantity"]
+            if "meal_id" in data or "price" in update_data:
+                update_data["total"] = update_data["price"] * data["quantity"]
+            else:
+                update_data["total"] = order.total / order.quantity * data["quantity"]
 
         if "table_number" in data:
             update_data["table_number"] = data["table_number"]
@@ -484,7 +500,7 @@ class OrdersResource(Resource):
             return {"error": str(e)}, 500
 
 # Add the resource to your API
-api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>') 
+api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>')
 
 
 class RestaurantOrderResource(Resource):
