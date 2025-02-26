@@ -288,16 +288,28 @@ class MenuResource(Resource):
 api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:meal_id>', '/menu/restaurant/<int:restaurant_id>')
 
 class OrdersResource(Resource):
-    def get(self):
-        orders = db.session.execute(
-            select(
-                orders_association.c.client_id,
-                orders_association.c.restaurant_id,
-                orders_association.c.meal_id,
-                orders_association.c.table_number,
-                orders_association.c.quantity
-            )
-        ).fetchall()
+    # Get orders for a specific client
+    def get(self, client_id=None):
+        if client_id:
+            orders = db.session.execute(
+                select(
+                    orders_association.c.client_id,
+                    orders_association.c.restaurant_id,
+                    orders_association.c.meal_id,
+                    orders_association.c.table_number,
+                    orders_association.c.quantity
+                ).where(orders_association.c.client_id == client_id)
+            ).fetchall()
+        else:
+            orders = db.session.execute(
+                select(
+                    orders_association.c.client_id,
+                    orders_association.c.restaurant_id,
+                    orders_association.c.meal_id,
+                    orders_association.c.table_number,
+                    orders_association.c.quantity
+                )
+            ).fetchall()
 
         if not orders:
             return {"message": "No orders found"}, 404
@@ -326,6 +338,7 @@ class OrdersResource(Resource):
 
         return {"orders": orders_list}, 200
 
+    # Post a new order (client_id is expected in the request body)
     def post(self):
         data = request.get_json()
 
@@ -367,53 +380,46 @@ class OrdersResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-    # PATCH request to update an order
-    def patch(self):
+    # Patch order (update order for a specific client)
+    def patch(self, client_id):
         data = request.get_json()
     
-    client_id = data.get("client_id")
+        if not client_id:
+            return {"error": "client_id is required"}, 400
+
+        # Find the existing orders for the client
+        orders = db.session.execute(
+            select(orders_association).where(orders_association.c.client_id == client_id)
+        ).fetchall()
+
+        if not orders:
+            return {"error": "No orders found for this client"}, 404
+
+        # Update the fields if provided
+        update_data = {}
+        if "quantity" in data:
+            update_data["quantity"] = data["quantity"]
     
-    if not client_id:
-        return {"error": "client_id is required"}, 400
+        if "table_number" in data:
+            update_data["table_number"] = data["table_number"]
 
-    # Find the existing orders for the client
-    orders = db.session.execute(
-        select(orders_association).where(orders_association.c.client_id == client_id)
-    ).fetchall()
+        if update_data:
+            try:
+                db.session.execute(
+                    orders_association.update()
+                    .where(orders_association.c.client_id == client_id)
+                    .values(update_data)
+                )
+                db.session.commit()
+                return {"message": "Order updated successfully"}, 200
+            except Exception as e:
+                db.session.rollback()
+                return {"error": str(e)}, 500
 
-    if not orders:
-        return {"error": "No orders found for this client"}, 404
+        return {"message": "No updates provided"}, 400
 
-    # Update the fields if provided
-    update_data = {}
-    if "quantity" in data:
-        update_data["quantity"] = data["quantity"]
-    
-    if "table_number" in data:
-        update_data["table_number"] = data["table_number"]
-
-    if update_data:
-        try:
-            db.session.execute(
-                orders_association.update()
-                .where(orders_association.c.client_id == client_id)
-                .values(update_data)
-            )
-            db.session.commit()
-            return {"message": "Orders updated successfully"}, 200
-        except Exception as e:
-            db.session.rollback()
-            return {"error": str(e)}, 500
-
-    return {"message": "No updates provided"}, 400
-
-
-    # DELETE request to delete an order
-   def delete(self):
-        data = request.get_json()
-
-        client_id = data.get("client_id")
-
+    # Delete order (delete orders for a specific client)
+    def delete(self, client_id):
         if not client_id:
             return {"error": "client_id is required"}, 400
 
@@ -434,8 +440,9 @@ class OrdersResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-api.add_resource(OrdersResource, '/orders')
-
+# Add the resource to your API
+api.add_resource(OrdersResource, '/orders/<int:client_id>')  # For client-specific operations
+api.add_resource(OrdersResource, '/orders')  # For creating orders or viewing all orders
 class OrderGetById(Resource):
     # GET a single order by order_id (referencing client_id)
     def get(self, order_id):
