@@ -410,29 +410,29 @@ class OrdersResource(Resource):
 
     # DELETE request to delete an order
    def delete(self):
-    data = request.get_json()
+        data = request.get_json()
 
-    client_id = data.get("client_id")
+        client_id = data.get("client_id")
 
-    if not client_id:
-        return {"error": "client_id is required"}, 400
+        if not client_id:
+            return {"error": "client_id is required"}, 400
 
-    orders = db.session.execute(
-        select(orders_association).where(orders_association.c.client_id == client_id)
-    ).fetchall()
+        orders = db.session.execute(
+            select(orders_association).where(orders_association.c.client_id == client_id)
+        ).fetchall()
 
-    if not orders:
-        return {"error": "No orders found for this client"}, 404
+        if not orders:
+            return {"error": "No orders found for this client"}, 404
 
-    try:
-        db.session.execute(
-            orders_association.delete().where(orders_association.c.client_id == client_id)
-        )
-        db.session.commit()
-        return {"message": "Orders deleted successfully"}, 200
-    except Exception as e:
-        db.session.rollback()
-        return {"error": str(e)}, 500
+        try:
+            db.session.execute(
+                delete(orders_association).where(orders_association.c.client_id == client_id)
+            )
+            db.session.commit()
+            return {"message": "Orders deleted successfully"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
 
 api.add_resource(OrdersResource, '/orders')
 
