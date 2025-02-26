@@ -8,34 +8,86 @@
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-  
-  .orders-popup {
+    z-index: 1000; /* Ensure it appears on top */
+}
+
+.orders-popup {
     background: white;
     padding: 20px;
     border-radius: 8px;
-    min-width: 400px;
+    width: 500px; /* Increase width for better spacing */
     box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
     position: relative;
-  }
-  
-  .close-btn {
+    color: #333 !important; /* Force dark text */
+    font-family: Arial, sans-serif;
+    max-height: 80vh; /* Prevents overflow */
+    overflow-y: auto; /* Enables scrolling if content is too long */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.close-btn {
     position: absolute;
     top: 10px;
     right: 10px;
     border: none;
     background: none;
     cursor: pointer;
-  }
-  
-  .orders-table {
+    font-size: 24px;
+    color: #333;
+}
+
+.orders-popup h2 {
+    margin-bottom: 15px;
+    font-size: 20px;
+    text-align: center;
+    color: #222; /* Ensure title is visible */
+}
+
+.orders-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
-  }
-  
-  .orders-table th, .orders-table td {
+    background: white;
+}
+
+.orders-table th,
+.orders-table td {
     border: 1px solid #ddd;
-    padding: 8px;
+    padding: 12px;
     text-align: center;
-  }
+    color: black !important; /* Force black text */
+    font-size: 16px; /* Make text more readable */
+}
+
+.orders-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+.orders-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.orders-table tr:hover {
+    background-color: #e2e2e2;
+}
+
+/* Ensure table remains readable */
+.orders-table td {
+    word-wrap: break-word;
+    max-width: 200px; /* Prevent text from stretching */
+}
+
+/* Ensure there's spacing between elements */
+.orders-popup table {
+    margin-top: 10px;
+}
+
+/* Responsive Fix */
+@media (max-width: 600px) {
+    .orders-popup {
+        width: 90%; /* Make it responsive for smaller screens */
+    }
+}
