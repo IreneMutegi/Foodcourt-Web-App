@@ -3,14 +3,21 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  height: 100%;
   max-width: 600px;
   margin: auto;
   z-index: 10;
   margin-top: 80px;
-  background: #4db6ac27;
+  /* background: #4db6ac27; */
   padding: 15px;
 }
-
+.empty-cart {
+  padding-top: 30vh;
+  text-align: center;
+  background: none;
+  height: 100%;
+  width: 100%;
+}
 .cart-container h2 {
   color: black; /* Change to a bright color */
   font-size: 24px; /* Increase size */
@@ -56,7 +63,7 @@
   position: absolute;
   bottom: 20;
   right: 0;
-  color: #4DB6AC;
+  color: #4db6ac;
   font-weight: bold;
   font-size: 18px;
 }
@@ -68,7 +75,7 @@
 }
 
 .quantity-controls button {
-  background: #4DB6AC;
+  background: #4db6ac;
   border: none;
   color: white;
   padding: 5px 10px;
@@ -101,7 +108,7 @@
 }
 
 .apply-text {
-  color: #4DB6AC;
+  color: #4db6ac;
   font-weight: bold;
   cursor: pointer;
 }
@@ -116,7 +123,7 @@
 
 .checkout-btn {
   width: 100%;
-  background: #4DB6AC;
+  background: #4db6ac;
   color: white;
   padding: 10px;
   font-size: 16px;
@@ -145,4 +152,66 @@
 .delete-btn:hover {
   color: rgb(154, 8, 8);
 }
+.checkout-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
 
+.checkout-modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  width: 300px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.checkout-modal-content h3 {
+  margin-bottom: 10px;
+}
+
+.checkout-modal-content input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal-buttons button {
+  padding: 8px 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.modal-buttons button:first-child {
+  background-color: #4db6ac;
+  color: white;
+}
+
+.modal-buttons button:first-child:hover {
+  background-color: #2b8178;
+}
+
+.modal-buttons button:last-child {
+  background-color: #ff4b5c;
+  color: white;
+}
+
+.modal-buttons button:last-child:hover {
+  background-color: #ff2d42;
+}

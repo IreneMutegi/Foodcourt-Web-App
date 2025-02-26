@@ -1,300 +1,298 @@
 /* General Dashboard Styling */
 .dashboard {
-    padding: 20px;
+  padding: 20px;
+  padding-top: 70px;
+  height: auto; /* Ensures it grows with content */
+  min-height: 100vh; /* Ensures it at least fills the screen */
+  display: flex;
+  flex-direction: column; /* Ensures children stack properly */
+}
 
-    height: auto; /* Ensures it grows with content */
-    min-height: 100vh; /* Ensures it at least fills the screen */
-    display: flex;
-    flex-direction: column; /* Ensures children stack properly */
+/* Header */
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
 
+/* Menu Title */
+.menu-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+}
+
+/* Add Restaurant Button */
+.add-restaurant-btn {
+  background: #4db6ac;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+  transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
+}
+
+.add-restaurant-btn:hover {
+  background: #388e8e;
+  transform: scale(1.05);
+}
+
+/* Table Styling */
+.table-container {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+.restaurant-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Table Headers */
+.restaurant-table th {
+  background: #4db6ac;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-size: 16px;
+}
+
+/* Table Rows */
+.restaurant-table td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  font-size: 14px;
+}
+
+/* Alternate row colors for readability */
+.restaurant-table tbody tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+/* Table Hover Effect */
+.restaurant-table tbody tr:hover {
+  background: #e0f2f1;
+}
+
+/* Restaurant Image */
+.restaurant-image {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 5px;
+  border: 2px solid #4db6ac;
+}
+
+/* Actions Column */
+.restaurant-table th:last-child,
+.restaurant-table td:last-child {
+  text-align: center;
+  width: 160px;
+}
+
+/* Actions Container */
+.actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Edit & Delete Buttons */
+.edit-btn,
+.delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 15px;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
+}
+
+/* Edit Button */
+.edit-btn {
+  background: #ffd700;
+  color: black;
+}
+
+.edit-btn:hover {
+  background: #e6c300;
+  transform: scale(1.05);
+}
+
+/* Delete Button */
+.delete-btn {
+  background: #ff4d4d;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #d93636;
+  transform: scale(1.05);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .restaurant-table thead {
+    display: none;
   }
-  
-  /* Header */
-  .menu-header {
+
+  .restaurant-table tr {
+    display: block;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: white;
+    padding: 10px;
+  }
+
+  .restaurant-table td {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  /* Menu Title */
-  .menu-title {
-    font-size: 24px;
-    font-weight: bold;
-    color: white;
-  }
-  
-  /* Add Restaurant Button */
-  .add-restaurant-btn {
-    background: #4db6ac;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 8px;
-    border: none;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 16px;
-    transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
-  }
-  
-  .add-restaurant-btn:hover {
-    background: #388e8e;
-    transform: scale(1.05);
-  }
-  
-  /* Table Styling */
-  .table-container {
-    margin-top: 20px;
-    overflow-x: auto;
-  }
-  
-  .restaurant-table {
-    width: 100%;
-    border-collapse: collapse;
-    border-radius: 10px;
-    overflow: hidden;
-    background: white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Table Headers */
-  .restaurant-table th {
-    background: #4db6ac;
-    color: white;
-    padding: 12px;
-    text-align: left;
-    font-size: 16px;
-  }
-  
-  /* Table Rows */
-  .restaurant-table td {
     padding: 10px;
-    border-bottom: 1px solid #ddd;
     font-size: 14px;
   }
-  
-  /* Alternate row colors for readability */
-  .restaurant-table tbody tr:nth-child(even) {
-    background: #f9f9f9;
-  }
-  
-  /* Table Hover Effect */
-  .restaurant-table tbody tr:hover {
-    background: #e0f2f1;
-  }
-  
-  /* Restaurant Image */
-  .restaurant-image {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 5px;
-    border: 2px solid #4db6ac;
-  }
-  
-  /* Actions Column */
-  .restaurant-table th:last-child,
-  .restaurant-table td:last-child {
-    text-align: center;
-    width: 160px;
-  }
-  
-  /* Actions Container */
-  .actions {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-  }
-  
-  /* Edit & Delete Buttons */
-  .edit-btn,
-  .delete-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    padding: 10px 15px;
-    width: 100%;
-    border: none;
-    cursor: pointer;
-    border-radius: 8px;
-    font-size: 16px;
-    transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
-  }
-  
-  /* Edit Button */
-  .edit-btn {
-    background: #FFD700;
-    color: black;
-  }
-  
-  .edit-btn:hover {
-    background: #E6C300;
-    transform: scale(1.05);
-  }
-  
-  /* Delete Button */
-  .delete-btn {
-    background: #FF4D4D;
-    color: white;
-  }
-  
-  .delete-btn:hover {
-    background: #D93636;
-    transform: scale(1.05);
-  }
-  
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .restaurant-table thead {
-      display: none;
-    }
-  
-    .restaurant-table tr {
-      display: block;
-      margin-bottom: 15px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      background: white;
-      padding: 10px;
-    }
-  
-    .restaurant-table td {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px;
-      font-size: 14px;
-    }
-  
-    .restaurant-table td::before {
-      content: attr(data-label);
-      font-weight: bold;
-      color: #4db6ac;
-    }
-  
-    .restaurant-image {
-      width: 40px;
-      height: 40px;
-    }
-  
-    .restaurant-table th:last-child,
-    .restaurant-table td:last-child {
-      width: auto;
-    }
-  
-    .actions {
-      flex-direction: column;
-      gap: 5px;
-    }
-  
-    .edit-btn,
-    .delete-btn {
-      width: auto;
-    }
-  }
-  
-  /* Form Modal Styling */
-  .restaurant-form-overlay {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    height: 100%;
-    width: 100%;
-    color: white;
-    background-color: rgba(0, 0, 0, 0.6);
-    z-index: 2000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  /* Modal container for restaurant form */
-  .restaurant-form-container {
-    background: #222;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    width: 30%;
-    text-align: center;
-  }
-  
-  /* Form styling */
-  .restaurant-form-container form {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-  }
-  
-  /* Input fields */
-  .restaurant-form-container form input {
-    width: 60%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #333;
-    color: white;
-  }
-  
-  /* Buttons */
-  .restaurant-form-container .form-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 15px;
-  }
-  
-  .restaurant-form-container .form-buttons button {
-    background-color: #4db6ac;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 5px;
+
+  .restaurant-table td::before {
+    content: attr(data-label);
     font-weight: bold;
-    cursor: pointer;
-    border: none;
-    transition: 0.3s;
-  }
-  
-  .restaurant-form-container .form-buttons button:hover {
-    background-color: #388e8e;
-  }
-  
-  /* Image Upload Button */
-  .upload-btn {
-    background-color: #4db6ac;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    display: inline-block;
-    font-size: 14px;
-    margin-bottom: 10px;
-  }
-  
-  .upload-btn:hover {
-    background-color: #388e8e;
-  }
-  
-  .image-preview {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    margin-top: 10px;
-    display: block;
-  }
-  
-  /* Close Button */
-  .close-btn {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    background: none;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
     color: #4db6ac;
   }
-  
+
+  .restaurant-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  .restaurant-table th:last-child,
+  .restaurant-table td:last-child {
+    width: auto;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    width: auto;
+  }
+}
+
+/* Form Modal Styling */
+.restaurant-form-overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  height: 100%;
+  width: 100%;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Modal container for restaurant form */
+.restaurant-form-container {
+  background: #222;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  width: 30%;
+  text-align: center;
+}
+
+/* Form styling */
+.restaurant-form-container form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Input fields */
+.restaurant-form-container form input {
+  width: 60%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #333;
+  color: white;
+}
+
+/* Buttons */
+.restaurant-form-container .form-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.restaurant-form-container .form-buttons button {
+  background-color: #4db6ac;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  transition: 0.3s;
+}
+
+.restaurant-form-container .form-buttons button:hover {
+  background-color: #388e8e;
+}
+
+/* Image Upload Button */
+.upload-btn {
+  background-color: #4db6ac;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.upload-btn:hover {
+  background-color: #388e8e;
+}
+
+.image-preview {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  margin-top: 10px;
+  display: block;
+}
+
+/* Close Button */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #4db6ac;
+}
