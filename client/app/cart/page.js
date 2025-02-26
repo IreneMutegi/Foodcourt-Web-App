@@ -34,6 +34,7 @@ export default function Cart() {
   const removeItem = (index) => {
     setCart((prevCart) => prevCart.filter((_, i) => i !== index));
   };
+  
 
   const handleMakeOrder = () => {
     if (!session) {
