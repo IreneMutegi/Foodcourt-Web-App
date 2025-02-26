@@ -488,7 +488,10 @@ api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>')
 
 
 
-def get(self, restaurant_id):
+
+class RestaurantOrders(Resource):
+    # GET - Retrieve all orders for a specific restaurant
+    def get(self, restaurant_id):
         orders = db.session.execute(
             select(
                 orders_association.c.id,
@@ -583,37 +586,7 @@ def get(self, restaurant_id):
 
 # Add the endpoint to the API
 api.add_resource(RestaurantOrders, '/orders/restaurants/<int:restaurant_id>', '/orders/restaurants/<int:restaurant_id>/<int:order_id>')
-# Restaurant Order Patch (update)
-# class OrderPatch(Resource):
-#     def patch(self, restaurant_id, order_id):
-#         data = request.get_json()
 
-#         # Get order details
-#         order = db.session.execute(
-#             orders_association.select().where(
-#                 (orders_association.c.restaurant_id == restaurant_id) &
-#                 (orders_association.c.id == order_id)
-#             )
-#         ).fetchone()
-
-#         if not order:
-#             return {"error": "Order not found for this restaurant"}, 404
-
-#         # Update fields if provided
-#         table_number = data.get("table_number", order[3])
-#         quantity = data.get("quantity", order[4])
-
-#         db.session.execute(
-#             orders_association.update().where(
-#                 (orders_association.c.restaurant_id == restaurant_id) &
-#                 (orders_association.c.id == order_id)
-#             ).values(table_number=table_number, quantity=quantity)
-#         )
-#         db.session.commit()
-
-#         return {"message": "Order updated successfully"}, 200
-
-# api.add_resource(OrderPatch, '/restaurant/<int:restaurant_id>/order/<int:order_id>/update')
 
 if __name__ == "__main__":
     app.run(debug=True, port=5555)
