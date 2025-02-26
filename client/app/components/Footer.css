@@ -9,6 +9,7 @@
   margin-bottom: 0cm;
   margin: 0;
   padding: 0;
+  bottom: 0;
 }
 
 .footer-content {
@@ -52,13 +53,13 @@
 }
 
 .footer-links a:hover {
-  color: #4DB6AC;
+  color: #4db6ac;
   text-decoration: underline;
 }
 
 .footer-section p svg {
   margin-right: 10px;
-  color: #4DB6AC;
+  color: #4db6ac;
 }
 
 /* Admin Button Styling */
@@ -66,11 +67,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  
 }
 
 .admin-btn {
-  background: #4DB6AC;
+  background: #4db6ac;
   color: white;
   padding: 10px 20px;
   border-radius: 5px;
@@ -81,7 +81,7 @@
 }
 
 .admin-btn:hover {
-  background: #388E8E;
+  background: #388e8e;
 }
 
 /* Responsive Design */
