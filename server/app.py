@@ -484,9 +484,7 @@ class OrdersResource(Resource):
             return {"error": str(e)}, 500
 
 # Add the resource to your API
-api.add_resource(OrdersResource, '/orders/<int:client_id>')  # For client-specific operations
-api.add_resource(OrdersResource, '/orders')  # For creating orders or viewing all orders
-
+api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>') 
 
 
 
