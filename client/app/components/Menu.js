@@ -8,7 +8,9 @@ export default function Menu({ restaurant, onClose, meals, addToCart }) {
   const { cart, setCart } = useCart();
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
+
   const { data: session, status } = useSession();
+
 
   const handleCartToggle = (item) => {
     if (!session) {
@@ -37,44 +39,33 @@ export default function Menu({ restaurant, onClose, meals, addToCart }) {
   return (
     <div className="menu-overlay">
       <div className="menu-container">
-        <button onClick={onClose} id="close-btn">
-          X
-        </button>
-        <h2>{restaurant.name} - Menu</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Price</th>
-              <th>Category</th>
-            </tr>
-          </thead>
-          <tbody>
-            {meals.length > 0 ? (
-              meals.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.name}</td>
-                  <td>{item.price}</td>
-                  <td>{item.category}</td>
-                  <td>
-                    <button
-                      id="order-btn"
-                      onClick={() => handleCartToggle(item)}
-                    >
-                      {addedItems.includes(item.name)
-                        ? "Remove"
-                        : "Add to Cart"}
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="4">No meals available</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <button onClick={onClose} id="close-btn">X</button>
+        <div className="menu-header">
+          {restaurant.image_url && (
+             <img src={restaurant.image_url} alt={restaurant.name} className="restaurant-image" />)}
+          <h2>{restaurant.name}</h2>
+        </div>
+        <h3>Menu</h3>
+        <div className="menu-grid">
+          {meals.length > 0 ? (
+            meals.map((item, index) => (
+              <div key={index} className="menu-item">
+                <img src="https://plus.unsplash.com/premium_photo-1676973464100-beca51b27e24?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHx0b3BpYy1mZWVkfDIxfHhqUFI0aGxrQkdBfHxlbnwwfHx8fHw%3D" alt={item.name} className="menu-image" />
+                <h4>{item.name}</h4>
+                <p className="price">${item.price.toFixed(2)}</p>
+                <p className="category">{item.category}</p>
+                <button
+                  className="order-btn"
+                  onClick={() => handleCartToggle(item)}
+                >
+                  {addedItems.includes(item.name) ? "Remove" : "Add to Cart"}
+                </button>
+              </div>
+            ))
+          ) : (
+            <p>No meals available</p>
+          )}
+        </div>
       </div>
       {showLoginPrompt && (
         <div className="login-prompt-overlay">

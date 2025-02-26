@@ -11,6 +11,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false); // Loading state
   const router = useRouter();
   
   React.useEffect(() => {
@@ -27,6 +28,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
     e.preventDefault();
     setError("");
     setSuccessMessage("");
+    setLoading(true);
 
     const tables = [selectedRole, ...["admin", "client", "restaurant"].filter(role => role !== selectedRole)];
     let user = null;
@@ -53,11 +55,13 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
     
         if (!user) {
           setError("User not found. Please sign up.");
+          setLoading(false);
           return;
         }    
 
         if (userRole !== selectedRole) {
           setError(`You are registered as a ${userRole}.`);
+          setLoading(false);
           return;
         }
 
@@ -114,6 +118,8 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
     }
   } catch (error) {
     setError("Something went wrong. Please try again.");
+  } finally {
+    setLoading(false); // Stop loading
   }
 };
 
@@ -142,6 +148,7 @@ const handleClose = () => {
   return (
     <>
       {/* Modal for Role Selection */}
+      {loading && <div className="loading-overlay">Loading...</div>}
       {!selectedRole && (
         <div className="modal-overlay">
           <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -204,8 +211,7 @@ const handleClose = () => {
   
               {error && <p className="error-text">{error}</p>}
   
-              <button type="submit" className="submit-btn">
-                {hasAccount ? "Sign In" : "Sign Up"}
+              <button type="submit" className="submit-btn" disabled={loading}>{loading ? "Loading..." : hasAccount ? "Sign In" : "Sign Up"}
               </button>
             </form>
   
