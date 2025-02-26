@@ -12,6 +12,7 @@ body {
     position: relative;
     height: 200px;
     background: url('https://media.istockphoto.com/id/1829241109/photo/enjoying-a-brunch-together.webp?a=1&b=1&s=612x612&w=0&k=20&c=PDAOJZowRgcFpLORXCV5p9Yt4wuOlxpYkxOUk5M4koo=') center/cover no-repeat;
+    padding: 50px;
   }
   
   .hero-overlay {
@@ -35,11 +36,15 @@ body {
     font-size: 3rem;
     font-weight: bold;
     margin-bottom: 1rem;
+    color: #4db6ac;
+    ;
+
   }
   
   .hero-description {
     font-size: 1.25rem;
-    color: #0f1211;
+    color:    white;
+    ;
   }
   
   /* What We Offer Section */
