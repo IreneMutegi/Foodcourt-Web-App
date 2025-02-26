@@ -488,47 +488,45 @@ api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>')
 
 
 
-class RestaurantOrderGet(Resource):
-    def get(self, restaurant_id, client_id, meal_id):
-        order = db.session.execute(
-            orders_association.select().where(
-                (orders_association.c.restaurant_id == restaurant_id) &
-                (orders_association.c.client_id == client_id) &
-                (orders_association.c.meal_id == meal_id)
-            )
-        ).fetchone()
+def get(self, restaurant_id):
+        orders = db.session.execute(
+            select(
+                orders_association.c.id,
+                orders_association.c.client_id,
+                orders_association.c.meal_id,
+                orders_association.c.table_number,
+                orders_association.c.quantity
+            ).where(orders_association.c.restaurant_id == restaurant_id)
+        ).fetchall()
 
-        if not order:
-            return {"error": "Order not found for this restaurant"}, 404
+        if not orders:
+            return {"error": "No orders found for this restaurant"}, 404
 
-        table_number = order.table_number
-        quantity = order.quantity
+        orders_list = []
+        for order in orders:
+            order_id, client_id, meal_id, table_number, quantity = order
+            meal = Menu.query.get(meal_id)
+            client = Client.query.get(client_id)
 
-        meal = Menu.query.get(meal_id)
-        client = Client.query.get(client_id)
+            orders_list.append({
+                "order_id": order_id,
+                "client_id": client_id,
+                "client_name": client.name if client else "Unknown Client",
+                "meal_id": meal_id,
+                "meal_name": meal.name if meal else "Unknown Meal",
+                "category": meal.category if meal else "Unknown Category",
+                "table_number": table_number,
+                "quantity": quantity,
+                "price": meal.price if meal else "Unknown Price",
+                "total": meal.price * quantity if meal else "Unknown Total"
+            })
 
-        order_details = {
-            "client_id": client_id,
-            "client_name": client.name if client else "Unknown Client",
-            "restaurant_id": restaurant_id,
-            "meal_id": meal_id,
-            "meal_name": meal.name if meal else "Unknown Meal",
-            "category": meal.category if meal else "Unknown Category",
-            "table_number": table_number,
-            "quantity": quantity,
-            "price": meal.price if meal else "Unknown Price",
-            "total": meal.price * quantity if meal else "Unknown Total"
-        }
+        return {"orders": orders_list}, 200
 
-        return {"order": order_details}, 200
-
-api.add_resource(RestaurantOrderGet, '/restaurant/<int:restaurant_id>/order/<int:client_id>/<int:meal_id>')
-
-# Restaurant Order Delete
-class RestaurantOrderDelete(Resource):
+    # DELETE - Remove an order for a specific restaurant
     def delete(self, restaurant_id, order_id):
         order = db.session.execute(
-            orders_association.select().where(
+            select(orders_association).where(
                 (orders_association.c.restaurant_id == restaurant_id) &
                 (orders_association.c.id == order_id)
             )
@@ -546,8 +544,45 @@ class RestaurantOrderDelete(Resource):
         db.session.commit()
 
         return {"message": "Order deleted successfully"}, 200
-api.add_resource(RestaurantOrderDelete, '/restaurant/<int:restaurant_id>/order/<int:order_id>/delete')
 
+    # PATCH - Update an order (only change provided fields)
+    def patch(self, restaurant_id, order_id):
+        data = request.get_json()
+        update_fields = {}
+
+        if "quantity" in data:
+            update_fields["quantity"] = data["quantity"]
+        if "table_number" in data:
+            update_fields["table_number"] = data["table_number"]
+
+        if not update_fields:
+            return {"error": "No valid fields provided for update"}, 400
+
+        order = db.session.execute(
+            select(orders_association).where(
+                (orders_association.c.restaurant_id == restaurant_id) &
+                (orders_association.c.id == order_id)
+            )
+        ).fetchone()
+
+        if not order:
+            return {"error": "Order not found for this restaurant"}, 404
+
+        db.session.execute(
+            orders_association.update()
+            .where(
+                (orders_association.c.restaurant_id == restaurant_id) &
+                (orders_association.c.id == order_id)
+            )
+            .values(**update_fields)
+        )
+        db.session.commit()
+
+        return {"message": "Order updated successfully"}, 200
+
+
+# Add the endpoint to the API
+api.add_resource(RestaurantOrders, '/orders/restaurants/<int:restaurant_id>', '/orders/restaurants/<int:restaurant_id>/<int:order_id>')
 # Restaurant Order Patch (update)
 # class OrderPatch(Resource):
 #     def patch(self, restaurant_id, order_id):
