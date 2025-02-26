@@ -39,7 +39,6 @@ export default function Cart() {
     setCart((prevCart) => prevCart.filter((_, i) => i !== index));
   };
   
-
   return (
     <div className="cart-container">
       <h2>My Cart</h2>
