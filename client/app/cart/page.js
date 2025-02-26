@@ -38,6 +38,7 @@ export default function Cart() {
   const removeCartItem = (index) => {
     setCart((prevCart) => prevCart.filter((_, i) => i !== index));
   };
+  
 
   return (
     <div className="cart-container">
