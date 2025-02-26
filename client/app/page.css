@@ -118,8 +118,6 @@ section {
   padding: 0 0 10px 0;
   border-radius: 15px;
   cursor: pointer;
-<<<<<<< HEAD
-=======
   transition: transform 0.3s ease-in-out;
   background-color: #222;
   box-shadow: 2px 2px 2px 2px rgb(198, 195, 195);
@@ -127,7 +125,6 @@ section {
 }
 .restaurant-card-container .restaurant-card:hover {
   transform: translateY(5px);
->>>>>>> 2a5191d (changes card styling)
 }
 .restaurant-card-container .restaurant-card .image-container {
   display: flex;

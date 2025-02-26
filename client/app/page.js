@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useCart } from "./context/CartContext-temp";
 import "./page.css";
 
+import sliderImages from "../public/images";
+
 export default function Home() {
   const baseUrl = "https://foodcourt-web-app-4.onrender.com";
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
@@ -14,7 +16,11 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   const loadSvg = "/loading.svg";
+  const imagesPerSlide = 3;
+
 
   const addToCart = (order) => {
     console.log("Adding order", order);
@@ -25,7 +31,9 @@ export default function Home() {
     (restaurant) =>
       restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (restaurant.category &&
-        restaurant.category.toLowerCase().includes(searchTerm.toLowerCase)) ||
+
+        restaurant.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
+
       (restaurant.cuisine &&
         restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -53,7 +61,6 @@ export default function Home() {
       try {
         const response = await fetch(
 
-
           `${baseUrl}/menu/restaurant/${selectedRestaurant.id}`
 
         );
@@ -67,6 +74,18 @@ export default function Home() {
     };
     fetchMeals();
   }, [selectedRestaurant]);
+
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) =>
+        prevIndex + imagesPerSlide >= sliderImages.length
+          ? 0
+          : prevIndex + imagesPerSlide
+      );
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
   return (
     <>
       <section>
@@ -98,6 +117,7 @@ export default function Home() {
         </div>
         <div className="search-form-container">
           <h3>OUR RESTAURANTS</h3>
+
           <form onSubmit={(e) => e.preventDefault()}>
             <input
               type="text"
@@ -122,10 +142,12 @@ export default function Home() {
                   <div className="image-container">
                     <img src={restaurant.image_url} alt={restaurant.name} />
                   </div>
+
                   <div className="restaurant-details">
                     <h2>{restaurant.name}</h2>
                     <p>{restaurant.cuisine}</p>
                   </div>
+
                 </div>
               ))
             ) : (
