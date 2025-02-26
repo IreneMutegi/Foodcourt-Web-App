@@ -1,10 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react"; // ✅ Import useSession
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import "./Dashboard.css";
 
 const API_BASE_URL = "https://foodcourt-web-app-4.onrender.com";
-const RESTAURANT_ID = 1; // Replace this with the authenticated restaurant's ID
 
 // Define TypeScript interfaces
 interface Dish {
@@ -17,6 +17,9 @@ interface Dish {
 }
 
 const Dashboard = () => {
+  const { data: session } = useSession(); // ✅ Get session
+  const restaurantId = session?.user?.id; // ✅ Extract restaurant ID
+
   const [showForm, setShowForm] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [dishes, setDishes] = useState<Dish[]>([]);
@@ -27,58 +30,63 @@ const Dashboard = () => {
     image_url: "",
   });
 
-  // Fetch restaurant menu
-  useEffect(() => {
-    const fetchMenu = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/menu/restaurant/${RESTAURANT_ID}`);
-        const data = await response.json();
-        if (data.meals) {
-          setDishes(data.meals);
-        }
-      } catch (error) {
-        console.error("Error fetching dishes:", error);
-      }
-    };
-    fetchMenu();
-  }, []);
+  // ✅ Fetch restaurant menu
+  const fetchMenu = async () => {
+    if (!restaurantId) return; // Ensure restaurantId is available
 
-  // Handle form submission (Add or Edit Dish)
+    try {
+      const response = await fetch(`${API_BASE_URL}/menu/restaurant/${restaurantId}`);
+      const data = await response.json();
+      if (data.meals) {
+        setDishes(data.meals);
+      }
+    } catch (error) {
+      console.error("Error fetching dishes:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMenu(); // Fetch menu when restaurantId changes
+  }, [restaurantId]);
+
+  // ✅ Handle form submission (Add or Edit Dish)
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const newDish = { ...dishData, restaurant_id: RESTAURANT_ID };
+    if (!restaurantId) return; // Ensure restaurantId is available
+
+    const newDish = { ...dishData, restaurant_id: restaurantId };
 
     if (editIndex !== null) {
-      // Update dish
+      // ✅ PATCH (Update Dish)
       const dishId = dishes[editIndex]?.id;
       if (!dishId) return;
 
       try {
-        await fetch(`${API_BASE_URL}/meals/${dishId}`, {
-          method: "PUT",
+        await fetch(`${API_BASE_URL}/menu/restaurant/${restaurantId}/meal/${dishId}`, {
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newDish),
         });
 
-        const updatedDishes = [...dishes];
-        updatedDishes[editIndex] = { ...newDish, id: dishId };
-        setDishes(updatedDishes);
+        fetchMenu(); // ✅ Re-fetch menu to update list
       } catch (error) {
         console.error("Error updating dish:", error);
       }
 
       setEditIndex(null);
     } else {
-      // Add new dish
+      // ✅ POST (Add New Dish)
       try {
-        const response = await fetch(`${API_BASE_URL}/meals`, {
+        const response = await fetch(`${API_BASE_URL}/menu/restaurant/${restaurantId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newDish),
         });
-        const addedDish = await response.json();
-        setDishes([...dishes, { ...addedDish, id: addedDish.id || Date.now() }]);
+
+        if (!response.ok) throw new Error("Failed to add dish");
+
+        fetchMenu(); // ✅ Re-fetch menu to update list
       } catch (error) {
         console.error("Error adding dish:", error);
       }
@@ -88,25 +96,32 @@ const Dashboard = () => {
     setShowForm(false);
   };
 
-  // Open edit form with selected dish details
+  // ✅ Open edit form with selected dish details
   const handleEdit = (index: number) => {
     setDishData(dishes[index]);
     setEditIndex(index);
     setShowForm(true);
   };
 
-  // Delete a dish
+  // ✅ DELETE dish
   const handleDelete = async (index: number) => {
     const dishId = dishes[index]?.id;
-    if (!dishId) return;
+    if (!dishId || !restaurantId) return;
 
     try {
-      await fetch(`${API_BASE_URL}/meals/${dishId}`, { method: "DELETE" });
-      setDishes(dishes.filter((_, i) => i !== index));
+      await fetch(`${API_BASE_URL}/menu/restaurant/${restaurantId}/meal/${dishId}`, {
+        method: "DELETE",
+      });
+
+      fetchMenu(); // ✅ Re-fetch menu after deleting
     } catch (error) {
       console.error("Error deleting dish:", error);
     }
   };
+
+  if (!session) {
+    return <div>Loading...</div>; // ✅ Ensure user is authenticated before rendering
+  }
 
   return (
     <div className="dashboard">
