@@ -6,7 +6,7 @@ export default function AboutPage() {
   return (
     <main className="about-page">
       {/* Hero Section */}
-      <section className="hero-section">
+      <section className="hero-section1">
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1 className="hero-title">Discover Culinary Excellence</h1>
