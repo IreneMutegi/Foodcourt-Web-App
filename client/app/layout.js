@@ -24,6 +24,7 @@ export default function RootLayout({ children }) {
           </CartProvider>
         </SessionProvider>
       </body>
+        
     </html>
   );
 }
