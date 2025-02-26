@@ -4,7 +4,6 @@ from flask_restful import Api, Resource
 from flask_migrate import Migrate
 from server.models import db, Client, Admin, Restaurant, Menu, orders_association  
 from sqlalchemy import select, insert
-
 import os
 
 app = Flask(__name__)
@@ -287,6 +286,48 @@ class MenuResource(Resource):
 
 api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:meal_id>', '/menu/restaurant/<int:restaurant_id>')
 
+
+# class OrderGetById(Resource):
+#     def get(self, order_id):
+#         order = db.session.execute(
+#             orders_association.select().where(
+#                 (orders_association.c.client_id == order_id)
+#             )
+#         ).fetchone()
+
+#         if not order:
+#             return {"error": "Order not found"}, 404
+
+#         client_id = order[0]
+#         restaurant_id = order[1]
+#         meal_id = order[2]
+#         table_number = order[3]
+#         quantity = order[4]
+
+#         meal = Menu.query.get(meal_id)
+#         client = Client.query.get(client_id)
+#         restaurant = Restaurant.query.get(restaurant_id)
+
+#         order_details = {
+#             "client_id": client_id,
+#             "client_name": client.name if client else "Unknown Client",
+#             "restaurant_id": restaurant_id,
+#             "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
+#             "meal_id": meal_id,
+#             "meal_name": meal.name if meal else "Unknown Meal",
+#             "category": meal.category if meal else "Unknown Category",
+#             "table_number": table_number,
+#             "quantity": quantity,
+#             "price": meal.price if meal else "Unknown Price",
+#             "total": meal.price * quantity if meal else "Unknown Total"
+#         }
+
+#         return {"order": order_details}, 200
+
+# api.add_resource(OrderGetById, '/orders/<int:order_id>')
+
+
+
 class OrdersResource(Resource):
     # Get orders for a specific client
     def get(self, client_id=None):
@@ -443,91 +484,7 @@ class OrdersResource(Resource):
 # Add the resource to your API
 api.add_resource(OrdersResource, '/orders/<int:client_id>')  # For client-specific operations
 api.add_resource(OrdersResource, '/orders')  # For creating orders or viewing all orders
-class OrderGetById(Resource):
-    # GET a single order by order_id (referencing client_id)
-    def get(self, order_id):
-        order = db.session.execute(
-            select(orders_association).where(orders_association.c.client_id == order_id)
-        ).fetchone()
 
-        if not order:
-            return {"error": "Order not found"}, 404
-
-        client_id, restaurant_id, meal_id, table_number, quantity = order
-
-        meal = Menu.query.get(meal_id)
-        client = Client.query.get(client_id)
-        restaurant = Restaurant.query.get(restaurant_id)
-
-        order_details = {
-            "client_id": client_id,
-            "client_name": client.name if client else "Unknown Client",
-            "restaurant_id": restaurant_id,
-            "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
-            "meal_id": meal_id,
-            "meal_name": meal.name if meal else "Unknown Meal",
-            "category": meal.category if meal else "Unknown Category",
-            "table_number": table_number,
-            "quantity": quantity,
-            "price": meal.price if meal else "Unknown Price",
-            "total": meal.price * quantity if meal else "Unknown Total"
-        }
-
-        return {"order": order_details}, 200
-
-
-class OrderGetByClient(Resource):
-    # GET all orders by client_id
-    def get(self, client_id):
-        orders = db.session.execute(
-            select(orders_association).where(orders_association.c.client_id == client_id)
-        ).fetchall()
-
-        if not orders:
-            return {"message": "No orders found for this client"}, 404
-
-        orders_list = []
-        for order in orders:
-            _, restaurant_id, meal_id, table_number, quantity = order
-
-            meal = Menu.query.get(meal_id)
-            restaurant = Restaurant.query.get(restaurant_id)
-
-            orders_list.append({
-                "client_id": client_id,
-                "restaurant_id": restaurant_id,
-                "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
-                "meal_id": meal_id,
-                "meal_name": meal.name if meal else "Unknown Meal",
-                "category": meal.category if meal else "Unknown Category",
-                "table_number": table_number,
-                "quantity": quantity,
-                "price": meal.price if meal else "Unknown Price",
-                "total": meal.price * quantity if meal else "Unknown Total"
-            })
-
-        return {"orders": orders_list}, 200
-
-
-class OrderDelete(Resource):
-    # DELETE an order by order_id (client_id reference)
-    def delete(self, order_id):
-        order = db.session.execute(
-            select(orders_association).where(orders_association.c.client_id == order_id)
-        ).fetchone()
-
-        if not order:
-            return {"error": "Order not found"}, 404
-
-        db.session.execute(delete(orders_association).where(orders_association.c.client_id == order_id))
-        db.session.commit()
-
-        return {"message": "Order deleted successfully"}, 200
-
-
-# Registering API routes
-api.add_resource(OrderGetById, '/orders/<int:order_id>')  # GET order by order_id
-api.add_resource(OrderGetByClient, '/orders/client/<int:client_id>')  # GET orders by client_id
 
 
 class RestaurantOrderGet(Resource):
