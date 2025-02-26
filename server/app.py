@@ -3,7 +3,7 @@ from flask_cors import CORS
 from flask_restful import Api, Resource
 from flask_migrate import Migrate
 from server.models import db, Client, Admin, Restaurant, Menu, orders_association  
-from sqlalchemy import select, insert
+from sqlalchemy import select, delete
 import os
 
 app = Flask(__name__)
@@ -329,9 +329,10 @@ api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:m
 
 
 class OrdersResource(Resource):
-    # Get orders for a specific client
+    # Get orders (client-specific or all orders)
     def get(self, client_id=None):
         if client_id:
+            # Get orders for a specific client
             orders = db.session.execute(
                 select(
                     orders_association.c.client_id,
@@ -342,6 +343,7 @@ class OrdersResource(Resource):
                 ).where(orders_association.c.client_id == client_id)
             ).fetchall()
         else:
+            # Get all orders
             orders = db.session.execute(
                 select(
                     orders_association.c.client_id,
@@ -379,7 +381,7 @@ class OrdersResource(Resource):
 
         return {"orders": orders_list}, 200
 
-    # Post a new order (client_id is expected in the request body)
+    # Post a new order
     def post(self):
         data = request.get_json()
 
@@ -424,7 +426,7 @@ class OrdersResource(Resource):
     # Patch order (update order for a specific client)
     def patch(self, client_id):
         data = request.get_json()
-    
+
         if not client_id:
             return {"error": "client_id is required"}, 400
 
@@ -440,7 +442,7 @@ class OrdersResource(Resource):
         update_data = {}
         if "quantity" in data:
             update_data["quantity"] = data["quantity"]
-    
+
         if "table_number" in data:
             update_data["table_number"] = data["table_number"]
 
@@ -484,6 +486,7 @@ class OrdersResource(Resource):
 # Add the resource to your API
 api.add_resource(OrdersResource, '/orders/<int:client_id>')  # For client-specific operations
 api.add_resource(OrdersResource, '/orders')  # For creating orders or viewing all orders
+
 
 
 
