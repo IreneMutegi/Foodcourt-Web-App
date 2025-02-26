@@ -65,6 +65,7 @@ const Header = ({ setIsModalOpen }) => {
                   <span>Orders</span>
                 </Link>
               </li>
+              <li><button onClick={logout} className="nav-item logout-btn">Logout</button></li>
             </>
           ) : (
             <>
