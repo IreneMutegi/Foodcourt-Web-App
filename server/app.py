@@ -489,12 +489,11 @@ api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>')
 
 
 
-class RestaurantOrders(Resource):
+class RestaurantOrderResource(Resource):
     # GET - Retrieve all orders for a specific restaurant
     def get(self, restaurant_id):
         orders = db.session.execute(
             select(
-                orders_association.c.id,
                 orders_association.c.client_id,
                 orders_association.c.meal_id,
                 orders_association.c.table_number,
@@ -507,12 +506,15 @@ class RestaurantOrders(Resource):
 
         orders_list = []
         for order in orders:
-            order_id, client_id, meal_id, table_number, quantity = order
+            client_id = order['client_id']
+            meal_id = order['meal_id']
+            table_number = order['table_number']
+            quantity = order['quantity']
+
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
 
             orders_list.append({
-                "order_id": order_id,
                 "client_id": client_id,
                 "client_name": client.name if client else "Unknown Client",
                 "meal_id": meal_id,
@@ -526,67 +528,77 @@ class RestaurantOrders(Resource):
 
         return {"orders": orders_list}, 200
 
-    # DELETE - Remove an order for a specific restaurant
-    def delete(self, restaurant_id, order_id):
-        order = db.session.execute(
-            select(orders_association).where(
-                (orders_association.c.restaurant_id == restaurant_id) &
-                (orders_association.c.id == order_id)
-            )
-        ).fetchone()
-
-        if not order:
-            return {"error": "Order not found for this restaurant"}, 404
-
-        db.session.execute(
-            orders_association.delete().where(
-                (orders_association.c.restaurant_id == restaurant_id) &
-                (orders_association.c.id == order_id)
-            )
-        )
-        db.session.commit()
-
-        return {"message": "Order deleted successfully"}, 200
-
-    # PATCH - Update an order (only change provided fields)
-    def patch(self, restaurant_id, order_id):
+    # PATCH - Update an existing order for a specific restaurant and client
+    def patch(self, restaurant_id, client_id):
         data = request.get_json()
-        update_fields = {}
 
-        if "quantity" in data:
-            update_fields["quantity"] = data["quantity"]
-        if "table_number" in data:
-            update_fields["table_number"] = data["table_number"]
-
-        if not update_fields:
-            return {"error": "No valid fields provided for update"}, 400
-
+        # Find the existing order for the restaurant and client
         order = db.session.execute(
             select(orders_association).where(
-                (orders_association.c.restaurant_id == restaurant_id) &
-                (orders_association.c.id == order_id)
+                (orders_association.c.restaurant_id == restaurant_id) & 
+                (orders_association.c.client_id == client_id)
             )
         ).fetchone()
 
         if not order:
-            return {"error": "Order not found for this restaurant"}, 404
+            return {"error": "Order not found for this restaurant and client"}, 404
 
-        db.session.execute(
-            orders_association.update()
-            .where(
-                (orders_association.c.restaurant_id == restaurant_id) &
-                (orders_association.c.id == order_id)
+        # Prepare the update data (quantity, table_number, etc.)
+        update_data = {}
+        if "quantity" in data:
+            update_data["quantity"] = data["quantity"]
+
+        if "table_number" in data:
+            update_data["table_number"] = data["table_number"]
+
+        if not update_data:
+            return {"error": "No fields to update"}, 400
+
+        try:
+            db.session.execute(
+                orders_association.update()
+                .where(
+                    (orders_association.c.restaurant_id == restaurant_id) &
+                    (orders_association.c.client_id == client_id)
+                )
+                .values(update_data)
             )
-            .values(**update_fields)
-        )
-        db.session.commit()
+            db.session.commit()
+            return {"message": "Order updated successfully"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
 
-        return {"message": "Order updated successfully"}, 200
+    # DELETE - Delete an order for a specific restaurant and client
+    def delete(self, restaurant_id, client_id):
+        # Find the order for this restaurant and client
+        order = db.session.execute(
+            select(orders_association).where(
+                (orders_association.c.restaurant_id == restaurant_id) &
+                (orders_association.c.client_id == client_id)
+            )
+        ).fetchone()
 
+        if not order:
+            return {"error": "Order not found for this restaurant and client"}, 404
 
-# Add the endpoint to the API
-api.add_resource(RestaurantOrders, '/orders/restaurants/<int:restaurant_id>', '/orders/restaurants/<int:restaurant_id>/<int:order_id>')
+        try:
+            db.session.execute(
+                orders_association.delete().where(
+                    (orders_association.c.restaurant_id == restaurant_id) &
+                    (orders_association.c.client_id == client_id)
+                )
+            )
+            db.session.commit()
+            return {"message": "Order deleted successfully"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
 
+# Register the resource and the endpoints with the Api object
+api.add_resource(RestaurantOrderResource, 
+                 '/orders/restaurants/<int:restaurant_id>', 
+                 '/orders/restaurants/<int:restaurant_id>/client/<int:client_id>')
 
 if __name__ == "__main__":
     app.run(debug=True, port=5555)
