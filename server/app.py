@@ -491,42 +491,44 @@ api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>')
 
 class RestaurantOrderResource(Resource):
     # GET - Retrieve all orders for a specific restaurant
-    def get(self, restaurant_id):
-        orders = db.session.execute(
-            select(
-                orders_association.c.client_id,
-                orders_association.c.meal_id,
-                orders_association.c.table_number,
-                orders_association.c.quantity
-            ).where(orders_association.c.restaurant_id == restaurant_id)
-        ).fetchall()
+    # GET - Retrieve all orders for a specific restaurant
+def get(self, restaurant_id):
+    orders = db.session.execute(
+        select(
+            orders_association.c.client_id,
+            orders_association.c.meal_id,
+            orders_association.c.table_number,
+            orders_association.c.quantity
+        ).where(orders_association.c.restaurant_id == restaurant_id)
+    ).fetchall()
 
-        if not orders:
-            return {"error": "No orders found for this restaurant"}, 404
+    if not orders:
+        return {"error": "No orders found for this restaurant"}, 404
 
-        orders_list = []
-        for order in orders:
-            client_id = order['client_id']
-            meal_id = order['meal_id']
-            table_number = order['table_number']
-            quantity = order['quantity']
+    orders_list = []
+    for order in orders:
+        client_id = order[0]  # Access client_id by index
+        meal_id = order[1]  # Access meal_id by index
+        table_number = order[2]  # Access table_number by index
+        quantity = order[3]  # Access quantity by index
+        
+        meal = Menu.query.get(meal_id)
+        client = Client.query.get(client_id)
 
-            meal = Menu.query.get(meal_id)
-            client = Client.query.get(client_id)
+        orders_list.append({
+            "client_id": client_id,
+            "client_name": client.name if client else "Unknown Client",
+            "meal_id": meal_id,
+            "meal_name": meal.name if meal else "Unknown Meal",
+            "category": meal.category if meal else "Unknown Category",
+            "table_number": table_number,
+            "quantity": quantity,
+            "price": meal.price if meal else "Unknown Price",
+            "total": meal.price * quantity if meal else "Unknown Total"
+        })
 
-            orders_list.append({
-                "client_id": client_id,
-                "client_name": client.name if client else "Unknown Client",
-                "meal_id": meal_id,
-                "meal_name": meal.name if meal else "Unknown Meal",
-                "category": meal.category if meal else "Unknown Category",
-                "table_number": table_number,
-                "quantity": quantity,
-                "price": meal.price if meal else "Unknown Price",
-                "total": meal.price * quantity if meal else "Unknown Total"
-            })
+    return {"orders": orders_list}, 200
 
-        return {"orders": orders_list}, 200
 
     # PATCH - Update an existing order for a specific restaurant and client
     def patch(self, restaurant_id, client_id):
