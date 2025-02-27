@@ -644,8 +644,8 @@ class ReservationResource(Resource):
             client = Client.query.get(client_id)
             restaurant_table = RestaurantTable.query.get(restaurant_table_id)
 
-            # Convert timestamp to ISO string format
-            timestamp_str = timestamp.isoformat() if isinstance(timestamp, datetime) else timestamp
+            # Ensure datetime is serialized
+            timestamp_str = timestamp.isoformat() if isinstance(timestamp, datetime) else str(timestamp)
 
             reservations_list.append({
                 "client_id": client_id,
@@ -653,7 +653,7 @@ class ReservationResource(Resource):
                 "restaurant_table_id": restaurant_table_id,
                 "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
                 "reservation_date": date,
-                "timestamp": timestamp_str
+                "timestamp": timestamp_str  # Make sure timestamp is a string
             })
 
         return {"reservations": reservations_list}, 200
