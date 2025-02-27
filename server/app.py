@@ -128,6 +128,7 @@ class ClientList(Resource):
         return clients_list, 200  
 
 api.add_resource(ClientList, '/clients')
+
 class RestaurantResource(Resource):
     def post(self):
         data = request.get_json()
@@ -328,16 +329,21 @@ api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:m
 
 
 
+
+from flask_restful import Resource
+from sqlalchemy import select, insert, update, delete
+from flask import request
+from models import db, orders_association, Menu, Restaurant, Client
+
 class OrdersResource(Resource):
     def get(self, client_id=None):
         if client_id:
             orders = db.session.execute(
                 select(
                     orders_association.c.client_id,
-                    orders_association.c.reservation_id,  # Include reservation_id
                     orders_association.c.restaurant_id,
                     orders_association.c.meal_id,
-                    orders_association.c.table_number,
+                    orders_association.c.restaurant_table_id,  # Use restaurant_table_id instead of table_number
                     orders_association.c.quantity,
                     orders_association.c.price,
                     orders_association.c.total
@@ -347,10 +353,9 @@ class OrdersResource(Resource):
             orders = db.session.execute(
                 select(
                     orders_association.c.client_id,
-                    orders_association.c.reservation_id,  # Include reservation_id
                     orders_association.c.restaurant_id,
                     orders_association.c.meal_id,
-                    orders_association.c.table_number,
+                    orders_association.c.restaurant_table_id,  # Use restaurant_table_id instead of table_number
                     orders_association.c.quantity,
                     orders_association.c.price,
                     orders_association.c.total
@@ -362,7 +367,7 @@ class OrdersResource(Resource):
 
         orders_list = []
         for order in orders:
-            client_id, reservation_id, restaurant_id, meal_id, table_number, quantity, price, total = order
+            client_id, restaurant_id, meal_id, restaurant_table_id, quantity, price, total = order
 
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
@@ -371,13 +376,12 @@ class OrdersResource(Resource):
             orders_list.append({
                 "client_id": client_id,
                 "client_name": client.name if client else "Unknown Client",
-                "reservation_id": reservation_id,  # Include reservation_id
                 "restaurant_id": restaurant_id,
                 "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
                 "meal_id": meal_id,
                 "meal_name": meal.name if meal else "Unknown Meal",
                 "category": meal.category if meal else "Unknown Category",
-                "table_number": table_number,
+                "restaurant_table_id": restaurant_table_id,  # Use restaurant_table_id instead of table_number
                 "quantity": quantity,
                 "price": price,
                 "total": total
@@ -385,19 +389,17 @@ class OrdersResource(Resource):
 
         return {"orders": orders_list}, 200
 
-    # Create a new order
     def post(self):
         data = request.get_json()
 
         client_id = data.get("client_id")
         restaurant_id = data.get("restaurant_id")
         meal_id = data.get("meal_id")
-        table_number = data.get("table_number")
+        restaurant_table_id = data.get("restaurant_table_id")  # Use restaurant_table_id instead of table_number
         quantity = data.get("quantity")
-        reservation_id = data.get("reservation_id")  # Include reservation_id
 
-        if not all([client_id, restaurant_id, meal_id, table_number, quantity, reservation_id]):
-            return {"error": "client_id, restaurant_id, table_number, meal_id, quantity, and reservation_id are required"}, 400
+        if not all([client_id, restaurant_id, meal_id, restaurant_table_id, quantity]):
+            return {"error": "client_id, restaurant_id, meal_id, quantity, and restaurant_table_id are required"}, 400
 
         meal = Menu.query.get(meal_id)
         if not meal:
@@ -415,11 +417,10 @@ class OrdersResource(Resource):
                 client_id=client_id,
                 restaurant_id=restaurant_id,
                 meal_id=meal_id,
-                table_number=table_number,
+                restaurant_table_id=restaurant_table_id,  # Use restaurant_table_id instead of table_number
                 quantity=quantity,
                 price=price,
-                total=total,
-                reservation_id=reservation_id  # Include reservation_id
+                total=total
             )
             db.session.execute(new_order)
             db.session.commit()
@@ -431,7 +432,7 @@ class OrdersResource(Resource):
 
     def patch(self, client_id):
         data = request.get_json()
-        
+
         if not client_id:
             return {"error": "client_id is required"}, 400
 
@@ -449,7 +450,7 @@ class OrdersResource(Resource):
             if not meal:
                 return {"error": "Invalid meal_id"}, 400
             update_data["meal_id"] = data["meal_id"]
-            update_data["price"] = meal.price  
+            update_data["price"] = meal.price
 
         if "quantity" in data:
             update_data["quantity"] = data["quantity"]
@@ -458,11 +459,8 @@ class OrdersResource(Resource):
             else:
                 update_data["total"] = order.total / order.quantity * data["quantity"]
 
-        if "table_number" in data:
-            update_data["table_number"] = data["table_number"]
-
-        if "reservation_id" in data:  # Allow updating reservation_id
-            update_data["reservation_id"] = data["reservation_id"]
+        if "restaurant_table_id" in data:  # Use restaurant_table_id instead of table_number
+            update_data["restaurant_table_id"] = data["restaurant_table_id"]
 
         if update_data:
             try:
@@ -499,14 +497,13 @@ class OrdersResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
 api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>')
 
 
 
-from flask_restful import Resource
-from flask import request
-from sqlalchemy import select
-from datetime import datetime
+
+
 
 class RestaurantOrderResource(Resource):
     # GET - Retrieve all orders for a specific restaurant
