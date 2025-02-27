@@ -609,9 +609,6 @@ api.add_resource(RestaurantOrderResource,
 
 
 
-
-
-
 class ReservationResource(Resource):
     # Get reservations (for a specific client or all reservations)
     def get(self, client_id=None):
@@ -647,13 +644,16 @@ class ReservationResource(Resource):
             client = Client.query.get(client_id)
             restaurant_table = RestaurantTable.query.get(restaurant_table_id)
 
+            # Convert timestamp to ISO string format
+            timestamp_str = timestamp.isoformat() if isinstance(timestamp, datetime) else timestamp
+
             reservations_list.append({
                 "client_id": client_id,
                 "client_name": client.name if client else "Unknown Client",
                 "restaurant_table_id": restaurant_table_id,
                 "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
                 "reservation_date": date,
-                "timestamp": timestamp
+                "timestamp": timestamp_str
             })
 
         return {"reservations": reservations_list}, 200
@@ -760,7 +760,9 @@ class ReservationResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
+# Add resource to the API
 api.add_resource(ReservationResource, '/reservations', '/reservations/<int:client_id>')
+
 
 
 class RestaurantTableResource(Resource):
