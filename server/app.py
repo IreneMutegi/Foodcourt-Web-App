@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 from server.models import db, Client, Admin, Restaurant, Menu, orders_association, reservation_association ,RestaurantTable
 from sqlalchemy import select, delete , DateTime
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'postgresql://malldb_u5p5_user:A5tnGchdaALQQYm2ylzxnT73oenbwn77@dpg-cusvqnbqf0us739q23rg-a.oregon-postgres.render.com/malldb_u5p5')
@@ -677,7 +678,8 @@ class ReservationResource(Resource):
         if not restaurant_table:
             return {"error": "Invalid restaurant_table_id"}, 400
 
-        timestamp = DateTime.utcnow()
+        # Get the current UTC time using datetime.utcnow()
+        timestamp = datetime.utcnow()
 
         try:
             new_reservation = reservation_association.insert().values(
@@ -757,7 +759,9 @@ class ReservationResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
 api.add_resource(ReservationResource, '/reservations', '/reservations/<int:client_id>')
+
 
 class RestaurantTableResource(Resource):
     # GET - Retrieve all restaurant tables
