@@ -328,13 +328,6 @@ api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:m
 # api.add_resource(OrderGetById, '/orders/<int:order_id>')
 
 
-
-
-from flask_restful import Resource
-from sqlalchemy import select, insert, update, delete
-from flask import request
-from models import db, orders_association, Menu, Restaurant, Client
-
 class OrdersResource(Resource):
     def get(self, client_id=None):
         if client_id:
