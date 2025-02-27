@@ -609,6 +609,17 @@ api.add_resource(RestaurantOrderResource,
 
 
 
+# Helper function to serialize datetime fields
+def serialize_datetimes(obj):
+    """Recursively convert datetime objects to ISO format strings."""
+    if isinstance(obj, datetime):
+        return obj.isoformat()  # Convert datetime to ISO 8601 string
+    elif isinstance(obj, dict):
+        return {key: serialize_datetimes(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [serialize_datetimes(item) for item in obj]
+    return obj
+
 class ReservationResource(Resource):
     # Get reservations (for a specific client or all reservations)
     def get(self, client_id=None):
@@ -645,7 +656,7 @@ class ReservationResource(Resource):
             restaurant_table = RestaurantTable.query.get(restaurant_table_id)
 
             # Ensure datetime is serialized to ISO format (string)
-            timestamp_str = timestamp.isoformat() if isinstance(timestamp, datetime) else str(timestamp)
+            timestamp_str = serialize_datetimes(timestamp)
 
             reservations_list.append({
                 "client_id": client_id,
@@ -656,112 +667,7 @@ class ReservationResource(Resource):
                 "timestamp": timestamp_str  # Convert datetime to string
             })
 
-        return {"reservations": reservations_list}, 200
-
-    # Create a new reservation
-    def post(self):
-        data = request.get_json()
-
-        client_id = data.get("client_id")
-        restaurant_table_id = data.get("restaurant_table_id")
-        date = data.get("date")
-        
-        if not all([client_id, restaurant_table_id, date]):
-            return {"error": "client_id, restaurant_table_id, and date are required"}, 400
-
-        # Validate client and table existence
-        client = Client.query.get(client_id)
-        if not client:
-            return {"error": "Invalid client_id"}, 400
-
-        restaurant_table = RestaurantTable.query.get(restaurant_table_id)
-        if not restaurant_table:
-            return {"error": "Invalid restaurant_table_id"}, 400
-
-        # Get the current UTC time using datetime.utcnow()
-        timestamp = datetime.utcnow()
-
-        try:
-            new_reservation = reservation_association.insert().values(
-                client_id=client_id,
-                restaurant_table_id=restaurant_table_id,
-                date=date,
-                timestamp=timestamp
-            )
-            db.session.execute(new_reservation)
-            db.session.commit()
-
-            return {"message": "Reservation created successfully"}, 201
-        except Exception as e:
-            db.session.rollback()
-            return {"error": str(e)}, 500
-
-    # Update an existing reservation
-    def patch(self, client_id):
-        data = request.get_json()
-
-        if not client_id:
-            return {"error": "client_id is required"}, 400
-
-        reservation = db.session.execute(
-            select(reservation_association).where(reservation_association.c.client_id == client_id)
-        ).fetchone()
-
-        if not reservation:
-            return {"error": "No reservation found for this client"}, 404
-
-        update_data = {}
-
-        # Check if restaurant_table_id is being updated
-        if "restaurant_table_id" in data:
-            restaurant_table = RestaurantTable.query.get(data["restaurant_table_id"])
-            if not restaurant_table:
-                return {"error": "Invalid restaurant_table_id"}, 400
-            update_data["restaurant_table_id"] = data["restaurant_table_id"]
-
-        # Check if date is being updated
-        if "date" in data:
-            update_data["date"] = data["date"]
-
-        if update_data:
-            try:
-                db.session.execute(
-                    reservation_association.update()
-                    .where(reservation_association.c.client_id == client_id)
-                    .values(update_data)
-                )
-                db.session.commit()
-                return {"message": "Reservation updated successfully"}, 200
-            except Exception as e:
-                db.session.rollback()
-                return {"error": str(e)}, 500
-
-        return {"message": "No updates provided"}, 400
-
-    # Delete a reservation (by client_id and restaurant_table_id)
-    def delete(self, client_id):
-        if not client_id:
-            return {"error": "client_id is required"}, 400
-
-        reservation = db.session.execute(
-            select(reservation_association).where(reservation_association.c.client_id == client_id)
-        ).fetchone()
-
-        if not reservation:
-            return {"error": "No reservation found for this client"}, 404
-
-        try:
-            db.session.execute(
-                delete(reservation_association).where(reservation_association.c.client_id == client_id)
-            )
-            db.session.commit()
-            return {"message": "Reservation deleted successfully"}, 200
-        except Exception as e:
-            db.session.rollback()
-            return {"error": str(e)}, 500
-
-# Add resource to the API
-api.add_resource(ReservationResource, '/reservations', '/reservations/<int:client_id>')
+        return {"reservations": serialize_datetimes(reservations_list)}, 200
 
 
 
