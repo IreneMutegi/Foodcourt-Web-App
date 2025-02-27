@@ -89,13 +89,63 @@
   padding-top: 5px;
 }
 
+.order-form-container form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+/* Overlay to block interactions */
+.login-prompt-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;  /* Semi-transparent background */
+}
 /* Center a single menu item */
 .menu-grid:has(.menu-item:only-child) {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000; /* Ensure it's on top of everything */
+}
+/* Login prompt modal */
+.login-prompt {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+  width: 300px;
 }
 
+/* Close button styling */
+.login-prompt button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  border: none;
+  background-color: #4db6ac;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.login-prompt button:hover {
+  background-color: #ff2d42;
+}
+
+/* Disable pointer events on the rest of the page when modal is open */
+.menu-overlay.modal-open {
+  pointer-events: none;
+  filter: blur(2px); /* Slight blur effect */
+ }
 .menu-item {
   background: #1e1e1eb8;
   color: white;

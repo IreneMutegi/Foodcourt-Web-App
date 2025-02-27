@@ -1,6 +1,8 @@
 /* General Dashboard Styling */
 .dashboard {
   padding: 20px;
+  padding-top: 70px;
+  height: 100vh;
   width: 100%; /* Ensure it takes full width */
   max-width: 100%; /* Prevents it from being smaller than the screen */
   margin: 0 auto; /* Centers the content if necessary */
@@ -108,8 +110,6 @@
   border: 2px solid #4db6ac;
 }
 
-
-
 /* Center the Buttons in the Actions Column */
 .actions {
   display: flex;
@@ -136,22 +136,22 @@
 }
 
 .edit-btn {
-  background: #FFD700;
+  background: #ffd700;
   color: black;
 }
 
 .delete-btn {
-  background: #FF4D4D;
+  background: #ff4d4d;
   color: white;
 }
 
 .edit-btn:hover {
-  background: #E6C300;
+  background: #e6c300;
   transform: scale(1.05);
 }
 
 .delete-btn:hover {
-  background: #D93636;
+  background: #d93636;
   transform: scale(1.05);
 }
 /* === RESPONSIVE DESIGN === */
@@ -192,23 +192,22 @@
   }
 
   /* === Responsive Adjustments === */
-@media (max-width: 768px) {
-  .dish-table th:last-child,
-  .dish-table td:last-child {
-    width: auto; /* Allow flexibility for smaller screens */
-  }
+  @media (max-width: 768px) {
+    .dish-table th:last-child,
+    .dish-table td:last-child {
+      width: auto; /* Allow flexibility for smaller screens */
+    }
 
-  .actions {
-    flex-direction: column;
-    gap: 5px;
-  }
+    .actions {
+      flex-direction: column;
+      gap: 5px;
+    }
 
-  .edit-btn,
-  .delete-btn {
-    width: auto; /* Allow buttons to fit within the mobile card design */
+    .edit-btn,
+    .delete-btn {
+      width: auto; /* Allow buttons to fit within the mobile card design */
+    }
   }
-}
-
 }
 /* Background overlay to match order form */
 .dish-form-overlay {
