@@ -15,18 +15,14 @@ orders_association = Table(
     'orders',
     metadata,  
     # Use the two foreign key columns from the reservation_association
-    Column('restaurant_table_id', Integer, ForeignKey('reservation.restaurant_table_id'), primary_key=True),
-    Column('client_id', Integer, ForeignKey('reservation.client_id'), primary_key=True),
+    Column('restaurant_table_id', Integer, ForeignKey('restaurant_tables.id'), primary_key=True),
+    Column('client_id', Integer, ForeignKey('client.id'), primary_key=True),
     Column('restaurant_id', Integer, ForeignKey('restaurants.id'), primary_key=True),  
     Column('meal_id', Integer, ForeignKey('menu.id'), primary_key=True),  
     Column('quantity', Integer, nullable=False),
     Column('price', Integer, nullable=False),
     Column('total', Integer, nullable=False),
     Column('timestamp', DateTime, nullable=False),
-    db.CheckConstraint(
-        'meal_id IN (SELECT id FROM menu WHERE restaurant_id = restaurant_id)', 
-        name='fk_meal_restaurant'
-    )
 )
 
 
@@ -61,6 +57,8 @@ class Client(db.Model):
     email = Column(String(100), unique=True, nullable=False)
     password = Column(String(100), nullable=False)
 
+    reservations = relationship('RestaurantTable', secondary=reservation_association, back_populates="clients")
+
     def __repr__(self):  
         return f'<Client {self.id}, {self.name}, {self.email}>'
 
@@ -76,8 +74,10 @@ class Restaurant(db.Model):
     image_url= Column(String, nullable=False)
 
     admin = relationship('Admin', back_populates='restaurants')
-    menus = relationship('Menu', back_populates='restaurant')  
+    menus = relationship('Menu', back_populates='restaurant')
 
+    def __repr__(self):
+        return f'<Restaurant {self.id}, {self.name}, {self.cuisine}>'
 
 class Menu(db.Model):  
     __tablename__ = 'menu'
@@ -85,11 +85,13 @@ class Menu(db.Model):
     name = Column(String(100), nullable=False)
     price = Column(Integer, nullable=False)
     category = Column(String(100), nullable=False)
-    image_url= Column(String, nullable=False)
-    restaurant_id = Column(Integer, ForeignKey('restaurants.id'), nullable=False)  
+    image_url = Column(String, nullable=False)
+    restaurant_id = Column(Integer, ForeignKey('restaurants.id'), nullable=False)
 
     restaurant = relationship('Restaurant', back_populates='menus')
 
+    def __repr__(self):
+        return f'<Menu {self.id}, {self.name}, {self.category}>'
 
 class RestaurantTable(db.Model):  
     __tablename__ = 'restaurant_tables'
@@ -98,4 +100,8 @@ class RestaurantTable(db.Model):
     capacity = Column(Integer, nullable=False)
     admin = Column(String(100), nullable=False)
 
-   
+    clients = relationship('Client', secondary=reservation_association, back_populates="reservations")
+
+    def __repr__(self):
+        return f'<RestaurantTable {self.id}, {self.table_number}, {self.capacity}>'
+
