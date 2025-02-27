@@ -2,8 +2,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_restful import Api, Resource
 from flask_migrate import Migrate
-from server.models import db, Client, Admin, Restaurant, Menu, orders_association  
-from sqlalchemy import select, delete
+from models import db, Client, Admin, Restaurant, Menu, orders_association, reservation_association ,RestaurantTable
+from sqlalchemy import select, delete , DateTime
 import os
 
 app = Flask(__name__)
@@ -329,13 +329,12 @@ api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:m
 
 
 class OrdersResource(Resource):
-    # Get orders (client-specific or all orders)
     def get(self, client_id=None):
         if client_id:
-            # Get orders for a specific client
             orders = db.session.execute(
                 select(
                     orders_association.c.client_id,
+                    orders_association.c.reservation_id,  # Include reservation_id
                     orders_association.c.restaurant_id,
                     orders_association.c.meal_id,
                     orders_association.c.table_number,
@@ -345,10 +344,10 @@ class OrdersResource(Resource):
                 ).where(orders_association.c.client_id == client_id)
             ).fetchall()
         else:
-            # Get all orders
             orders = db.session.execute(
                 select(
                     orders_association.c.client_id,
+                    orders_association.c.reservation_id,  # Include reservation_id
                     orders_association.c.restaurant_id,
                     orders_association.c.meal_id,
                     orders_association.c.table_number,
@@ -363,7 +362,7 @@ class OrdersResource(Resource):
 
         orders_list = []
         for order in orders:
-            client_id, restaurant_id, meal_id, table_number, quantity, price, total = order
+            client_id, reservation_id, restaurant_id, meal_id, table_number, quantity, price, total = order
 
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
@@ -372,6 +371,7 @@ class OrdersResource(Resource):
             orders_list.append({
                 "client_id": client_id,
                 "client_name": client.name if client else "Unknown Client",
+                "reservation_id": reservation_id,  # Include reservation_id
                 "restaurant_id": restaurant_id,
                 "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
                 "meal_id": meal_id,
@@ -394,9 +394,10 @@ class OrdersResource(Resource):
         meal_id = data.get("meal_id")
         table_number = data.get("table_number")
         quantity = data.get("quantity")
+        reservation_id = data.get("reservation_id")  # Include reservation_id
 
-        if not all([client_id, restaurant_id, meal_id, table_number, quantity]):
-            return {"error": "client_id, restaurant_id, table_number, meal_id, and quantity are required"}, 400
+        if not all([client_id, restaurant_id, meal_id, table_number, quantity, reservation_id]):
+            return {"error": "client_id, restaurant_id, table_number, meal_id, quantity, and reservation_id are required"}, 400
 
         meal = Menu.query.get(meal_id)
         if not meal:
@@ -417,7 +418,8 @@ class OrdersResource(Resource):
                 table_number=table_number,
                 quantity=quantity,
                 price=price,
-                total=total
+                total=total,
+                reservation_id=reservation_id  # Include reservation_id
             )
             db.session.execute(new_order)
             db.session.commit()
@@ -427,7 +429,6 @@ class OrdersResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-    # Update an existing order
     def patch(self, client_id):
         data = request.get_json()
         
@@ -443,15 +444,13 @@ class OrdersResource(Resource):
 
         update_data = {}
 
-        # Check if meal_id is being updated, fetch new price
         if "meal_id" in data:
             meal = Menu.query.get(data["meal_id"])
             if not meal:
                 return {"error": "Invalid meal_id"}, 400
             update_data["meal_id"] = data["meal_id"]
-            update_data["price"] = meal.price  # Update price based on new meal
+            update_data["price"] = meal.price  
 
-        # Update quantity and recalculate total if quantity is changed
         if "quantity" in data:
             update_data["quantity"] = data["quantity"]
             if "meal_id" in data or "price" in update_data:
@@ -461,6 +460,9 @@ class OrdersResource(Resource):
 
         if "table_number" in data:
             update_data["table_number"] = data["table_number"]
+
+        if "reservation_id" in data:  # Allow updating reservation_id
+            update_data["reservation_id"] = data["reservation_id"]
 
         if update_data:
             try:
@@ -477,7 +479,6 @@ class OrdersResource(Resource):
 
         return {"message": "No updates provided"}, 400
 
-    # Delete order (delete orders for a specific client)
     def delete(self, client_id):
         if not client_id:
             return {"error": "client_id is required"}, 400
@@ -498,10 +499,14 @@ class OrdersResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
-
-# Add the resource to your API
 api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>')
 
+
+
+from flask_restful import Resource
+from flask import request
+from sqlalchemy import select
+from datetime import datetime
 
 class RestaurantOrderResource(Resource):
     # GET - Retrieve all orders for a specific restaurant
@@ -588,7 +593,7 @@ class RestaurantOrderResource(Resource):
         # Find the order for this restaurant and client
         order = db.session.execute(
             select(orders_association).where(
-                (orders_association.c.restaurant_id == restaurant_id) &
+                (orders_association.c.restaurant_id == restaurant_id) & 
                 (orders_association.c.client_id == client_id)
             )
         ).fetchone()
@@ -599,7 +604,7 @@ class RestaurantOrderResource(Resource):
         try:
             db.session.execute(
                 orders_association.delete().where(
-                    (orders_association.c.restaurant_id == restaurant_id) &
+                    (orders_association.c.restaurant_id == restaurant_id) & 
                     (orders_association.c.client_id == client_id)
                 )
             )
@@ -613,6 +618,237 @@ class RestaurantOrderResource(Resource):
 api.add_resource(RestaurantOrderResource, 
                  '/orders/restaurants/<int:restaurant_id>', 
                  '/orders/restaurants/<int:restaurant_id>/client/<int:client_id>')
+
+
+class ReservationResource(Resource):
+    # Get reservations (for a specific client or all reservations)
+    def get(self, client_id=None):
+        if client_id:
+            # Get reservations for a specific client
+            reservations = db.session.execute(
+                select(
+                    reservation_association.c.client_id,
+                    reservation_association.c.restaurant_table_id,
+                    reservation_association.c.date,
+                    reservation_association.c.timestamp
+                ).where(reservation_association.c.client_id == client_id)
+            ).fetchall()
+        else:
+            # Get all reservations
+            reservations = db.session.execute(
+                select(
+                    reservation_association.c.client_id,
+                    reservation_association.c.restaurant_table_id,
+                    reservation_association.c.date,
+                    reservation_association.c.timestamp
+                )
+            ).fetchall()
+
+        if not reservations:
+            return {"message": "No reservations found"}, 404
+
+        reservations_list = []
+        for reservation in reservations:
+            client_id, restaurant_table_id, date, timestamp = reservation
+
+            # Get client and restaurant table details
+            client = Client.query.get(client_id)
+            restaurant_table = RestaurantTable.query.get(restaurant_table_id)
+
+            reservations_list.append({
+                "client_id": client_id,
+                "client_name": client.name if client else "Unknown Client",
+                "restaurant_table_id": restaurant_table_id,
+                "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
+                "reservation_date": date,
+                "timestamp": timestamp
+            })
+
+        return {"reservations": reservations_list}, 200
+
+    # Create a new reservation
+    def post(self):
+        data = request.get_json()
+
+        client_id = data.get("client_id")
+        restaurant_table_id = data.get("restaurant_table_id")
+        date = data.get("date")
+        
+        if not all([client_id, restaurant_table_id, date]):
+            return {"error": "client_id, restaurant_table_id, and date are required"}, 400
+
+        # Validate client and table existence
+        client = Client.query.get(client_id)
+        if not client:
+            return {"error": "Invalid client_id"}, 400
+
+        restaurant_table = RestaurantTable.query.get(restaurant_table_id)
+        if not restaurant_table:
+            return {"error": "Invalid restaurant_table_id"}, 400
+
+        timestamp = DateTime.utcnow()
+
+        try:
+            new_reservation = reservation_association.insert().values(
+                client_id=client_id,
+                restaurant_table_id=restaurant_table_id,
+                date=date,
+                timestamp=timestamp
+            )
+            db.session.execute(new_reservation)
+            db.session.commit()
+
+            return {"message": "Reservation created successfully"}, 201
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+    # Update an existing reservation
+    def patch(self, client_id):
+        data = request.get_json()
+
+        if not client_id:
+            return {"error": "client_id is required"}, 400
+
+        reservation = db.session.execute(
+            select(reservation_association).where(reservation_association.c.client_id == client_id)
+        ).fetchone()
+
+        if not reservation:
+            return {"error": "No reservation found for this client"}, 404
+
+        update_data = {}
+
+        # Check if restaurant_table_id is being updated
+        if "restaurant_table_id" in data:
+            restaurant_table = RestaurantTable.query.get(data["restaurant_table_id"])
+            if not restaurant_table:
+                return {"error": "Invalid restaurant_table_id"}, 400
+            update_data["restaurant_table_id"] = data["restaurant_table_id"]
+
+        # Check if date is being updated
+        if "date" in data:
+            update_data["date"] = data["date"]
+
+        if update_data:
+            try:
+                db.session.execute(
+                    reservation_association.update()
+                    .where(reservation_association.c.client_id == client_id)
+                    .values(update_data)
+                )
+                db.session.commit()
+                return {"message": "Reservation updated successfully"}, 200
+            except Exception as e:
+                db.session.rollback()
+                return {"error": str(e)}, 500
+
+        return {"message": "No updates provided"}, 400
+
+    # Delete a reservation (by client_id and restaurant_table_id)
+    def delete(self, client_id):
+        if not client_id:
+            return {"error": "client_id is required"}, 400
+
+        reservation = db.session.execute(
+            select(reservation_association).where(reservation_association.c.client_id == client_id)
+        ).fetchone()
+
+        if not reservation:
+            return {"error": "No reservation found for this client"}, 404
+
+        try:
+            db.session.execute(
+                delete(reservation_association).where(reservation_association.c.client_id == client_id)
+            )
+            db.session.commit()
+            return {"message": "Reservation deleted successfully"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+api.add_resource(ReservationResource, '/reservations', '/reservations/<int:client_id>')
+
+class RestaurantTableResource(Resource):
+    # GET - Retrieve all restaurant tables
+    def get(self):
+        tables = RestaurantTable.query.all()
+
+        if not tables:
+            return {"error": "No tables found"}, 404
+
+        tables_list = []
+        for table in tables:
+            tables_list.append({
+                "id": table.id,
+                "table_number": table.table_number,
+                "capacity": table.capacity,
+                "admin": table.admin
+            })
+
+        return {"tables": tables_list}, 200
+
+    # POST - Create a new restaurant table
+    def post(self):
+        data = request.get_json()
+
+        if not data or not data.get('table_number') or not data.get('capacity') or not data.get('admin'):
+            return {"error": "Missing required fields"}, 400
+
+        try:
+            new_table = RestaurantTable(
+                table_number=data['table_number'],
+                capacity=data['capacity'],
+                admin=data['admin']
+            )
+
+            db.session.add(new_table)
+            db.session.commit()
+            return {"message": "Restaurant table created", "id": new_table.id}, 201
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+    # PATCH - Update a restaurant table's details
+    def patch(self, table_id):
+        data = request.get_json()
+
+        table = RestaurantTable.query.get(table_id)
+        if not table:
+            return {"error": "Table not found"}, 404
+
+        if "table_number" in data:
+            table.table_number = data["table_number"]
+
+        if "capacity" in data:
+            table.capacity = data["capacity"]
+
+        if "admin" in data:
+            table.admin = data["admin"]
+
+        try:
+            db.session.commit()
+            return {"message": "Restaurant table updated"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+    def delete(self, table_id):
+        table = RestaurantTable.query.get(table_id)
+        if not table:
+            return {"error": "Table not found"}, 404
+
+        try:
+            db.session.delete(table)
+            db.session.commit()
+            return {"message": "Restaurant table deleted"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+api.add_resource(RestaurantTableResource, 
+                 '/restaurant_tables', 
+                 '/restaurant_tables/<int:table_id>')
+
 
 
 
