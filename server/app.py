@@ -669,7 +669,7 @@ class ReservationResource(Resource):
 
         return {"reservations": serialize_datetimes(reservations_list)}, 200
 
-
+api.add_resource(ReservationResource, '/reservations', '/reservations/<int:client_id>')
 
 class RestaurantTableResource(Resource):
     # GET - Retrieve all restaurant tables
