@@ -494,10 +494,6 @@ class OrdersResource(Resource):
 api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>')
 
 
-
-
-
-
 class RestaurantOrderResource(Resource):
     # GET - Retrieve all orders for a specific restaurant
     def get(self, restaurant_id):
@@ -505,7 +501,7 @@ class RestaurantOrderResource(Resource):
             select(
                 orders_association.c.client_id,
                 orders_association.c.meal_id,
-                orders_association.c.table_number,
+                orders_association.c.restaurant_table_id,  # Changed to restaurant_table_id
                 orders_association.c.quantity
             ).where(orders_association.c.restaurant_id == restaurant_id)
         ).fetchall()
@@ -517,7 +513,7 @@ class RestaurantOrderResource(Resource):
         for order in orders:
             client_id = order[0]  # Access client_id by index
             meal_id = order[1]  # Access meal_id by index
-            table_number = order[2]  # Access table_number by index
+            restaurant_table_id = order[2]  # Access restaurant_table_id by index
             quantity = order[3]  # Access quantity by index
 
             meal = Menu.query.get(meal_id)
@@ -529,7 +525,7 @@ class RestaurantOrderResource(Resource):
                 "meal_id": meal_id,
                 "meal_name": meal.name if meal else "Unknown Meal",
                 "category": meal.category if meal else "Unknown Category",
-                "table_number": table_number,
+                "restaurant_table_id": restaurant_table_id,  # Changed to restaurant_table_id
                 "quantity": quantity,
                 "price": meal.price if meal else "Unknown Price",
                 "total": meal.price * quantity if meal else "Unknown Total"
@@ -552,13 +548,13 @@ class RestaurantOrderResource(Resource):
         if not order:
             return {"error": "Order not found for this restaurant and client"}, 404
 
-        # Prepare the update data (quantity, table_number, etc.)
+        # Prepare the update data (quantity, restaurant_table_id, etc.)
         update_data = {}
         if "quantity" in data:
             update_data["quantity"] = data["quantity"]
 
-        if "table_number" in data:
-            update_data["table_number"] = data["table_number"]
+        if "restaurant_table_id" in data:  # Updated to restaurant_table_id
+            update_data["restaurant_table_id"] = data["restaurant_table_id"]
 
         if not update_data:
             return {"error": "No fields to update"}, 400
@@ -567,7 +563,7 @@ class RestaurantOrderResource(Resource):
             db.session.execute(
                 orders_association.update()
                 .where(
-                    (orders_association.c.restaurant_id == restaurant_id) &
+                    (orders_association.c.restaurant_id == restaurant_id) & 
                     (orders_association.c.client_id == client_id)
                 )
                 .values(update_data)
@@ -608,6 +604,11 @@ class RestaurantOrderResource(Resource):
 api.add_resource(RestaurantOrderResource, 
                  '/orders/restaurants/<int:restaurant_id>', 
                  '/orders/restaurants/<int:restaurant_id>/client/<int:client_id>')
+
+
+
+
+
 
 
 class ReservationResource(Resource):
