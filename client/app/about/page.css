@@ -1,0 +1,260 @@
+/* General Styles */
+body {
+  font-family: "Arial", sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: white;
+  color: black;
+}
+
+/* Hero Section */
+.hero-section1 {
+  position: relative;
+  height: 200px;
+  padding-top: 70px;
+  background: url("https://media.istockphoto.com/id/1829241109/photo/enjoying-a-brunch-together.webp?a=1&b=1&s=612x612&w=0&k=20&c=PDAOJZowRgcFpLORXCV5p9Yt4wuOlxpYkxOUk5M4koo=")
+    center/cover no-repeat;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.hero-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #4db6ac;
+}
+
+.hero-description {
+  font-size: 1.25rem;
+  color: white;
+}
+
+/* What We Offer Section */
+.what-we-offer {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+
+.section-title {
+  font-size: 2.25rem;
+  font-weight: bold;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+/* Card Styles */
+.card-image {
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.3s ease-in-out; /* Smooth transition for zoom */
+}
+
+.card-image.restaurants {
+  background-image: url("https://images.unsplash.com/photo-1515669097368-22e68427d265?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
+}
+
+.card-image.fine-dining {
+  background-image: url("https://media.istockphoto.com/id/2150984777/photo/kitchen-chef-prepairing-steaks-in-a-restaurant.webp?a=1&b=1&s=612x612&w=0&k=20&c=oaBNMHY89ldv60_kLAo3rqJmQV1Oa922-y-QbTXmZzE=");
+}
+
+.card-image.cocktails {
+  background-image: url("https://media.istockphoto.com/id/541288028/photo/barman-is-making-cocktail-at-night-club.webp?a=1&b=1&s=612x612&w=0&k=20&c=mvXfzhoZzkBK1y_WlR8JR-0xZWFDWl1LgrzfnPH-qAA=");
+}
+
+.card-image.deserts {
+  background-image: url("https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=2127&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.card-description {
+  color: gray;
+}
+
+.card-rating {
+  display: flex;
+  align-items: center;
+}
+
+.star-icon {
+  width: 20px;
+  height: 20px;
+  color: #4db6ac;
+}
+
+.rating {
+  color: #4db6ac;
+  margin-left: 0.5rem;
+}
+
+/* Hover Effect for Card Image */
+.card-image:hover {
+  transform: scale(1.1); /* Slight zoom-in effect */
+}
+
+/* Why Choose Us Section */
+.why-choose-us {
+  background-color: #f9f9f9;
+  padding: 4rem 2rem;
+}
+
+.icon-card {
+  text-align: center;
+}
+
+.icon-circle {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 1rem;
+  background-color: #4db6ac;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  color: black;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.card-description {
+  color: gray;
+}
+
+/* Hover Effect on Icon Card */
+.icon-card {
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.icon-card:hover {
+  transform: translateY(-10px); /* Moves the card up slightly */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Increases the shadow effect */
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .hero-section {
+    height: 300px;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-description {
+    font-size: 1rem;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+  }
+
+  .cards-container {
+    grid-template-columns: 1fr;
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+  }
+
+  .card-description {
+    font-size: 0.875rem;
+  }
+
+  .card-image {
+    height: 150px;
+  }
+
+  .icon-circle {
+    width: 40px;
+    height: 40px;
+  }
+
+  .icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Extra small screens (mobile phones) */
+@media (max-width: 480px) {
+  .hero-section {
+    height: 250px;
+  }
+
+  .hero-title {
+    font-size: 1.5rem;
+  }
+
+  .hero-description {
+    font-size: 0.875rem;
+  }
+
+  .cards-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .card-title {
+    font-size: 1.125rem;
+  }
+
+  .card-description {
+    font-size: 0.75rem;
+  }
+
+  .card-image {
+    height: 120px;
+  }
+
+  .icon-circle {
+    width: 35px;
+    height: 35px;
+  }
+
+  .icon {
+    width: 18px;
+    height: 18px;
+  }
+}
