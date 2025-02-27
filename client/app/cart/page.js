@@ -94,13 +94,13 @@ export default function Cart() {
       alert("Please enter a valid table number");
       return;
     }
-  
+
     setLoading(true);
-  
+
     try {
       const orderRequests = cart.map(async (item) => {
         const orderData = {
-          meal_id: item.meal_id,  // Ensure backend expects `meal_id`, not `id`
+          meal_id: item.meal_id, // Ensure backend expects `meal_id`, not `id`
           client_id: item.client_id,
           restaurant_id: item.restaurant_id,
           price: item.price,
@@ -108,7 +108,7 @@ export default function Cart() {
           total: item.total,
           table_number: tableNumber, // Add table number here before submitting
         };
-  
+
         const response = await fetch(
           "https://foodcourt-web-app-4.onrender.com/orders",
           {
@@ -119,15 +119,15 @@ export default function Cart() {
             body: JSON.stringify(orderData),
           }
         );
-  
+
         if (!response.ok) {
           throw new Error(`Failed to place order for ${item.meal}`);
         }
       });
-  
+
       // Wait for all orders to be processed before proceeding
       await Promise.all(orderRequests);
-  
+
       alert("Order placed successfully");
       setCart([]); // Clear cart after successful checkout
       setShowPrompt(false);
@@ -139,7 +139,6 @@ export default function Cart() {
       setLoading(false);
     }
   };
-  
 
   console.log("Current Cart", cart);
   return (
