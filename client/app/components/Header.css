@@ -225,3 +225,16 @@
   display: flex;
   align-items: center;
 }
+
+.orders-btn{
+  background: #4DB6AC;
+  color: white;
+  padding: 2.5px 5px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  cursor: pointer; 
+}
+.orders-btn:hover{
+  background: #1d7a71;
+}
