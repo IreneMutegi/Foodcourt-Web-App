@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { useSession } from "next-auth/react";
+import { useRouter, usePathname } from "next/navigation";
 import "./AdminDashboard.css";
 
 const API_URL = "https://foodcourt-web-app-4.onrender.com/restaurants"; // Backend API
@@ -27,6 +29,25 @@ const AdminDashboard = () => {
     admin_id: 1, // Set a default admin_id (change if needed)
   });
   const [restaurants, setRestaurants] = useState<RestaurantType[]>([]);
+
+  //route protection
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+  if (status === "loading") return; // Avoid redirecting while session is still loading
+
+  if (status !== "authenticated" || session?.user?.role !== "admin") {
+    router.replace("/"); // Redirect unauthorized users to home or another page
+    return;
+  }
+
+  // Only redirect if the admin tries to navigate away from `/admin`
+  if (pathname !== "/admin") {
+    router.replace("/admin"); // Use replace to prevent back navigation
+  }
+}, [session, status, pathname, router]);
 
   // Fetch Restaurants from Backend
   useEffect(() => {

@@ -11,6 +11,7 @@ export default function Cart() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [loading, setLoading] = useState(false);
 
+
   const updateCartItem = (index, field, value) => {
     setCart((prevCart) =>
       prevCart.map((item, i) =>
@@ -140,15 +141,13 @@ export default function Cart() {
     }
   };
   
-
-  console.log("Current Cart", cart);
   return (
     <div className="cart-container">
       <h2>My Cart</h2>
       <div className="cart-items">
         {cart.map((item, index) => (
           <div className="cart-item" key={index}>
-            <img src={item.image} alt={item.meal} className="cart-item-img" />
+            <img src={item.image_url} alt={item.meal} className="cart-item-img" />
             <div className="cart-item-info">
               <h3>{item.meal}</h3>
               <p className="item-price">${item.total.toFixed(2)}</p>

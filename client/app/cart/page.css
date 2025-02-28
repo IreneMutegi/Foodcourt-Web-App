@@ -54,10 +54,11 @@
   position: relative;
 }
 
-.cart-item-info h3 {
+/* .cart-item-info h3 {
   margin: 0;
   font-size: 18px;
-}
+  color: red;
+} */
 
 .item-price {
   position: absolute;
