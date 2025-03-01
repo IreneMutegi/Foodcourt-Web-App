@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react"; // ✅ Import useSession
 import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { useRouter, usePathname } from "next/navigation";
 import "./Dashboard.css";
 
 const API_BASE_URL = "https://foodcourt-web-app-4.onrender.com";
@@ -17,7 +18,7 @@ interface Dish {
 }
 
 const Dashboard = () => {
-  const { data: session } = useSession(); // ✅ Get session
+  const { data: session, status } = useSession(); // ✅ Get session
   const restaurantId = session?.user?.id; // ✅ Extract restaurant ID
 
   const [showForm, setShowForm] = useState(false);
@@ -29,6 +30,24 @@ const Dashboard = () => {
     price: 0,
     image_url: "",
   });
+
+   //route protection
+    const router = useRouter();
+    const pathname = usePathname();
+  
+    useEffect(() => {
+      if (status === "loading") return; // Avoid redirecting while session is still loading
+    
+      if (status !== "authenticated" || session?.user?.role !== "restaurant") {
+        router.replace("/"); // Redirect unauthorized users to home or another page
+        return;
+      }
+    
+      // Only redirect if the restaurant tries to navigate away from `/`
+      if (pathname !== "/restaurant") {
+        router.replace("/restaurant"); // Prevent navigating to other pages
+      }
+    }, [session, status, pathname, router]);
 
   // ✅ Fetch restaurant menu
   const fetchMenu = async () => {

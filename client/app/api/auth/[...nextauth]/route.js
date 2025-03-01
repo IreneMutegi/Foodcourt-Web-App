@@ -13,7 +13,7 @@ export const authOptions = {
         try {
           const tables = ["admin", "client", "restaurant"];
           let user = null;
-          let userRole = null;
+          
 
           for (const table of tables) {
             const res = await fetch(`https://foodcourt-web-app-4.onrender.com/${table}/login`, {
@@ -36,7 +36,7 @@ export const authOptions = {
             throw new Error("Invalid email or password");
           }
 
-          return { id: user.id, email: user.email, role: userRole, name: user.name };
+          return { id: user.id, email: user.email, role: user.role, name: user.name };
         } catch (error) {
           throw new Error("Invalid email or password");
         }
@@ -56,7 +56,7 @@ export const authOptions = {
         token.name = user.name || "Guest";
       }
       return token;
-    },
+    },  
     async session({ session, token }) {
       session.user.id = token.id;
       session.user.email = token.email;
