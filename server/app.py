@@ -340,7 +340,7 @@ class OrdersResource(Resource):
                     orders_association.c.reservation_id,
                     orders_association.c.restaurant_id,
                     orders_association.c.meal_id,
-                    orders_association.c.table_number,
+                    orders_association.c.restaurant_table_id,  # Fetch restaurant_table_id
                     orders_association.c.quantity,
                     orders_association.c.price,
                     orders_association.c.total,
@@ -354,7 +354,7 @@ class OrdersResource(Resource):
                     orders_association.c.reservation_id,  # Include reservation_id
                     orders_association.c.restaurant_id,
                     orders_association.c.meal_id,
-                    orders_association.c.table_number,
+                    orders_association.c.restaurant_table_id,  # Include restaurant_table_id
                     orders_association.c.quantity,
                     orders_association.c.price,
                     orders_association.c.total,
@@ -367,7 +367,7 @@ class OrdersResource(Resource):
 
         orders_list = []
         for order in orders:
-            client_id, reservation_id, restaurant_id, meal_id, table_number, quantity, price, total, status = order
+            client_id, reservation_id, restaurant_id, meal_id, restaurant_table_id, quantity, price, total, status = order
 
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
@@ -376,17 +376,17 @@ class OrdersResource(Resource):
             orders_list.append({
                 "client_id": client_id,
                 "client_name": client.name if client else "Unknown Client",
-                "reservation_id": reservation_id,  # Include reservation_id
+                "reservation_id": reservation_id,
                 "restaurant_id": restaurant_id,
                 "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
                 "meal_id": meal_id,
                 "meal_name": meal.name if meal else "Unknown Meal",
                 "category": meal.category if meal else "Unknown Category",
-                "table_number": table_number,
+                "restaurant_table_id": restaurant_table_id,  # Include restaurant_table_id in response
                 "quantity": quantity,
                 "price": price,
                 "total": total,
-                "status": status  # Include status in response
+                "status": status
             })
 
         return {"orders": orders_list}, 200
@@ -397,13 +397,13 @@ class OrdersResource(Resource):
         client_id = data.get("client_id")
         restaurant_id = data.get("restaurant_id")
         meal_id = data.get("meal_id")
-        table_number = data.get("table_number")
         quantity = data.get("quantity")
         reservation_id = data.get("reservation_id")  # Include reservation_id
+        restaurant_table_id = data.get("restaurant_table_id")  # Get the restaurant_table_id
         status = data.get("status", "Pending")  # Default to "Pending" if no status is provided
 
-        if not all([client_id, restaurant_id, meal_id, table_number, quantity, reservation_id]):
-            return {"error": "client_id, restaurant_id, table_number, meal_id, quantity, and reservation_id are required"}, 400
+        if not all([client_id, restaurant_id, meal_id, quantity, reservation_id, restaurant_table_id]):
+            return {"error": "client_id, restaurant_id, meal_id, quantity, reservation_id, and restaurant_table_id are required"}, 400
 
         meal = Menu.query.get(meal_id)
         if not meal:
@@ -421,11 +421,11 @@ class OrdersResource(Resource):
                 client_id=client_id,
                 restaurant_id=restaurant_id,
                 meal_id=meal_id,
-                table_number=table_number,
                 quantity=quantity,
                 price=price,
                 total=total,
                 reservation_id=reservation_id,  # Include reservation_id
+                restaurant_table_id=restaurant_table_id,  # Use restaurant_table_id instead of table_number
                 status=status  # Set the status to "Pending" or the provided status
             )
             db.session.execute(new_order)
@@ -465,8 +465,8 @@ class OrdersResource(Resource):
             else:
                 update_data["total"] = order.total / order.quantity * data["quantity"]
 
-        if "table_number" in data:
-            update_data["table_number"] = data["table_number"]
+        if "restaurant_table_id" in data:  # Allow updating restaurant_table_id
+            update_data["restaurant_table_id"] = data["restaurant_table_id"]
 
         if "reservation_id" in data:  # Allow updating reservation_id
             update_data["reservation_id"] = data["reservation_id"]
@@ -822,8 +822,7 @@ class RestaurantTableResource(Resource):
         tables_list = []
         for table in tables:
             tables_list.append({
-                "id": table.id,
-                "table_number": table.table_number,
+                "restaurant_table_id": table.id,  # Use restaurant_table_id instead of table_number
                 "capacity": table.capacity,
                 "admin": table.admin
             })
@@ -834,19 +833,19 @@ class RestaurantTableResource(Resource):
     def post(self):
         data = request.get_json()
 
-        if not data or not data.get('table_number') or not data.get('capacity') or not data.get('admin'):
+        if not data or not data.get('restaurant_table_id') or not data.get('capacity') or not data.get('admin'):
             return {"error": "Missing required fields"}, 400
 
         try:
             new_table = RestaurantTable(
-                table_number=data['table_number'],
+                id=data['restaurant_table_id'],  # Use restaurant_table_id instead of table_number
                 capacity=data['capacity'],
                 admin=data['admin']
             )
 
             db.session.add(new_table)
             db.session.commit()
-            return {"message": "Restaurant table created", "id": new_table.id}, 201
+            return {"message": "Restaurant table created", "restaurant_table_id": new_table.id}, 201
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
@@ -859,8 +858,8 @@ class RestaurantTableResource(Resource):
         if not table:
             return {"error": "Table not found"}, 404
 
-        if "table_number" in data:
-            table.table_number = data["table_number"]
+        if "restaurant_table_id" in data:
+            table.id = data["restaurant_table_id"]  # Update restaurant_table_id instead of table_number
 
         if "capacity" in data:
             table.capacity = data["capacity"]
@@ -891,6 +890,7 @@ class RestaurantTableResource(Resource):
 api.add_resource(RestaurantTableResource, 
                  '/restaurant_tables', 
                  '/restaurant_tables/<int:table_id>')
+
 
 
 
