@@ -6,7 +6,7 @@ from server.models import db, Client, Admin, Restaurant, Menu, orders_associatio
 from sqlalchemy import select, delete , DateTime
 import os
 
-app = Flask(_name_)
+app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'postgresql://malldb_u5p5_user:A5tnGchdaALQQYm2ylzxnT73oenbwn77@dpg-cusvqnbqf0us739q23rg-a.oregon-postgres.render.com/malldb_u5p5')
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -895,5 +895,5 @@ api.add_resource(RestaurantTableResource,
 
 
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     app.run(debug=True, port=5555)
