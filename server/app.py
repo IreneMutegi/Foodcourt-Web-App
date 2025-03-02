@@ -641,53 +641,58 @@ api.add_resource(RestaurantOrderResource,
 
 class ReservationResource(Resource):
     # Get reservations (for a specific client or all reservations)
-    def get(self, client_id=None):
-        if client_id:
-            # Get reservations for a specific client
-            reservations = db.session.execute(
-                select(
-                    reservation_association.c.client_id,
-                    reservation_association.c.restaurant_table_id,
-                    reservation_association.c.date,
-                    reservation_association.c.time,
-                    reservation_association.c.timestamp
-                ).where(reservation_association.c.client_id == client_id)
-            ).fetchall()
-        else:
-            # Get all reservations
-            reservations = db.session.execute(
-                select(
-                    reservation_association.c.client_id,
-                    reservation_association.c.restaurant_table_id,
-                    reservation_association.c.date,
-                    reservation_association.c.time,
-                    reservation_association.c.timestamp
-                )
-            ).fetchall()
+    def get(self, client_id=None): 
+    if client_id:
+        # Get reservations for a specific client
+        reservations = db.session.execute(
+            select(
+                reservation_association.c.client_id,
+                reservation_association.c.restaurant_table_id,
+                reservation_association.c.date,
+                reservation_association.c.time,
+                reservation_association.c.timestamp
+            ).where(reservation_association.c.client_id == client_id)
+        ).fetchall()
+    else:
+        # Get all reservations
+        reservations = db.session.execute(
+            select(
+                reservation_association.c.client_id,
+                reservation_association.c.restaurant_table_id,
+                reservation_association.c.date,
+                reservation_association.c.time,
+                reservation_association.c.timestamp
+            )
+        ).fetchall()
 
-        if not reservations:
-            return {"message": "No reservations found"}, 404
+    if not reservations:
+        return {"message": "No reservations found"}, 404
 
-        reservations_list = []
-        for reservation in reservations:
-            client_id, restaurant_table_id, date, time, timestamp = reservation
+    reservations_list = []
+    for reservation in reservations:
+        client_id, restaurant_table_id, date, time, timestamp = reservation
 
-            # Get client and restaurant table details
-            client = Client.query.get(client_id)
-            restaurant_table = RestaurantTable.query.get(restaurant_table_id)
+        # Get client and restaurant table details
+        client = Client.query.get(client_id)
+        restaurant_table = RestaurantTable.query.get(restaurant_table_id)
 
-            # Combine date and time to return a full reservation datetime
-            reservation_datetime = f"{date} {time}" if time else date
-            reservations_list.append({
-                "client_id": client_id,
-                "client_name": client.name if client else "Unknown Client",
-                "restaurant_table_id": restaurant_table_id,
-                "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
-                "reservation_datetime": reservation_datetime,
-                "timestamp": timestamp
-            })
+        # Combine date and time to return a full reservation datetime
+        reservation_datetime = f"{date} {time}" if time else date
 
-        return {"reservations": reservations_list}, 200
+        # Convert timestamp (datetime object) to string before adding to response
+        timestamp_str = timestamp.strftime('%Y-%m-%d %H:%M:%S') if timestamp else None
+
+        reservations_list.append({
+            "client_id": client_id,
+            "client_name": client.name if client else "Unknown Client",
+            "restaurant_table_id": restaurant_table_id,
+            "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
+            "reservation_datetime": reservation_datetime,
+            "timestamp": timestamp_str  # Return the string version of timestamp
+        })
+
+    return {"reservations": reservations_list}, 200
+
 
     # Create a new reservation
     def post(self):
