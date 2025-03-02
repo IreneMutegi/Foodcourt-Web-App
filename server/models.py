@@ -59,14 +59,8 @@ class Client(db.Model):
     email = Column(String(100), unique=True, nullable=False)
     password = Column(String(100), nullable=False)
 
-    # Define the relationship explicitly with primaryjoin and secondaryjoin
-    reservations = relationship(
-        'RestaurantTable',
-        secondary=reservation_association,
-        primaryjoin=id == reservation_association.c.client_id,  # Link client_id in reservation_association to Client
-        secondaryjoin=RestaurantTable.id == reservation_association.c.restaurant_table_id,  # Link restaurant_table_id to RestaurantTable
-        back_populates="clients"
-    )
+    reservations = relationship('RestaurantTable', secondary=reservation_association, back_populates="clients")
+
 
     def __repr__(self):  
         return f'<Client {self.id}, {self.name}, {self.email}>'
@@ -84,7 +78,10 @@ class Restaurant(db.Model):
 
     admin = relationship('Admin', back_populates='restaurants')
     menus = relationship('Menu', back_populates='restaurant')
+    menus = relationship('Menu', back_populates='restaurant')
 
+    def __repr__(self):
+        return f'<Restaurant {self.id}, {self.name}, {self.cuisine}>'
     def __repr__(self):
         return f'<Restaurant {self.id}, {self.name}, {self.cuisine}>'
 
@@ -97,9 +94,13 @@ class Menu(db.Model):
     category = Column(String(100), nullable=False)
     image_url = Column(String, nullable=False)
     restaurant_id = Column(Integer, ForeignKey('restaurants.id'), nullable=False)
+    image_url = Column(String, nullable=False)
+    restaurant_id = Column(Integer, ForeignKey('restaurants.id'), nullable=False)
 
     restaurant = relationship('Restaurant', back_populates='menus')
 
+    def __repr__(self):
+        return f'<Menu {self.id}, {self.name}, {self.category}>'
     def __repr__(self):
         return f'<Menu {self.id}, {self.name}, {self.category}>'
 
@@ -111,14 +112,7 @@ class RestaurantTable(db.Model):
     capacity = Column(Integer, nullable=False)
     admin = Column(String(100), nullable=False)
 
-    # Define the relationship explicitly with primaryjoin and secondaryjoin
-    clients = relationship(
-        'Client',
-        secondary=reservation_association,
-        primaryjoin=id == reservation_association.c.restaurant_table_id,  # Link restaurant_table_id in reservation_association to RestaurantTable
-        secondaryjoin=Client.id == reservation_association.c.client_id,  # Link client_id to Client
-        back_populates="reservations"
-    )
+    clients = relationship('Client', secondary=reservation_association, back_populates="reservations")
 
     def __repr__(self):
         return f'<RestaurantTable {self.id}, {self.table_number}, {self.capacity}>'
