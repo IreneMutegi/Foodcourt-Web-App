@@ -328,11 +328,7 @@ api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:m
 
 
 
-from datetime import datetime
-from flask import request
-from flask_restful import Resource
-from sqlalchemy import select, insert, update, delete
-from models import db, orders_association, Menu, Client, Restaurant
+
 
 class OrdersResource(Resource):
     def get(self, client_id=None):
