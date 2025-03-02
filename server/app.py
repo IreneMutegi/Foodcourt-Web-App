@@ -515,10 +515,8 @@ api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>')
 
 
 
-
-
-class RestaurantOrderResource(Resource):
-    # GET - Retrieve all orders for a specific restaurant
+class OrderResource(Resource):
+    # GET - Retrieve orders for a specific restaurant
     def get(self, restaurant_id):
         orders = db.session.execute(
             select(
@@ -543,6 +541,9 @@ class RestaurantOrderResource(Resource):
             status = order[4]  # Access order status by index
             timestamp = order[5]  # Access timestamp for the order
 
+            # Ensure the timestamp is in string format
+            timestamp_str = timestamp.isoformat() if timestamp else None
+
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
             restaurant_table = RestaurantTable.query.get(table_id)
@@ -558,7 +559,7 @@ class RestaurantOrderResource(Resource):
                 "price": meal.price if meal else "Unknown Price",
                 "total": meal.price * quantity if meal else "Unknown Total",
                 "status": status,
-                "timestamp": timestamp
+                "timestamp": timestamp_str  # Include the formatted timestamp here
             })
 
         return {"orders": orders_list}, 200
@@ -632,6 +633,7 @@ class RestaurantOrderResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
 
 
 # Register the resource and the endpoints with the Api object
