@@ -330,6 +330,7 @@ api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:m
 
 
 class OrdersResource(Resource):
+    # GET all orders or a specific client's orders
     def get(self, client_id=None):
         if client_id:
             orders = db.session.execute(
@@ -337,7 +338,7 @@ class OrdersResource(Resource):
                     orders_association.c.client_id,
                     orders_association.c.restaurant_id,
                     orders_association.c.meal_id,
-                    orders_association.c.restaurant_table_id,  # Use restaurant_table_id instead of table_number
+                    orders_association.c.restaurant_table_id,
                     orders_association.c.quantity,
                     orders_association.c.price,
                     orders_association.c.total
@@ -349,7 +350,7 @@ class OrdersResource(Resource):
                     orders_association.c.client_id,
                     orders_association.c.restaurant_id,
                     orders_association.c.meal_id,
-                    orders_association.c.restaurant_table_id,  # Use restaurant_table_id instead of table_number
+                    orders_association.c.restaurant_table_id,
                     orders_association.c.quantity,
                     orders_association.c.price,
                     orders_association.c.total
@@ -375,7 +376,8 @@ class OrdersResource(Resource):
                 "meal_id": meal_id,
                 "meal_name": meal.name if meal else "Unknown Meal",
                 "category": meal.category if meal else "Unknown Category",
-                "restaurant_table_id": restaurant_table_id,  # Use restaurant_table_id instead of table_number
+                "image_url": meal.image_url if meal else "No Image",  # ✅ Include Image URL
+                "restaurant_table_id": restaurant_table_id,
                 "quantity": quantity,
                 "price": price,
                 "total": total
@@ -383,13 +385,14 @@ class OrdersResource(Resource):
 
         return {"orders": orders_list}, 200
 
+    # POST - Create a new order
     def post(self):
         data = request.get_json()
 
         client_id = data.get("client_id")
         restaurant_id = data.get("restaurant_id")
         meal_id = data.get("meal_id")
-        restaurant_table_id = data.get("restaurant_table_id")  # Use restaurant_table_id instead of table_number
+        restaurant_table_id = data.get("restaurant_table_id")  
         quantity = data.get("quantity")
 
         if not all([client_id, restaurant_id, meal_id, restaurant_table_id, quantity]):
@@ -411,7 +414,7 @@ class OrdersResource(Resource):
                 client_id=client_id,
                 restaurant_id=restaurant_id,
                 meal_id=meal_id,
-                restaurant_table_id=restaurant_table_id,  # Use restaurant_table_id instead of table_number
+                restaurant_table_id=restaurant_table_id,
                 quantity=quantity,
                 price=price,
                 total=total
@@ -419,11 +422,25 @@ class OrdersResource(Resource):
             db.session.execute(new_order)
             db.session.commit()
 
-            return {"message": "Order created successfully"}, 201
+            return {
+                "message": "Order created successfully",
+                "order": {
+                    "client_id": client_id,
+                    "restaurant_id": restaurant_id,
+                    "meal_id": meal_id,
+                    "meal_name": meal.name if meal else "Unknown Meal",
+                    "category": meal.category if meal else "Unknown Category",
+                    "image_url": meal.image_url if meal else "No Image",  # ✅ Include Image URL
+                    "quantity": quantity,
+                    "price": price,
+                    "total": total
+                }
+            }, 201
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
 
+    # PATCH - Update an order
     def patch(self, client_id):
         data = request.get_json()
 
@@ -445,6 +462,7 @@ class OrdersResource(Resource):
                 return {"error": "Invalid meal_id"}, 400
             update_data["meal_id"] = data["meal_id"]
             update_data["price"] = meal.price
+            update_data["image_url"] = meal.image_url  # ✅ Include Image URL
 
         if "quantity" in data:
             update_data["quantity"] = data["quantity"]
@@ -453,7 +471,7 @@ class OrdersResource(Resource):
             else:
                 update_data["total"] = order.total / order.quantity * data["quantity"]
 
-        if "restaurant_table_id" in data:  # Use restaurant_table_id instead of table_number
+        if "restaurant_table_id" in data:
             update_data["restaurant_table_id"] = data["restaurant_table_id"]
 
         if update_data:
@@ -471,6 +489,7 @@ class OrdersResource(Resource):
 
         return {"message": "No updates provided"}, 400
 
+    # DELETE - Remove an order
     def delete(self, client_id):
         if not client_id:
             return {"error": "client_id is required"}, 400
@@ -491,6 +510,7 @@ class OrdersResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
 
 api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>')
 
