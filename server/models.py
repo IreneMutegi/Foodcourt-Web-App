@@ -40,7 +40,7 @@ orders_association = Table(
 
 # Admin Model
 class Admin(db.Model):  
-    _tablename_ = 'admin'
+    __tablename__ = 'admin'
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     email = Column(String(100), unique=True, nullable=False)
@@ -48,25 +48,32 @@ class Admin(db.Model):
 
     restaurants = relationship('Restaurant', back_populates='admin')
 
-    def _repr_(self):
+    def __repr__(self):
         return f'<Admin {self.id}, {self.name}, {self.email}>'
 
 # Client Model
 class Client(db.Model):  
-    _tablename_ = 'client'
+    __tablename__ = 'client'
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     email = Column(String(100), unique=True, nullable=False)
     password = Column(String(100), nullable=False)
 
-    reservations = relationship('RestaurantTable', secondary=reservation_association, back_populates="clients")
+    # Define the relationship explicitly with primaryjoin and secondaryjoin
+    reservations = relationship(
+        'RestaurantTable',
+        secondary=reservation_association,
+        primaryjoin=id == reservation_association.c.client_id,  # Link client_id in reservation_association to Client
+        secondaryjoin=RestaurantTable.id == reservation_association.c.restaurant_table_id,  # Link restaurant_table_id to RestaurantTable
+        back_populates="clients"
+    )
 
-    def _repr_(self):  
+    def __repr__(self):  
         return f'<Client {self.id}, {self.name}, {self.email}>'
 
 # Restaurant Model
 class Restaurant(db.Model):  
-    _tablename_ = 'restaurants'
+    __tablename__ = 'restaurants'
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     cuisine = Column(String(100), nullable=False)
@@ -78,12 +85,12 @@ class Restaurant(db.Model):
     admin = relationship('Admin', back_populates='restaurants')
     menus = relationship('Menu', back_populates='restaurant')
 
-    def _repr_(self):
+    def __repr__(self):
         return f'<Restaurant {self.id}, {self.name}, {self.cuisine}>'
 
 # Menu Model
 class Menu(db.Model):  
-    _tablename_ = 'menu'
+    __tablename__ = 'menu'
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     price = Column(Integer, nullable=False)
@@ -93,18 +100,25 @@ class Menu(db.Model):
 
     restaurant = relationship('Restaurant', back_populates='menus')
 
-    def _repr_(self):
+    def __repr__(self):
         return f'<Menu {self.id}, {self.name}, {self.category}>'
 
 # RestaurantTable Model
 class RestaurantTable(db.Model):  
-    _tablename_ = 'restaurant_tables'
+    __tablename__ = 'restaurant_tables'
     id = Column(Integer, primary_key=True)
     table_number = Column(String(50), nullable=False)
     capacity = Column(Integer, nullable=False)
     admin = Column(String(100), nullable=False)
 
-    clients = relationship('Client', secondary=reservation_association, back_populates="reservations")
+    # Define the relationship explicitly with primaryjoin and secondaryjoin
+    clients = relationship(
+        'Client',
+        secondary=reservation_association,
+        primaryjoin=id == reservation_association.c.restaurant_table_id,  # Link restaurant_table_id in reservation_association to RestaurantTable
+        secondaryjoin=Client.id == reservation_association.c.client_id,  # Link client_id to Client
+        back_populates="reservations"
+    )
 
-    def _repr_(self):
+    def __repr__(self):
         return f'<RestaurantTable {self.id}, {self.table_number}, {self.capacity}>'
