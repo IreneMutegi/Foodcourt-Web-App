@@ -662,6 +662,8 @@ api.add_resource(RestaurantOrderResource,
 
 
 
+
+
 class ReservationResource(Resource):
     def get(self, client_id=None, reservation_id=None):
         if reservation_id:
@@ -678,16 +680,18 @@ class ReservationResource(Resource):
             if not reservation:
                 return {"message": "Reservation not found"}, 404
 
-            reservation_id, client_id, restaurant_table_id, date, time, timestamp = reservation
+            reservation_id, client_id, restaurant_table_id, reservation_date, time, timestamp = reservation
 
-            # Handle 'date' and 'timestamp' types correctly
+            # Fix: Robust check for the correct type before calling isoformat
+            reservation_date_str = str(reservation_date) if not isinstance(reservation_date, (datetime.date, datetime.datetime)) else reservation_date.isoformat()
+
             return {
                 "reservation_id": reservation_id,
                 "client_id": client_id,
                 "restaurant_table_id": restaurant_table_id,
-                "date": date.isoformat() if isinstance(date, (date, datetime)) else str(date),
+                "date": reservation_date_str,
                 "time": time,
-                "timestamp": timestamp.isoformat() if isinstance(timestamp, (date, datetime)) else str(timestamp)
+                "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime.date, datetime.datetime)) else str(timestamp)
             }, 200
 
         elif client_id:
@@ -719,16 +723,18 @@ class ReservationResource(Resource):
 
         reservations_list = []
         for reservation in reservations:
-            reservation_id, client_id, restaurant_table_id, date, time, timestamp = reservation
+            reservation_id, client_id, restaurant_table_id, reservation_date, time, timestamp = reservation
 
-            # Ensure date and timestamp are correctly handled
+            # Fix: Robust check for the correct type before calling isoformat
+            reservation_date_str = str(reservation_date) if not isinstance(reservation_date, (datetime.date, datetime.datetime)) else reservation_date.isoformat()
+
             reservations_list.append({
                 "reservation_id": reservation_id,
                 "client_id": client_id,
                 "restaurant_table_id": restaurant_table_id,
-                "date": date.isoformat() if isinstance(date, (date, datetime)) else str(date),
+                "date": reservation_date_str,
                 "time": time,
-                "timestamp": timestamp.isoformat() if isinstance(timestamp, (date, datetime)) else str(timestamp)
+                "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime.date, datetime.datetime)) else str(timestamp)
             })
 
         return {"reservations": reservations_list}, 200
@@ -842,6 +848,7 @@ class ReservationResource(Resource):
             return {"error": str(e)}, 500
 
 api.add_resource(ReservationResource, '/reservations', '/reservations/<int:reservation_id>')
+
 
 
 
