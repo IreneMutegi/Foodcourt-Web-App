@@ -529,9 +529,7 @@ api.add_resource(OrdersResource,
 
 
 
-class RestaurantOrderResource(Resource):
-    # GET - Retrieve all orders for a specific restaurant or a specific order
-   def get(self, restaurant_id=None, client_id=None, order_id=None):
+def get(self, restaurant_id=None, client_id=None, order_id=None):
     if order_id:  # Fetch a single order
         order = db.session.execute(
             select(
@@ -611,29 +609,39 @@ class RestaurantOrderResource(Resource):
     if not orders:
         return {"error": "No orders found for this restaurant"}, 404
 
-    order_list = []
+    # Group orders by order_id, aggregating table_number
+    grouped_orders = {}
     for order in orders:
         order_id, client_id, meal_id, quantity, status, timestamp, restaurant_table_id = order
 
-        meal = Menu.query.get(meal_id)
-        client = Client.query.get(client_id)
-        restaurant_table = RestaurantTable.query.get(restaurant_table_id)
+        if order_id not in grouped_orders:
+            grouped_orders[order_id] = {
+                "order_id": order_id,
+                "client_name": Client.query.get(client_id).name if Client.query.get(client_id) else "Unknown Client",
+                "meal_name": Menu.query.get(meal_id).name if Menu.query.get(meal_id) else "Unknown Meal",
+                "quantity": quantity,
+                "status": status,
+                "timestamp": timestamp.isoformat() if timestamp else None,
+                "table_numbers": []  # This will hold all table numbers
+            }
+        
+        grouped_orders[order_id]["table_numbers"].append(RestaurantTable.query.get(restaurant_table_id).table_number if RestaurantTable.query.get(restaurant_table_id) else "Unknown Table")
 
+    # Prepare the final response
+    order_list = []
+    for order in grouped_orders.values():
         order_details = {
-            "order_id": order_id,
-            "client_name": client.name if client else "Unknown Client",
-            "meal_name": meal.name if meal else "Unknown Meal",
-            "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
-            "quantity": quantity,
-            "price": meal.price if meal else "Unknown Price",
-            "total": meal.price * quantity if meal else "Unknown Total",
-            "status": status,
-            "timestamp": timestamp.isoformat() if timestamp else None
+            "order_id": order["order_id"],
+            "client_name": order["client_name"],
+            "meal_name": order["meal_name"],
+            "table_number": ", ".join(order["table_numbers"]),  # Aggregate all table numbers into one string
+            "quantity": order["quantity"],
+            "status": order["status"],
+            "timestamp": order["timestamp"]
         }
         order_list.append(order_details)
 
     return {"orders": order_list}, 200
-
 
 
 
