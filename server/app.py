@@ -663,7 +663,6 @@ api.add_resource(RestaurantOrderResource,
 
 
 
-
 class ReservationResource(Resource):
     def get(self, client_id=None, reservation_id=None):
         if reservation_id:
@@ -684,9 +683,9 @@ class ReservationResource(Resource):
                 "reservation_id": reservation_id,
                 "client_id": reservation.client_id,
                 "restaurant_table_id": reservation.restaurant_table_id,
-                "date": reservation.date.isoformat() if isinstance(reservation.date, datetime.date) else reservation.date,
+                "date": reservation.date.isoformat() if isinstance(reservation.date, (datetime.date, datetime.datetime)) else str(reservation.date),
                 "time": reservation.time,
-                "timestamp": reservation.timestamp.isoformat() if isinstance(reservation.timestamp, datetime.datetime) else reservation.timestamp
+                "timestamp": reservation.timestamp.isoformat() if isinstance(reservation.timestamp, datetime.datetime) else str(reservation.timestamp)
             }, 200
 
         elif client_id:
@@ -724,9 +723,9 @@ class ReservationResource(Resource):
                 "reservation_id": reservation_id,
                 "client_id": client_id,
                 "restaurant_table_id": restaurant_table_id,
-                "date": date.isoformat() if isinstance(date, datetime.date) else date,
+                "date": date.isoformat() if isinstance(date, (datetime.date, datetime.datetime)) else str(date),
                 "time": time,
-                "timestamp": timestamp.isoformat() if isinstance(timestamp, datetime.datetime) else timestamp
+                "timestamp": timestamp.isoformat() if isinstance(timestamp, datetime.datetime) else str(timestamp)
             })
 
         return {"reservations": reservations_list}, 200
