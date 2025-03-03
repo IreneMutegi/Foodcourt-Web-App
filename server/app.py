@@ -663,8 +663,8 @@ api.add_resource(RestaurantOrderResource,
 
 
 class ReservationResource(Resource):
-    # Get reservations (for a specific client or all reservations)
-    def get(self, client_id=None): 
+    # Get reservations (for a specific client, reservation, or all reservations)
+    def get(self, client_id=None, reservation_id=None): 
         if client_id:
             # Get reservations for a specific client
             reservations = db.session.execute(
@@ -675,6 +675,17 @@ class ReservationResource(Resource):
                     reservation_association.c.time,
                     reservation_association.c.timestamp
                 ).where(reservation_association.c.client_id == client_id)
+            ).fetchall()
+        elif reservation_id:
+            # Get a specific reservation by reservation_id
+            reservations = db.session.execute(
+                select(
+                    reservation_association.c.client_id,
+                    reservation_association.c.restaurant_table_id,
+                    reservation_association.c.date,
+                    reservation_association.c.time,
+                    reservation_association.c.timestamp
+                ).where(reservation_association.c.id == reservation_id)
             ).fetchall()
         else:
             # Get all reservations
@@ -760,18 +771,18 @@ class ReservationResource(Resource):
             return {"error": str(e)}, 500
 
     # Update an existing reservation
-    def patch(self, client_id):
+    def patch(self, reservation_id):
         data = request.get_json()
 
-        if not client_id:
-            return {"error": "client_id is required"}, 400
+        if not reservation_id:
+            return {"error": "reservation_id is required"}, 400
 
         reservation = db.session.execute(
-            select(reservation_association).where(reservation_association.c.client_id == client_id)
+            select(reservation_association).where(reservation_association.c.id == reservation_id)
         ).fetchone()
 
         if not reservation:
-            return {"error": "No reservation found for this client"}, 404
+            return {"error": "No reservation found with this id"}, 404
 
         update_data = {}
 
@@ -799,7 +810,7 @@ class ReservationResource(Resource):
             try:
                 db.session.execute(
                     reservation_association.update()
-                    .where(reservation_association.c.client_id == client_id)
+                    .where(reservation_association.c.id == reservation_id)
                     .values(update_data)
                 )
                 db.session.commit()
@@ -810,21 +821,21 @@ class ReservationResource(Resource):
 
         return {"message": "No updates provided"}, 400
 
-    # Delete a reservation (by client_id)
-    def delete(self, client_id):
-        if not client_id:
-            return {"error": "client_id is required"}, 400
+    # Delete a reservation (by reservation_id)
+    def delete(self, reservation_id):
+        if not reservation_id:
+            return {"error": "reservation_id is required"}, 400
 
         reservation = db.session.execute(
-            select(reservation_association).where(reservation_association.c.client_id == client_id)
+            select(reservation_association).where(reservation_association.c.id == reservation_id)
         ).fetchone()
 
         if not reservation:
-            return {"error": "No reservation found for this client"}, 404
+            return {"error": "No reservation found with this id"}, 404
 
         try:
             db.session.execute(
-                delete(reservation_association).where(reservation_association.c.client_id == client_id)
+                delete(reservation_association).where(reservation_association.c.id == reservation_id)
             )
             db.session.commit()
             return {"message": "Reservation deleted successfully"}, 200
@@ -832,7 +843,11 @@ class ReservationResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-api.add_resource(ReservationResource, '/reservations', '/reservations/<int:client_id>')
+
+# Register the resource with the API, including the new route for reservation_id-based reservation access
+api.add_resource(ReservationResource, '/reservations', '/reservations/<int:reservation_id>')
+
+
 
 class RestaurantTableResource(Resource):
     # GET - Retrieve all restaurant tables
