@@ -665,10 +665,8 @@ api.add_resource(RestaurantOrderResource,
 
 
 class ReservationResource(Resource):
-    # Get reservations (for a specific client, reservation, or all reservations)
     def get(self, client_id=None, reservation_id=None):
         if reservation_id:
-            # Get a specific reservation by reservation_id
             reservation = db.session.execute(
                 select(
                     reservation_association.c.client_id,
@@ -686,13 +684,12 @@ class ReservationResource(Resource):
                 "reservation_id": reservation_id,
                 "client_id": reservation.client_id,
                 "restaurant_table_id": reservation.restaurant_table_id,
-                "date": reservation.date.isoformat() if isinstance(reservation.date, date) else reservation.date,
+                "date": reservation.date.isoformat() if isinstance(reservation.date, datetime.date) else reservation.date,
                 "time": reservation.time,
-                "timestamp": reservation.timestamp.isoformat() if isinstance(reservation.timestamp, datetime) else reservation.timestamp
+                "timestamp": reservation.timestamp.isoformat() if isinstance(reservation.timestamp, datetime.datetime) else reservation.timestamp
             }, 200
 
         elif client_id:
-            # Get reservations for a specific client
             reservations = db.session.execute(
                 select(
                     reservation_association.c.id,
@@ -705,7 +702,6 @@ class ReservationResource(Resource):
             ).fetchall()
 
         else:
-            # Get all reservations
             reservations = db.session.execute(
                 select(
                     reservation_association.c.id,
@@ -728,26 +724,24 @@ class ReservationResource(Resource):
                 "reservation_id": reservation_id,
                 "client_id": client_id,
                 "restaurant_table_id": restaurant_table_id,
-                "date": date.isoformat() if isinstance(date, date) else date,
+                "date": date.isoformat() if isinstance(date, datetime.date) else date,
                 "time": time,
-                "timestamp": timestamp.isoformat() if isinstance(timestamp, datetime) else timestamp
+                "timestamp": timestamp.isoformat() if isinstance(timestamp, datetime.datetime) else timestamp
             })
 
         return {"reservations": reservations_list}, 200
 
-    # Create a new reservation
     def post(self):
         data = request.get_json()
 
         client_id = data.get("client_id")
         restaurant_table_id = data.get("restaurant_table_id")
-        reservation_date = data.get("reservation_date")  # Separate date
-        reservation_time = data.get("reservation_time")  # Separate time
+        reservation_date = data.get("reservation_date")
+        reservation_time = data.get("reservation_time")
         
         if not all([client_id, restaurant_table_id, reservation_date, reservation_time]):
             return {"error": "client_id, restaurant_table_id, reservation_date, and reservation_time are required"}, 400
 
-        # Validate client and table existence
         client = Client.query.get(client_id)
         if not client:
             return {"error": "Invalid client_id"}, 400
@@ -756,7 +750,6 @@ class ReservationResource(Resource):
         if not restaurant_table:
             return {"error": "Invalid restaurant_table_id"}, 400
 
-        # Combine the date and time to create the full timestamp
         try:
             reservation_datetime = datetime.strptime(f"{reservation_date} {reservation_time}", '%Y-%m-%d %H:%M:%S')
         except ValueError:
@@ -778,7 +771,6 @@ class ReservationResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-    # Update an existing reservation
     def patch(self, reservation_id):
         data = request.get_json()
 
@@ -794,18 +786,15 @@ class ReservationResource(Resource):
 
         update_data = {}
 
-        # Check if restaurant_table_id is being updated
         if "restaurant_table_id" in data:
             restaurant_table = RestaurantTable.query.get(data["restaurant_table_id"])
             if not restaurant_table:
                 return {"error": "Invalid restaurant_table_id"}, 400
             update_data["restaurant_table_id"] = data["restaurant_table_id"]
 
-        # Check if reservation date is being updated
         if "reservation_date" in data:
             update_data["date"] = data["reservation_date"]
 
-        # Check if reservation time is being updated
         if "reservation_time" in data:
             try:
                 reservation_datetime = datetime.strptime(f"{update_data.get('date', reservation.date)} {data['reservation_time']}", '%Y-%m-%d %H:%M:%S')
@@ -829,7 +818,6 @@ class ReservationResource(Resource):
 
         return {"message": "No updates provided"}, 400
 
-    # Delete a reservation (by reservation_id)
     def delete(self, reservation_id):
         if not reservation_id:
             return {"error": "reservation_id is required"}, 400
@@ -851,9 +839,8 @@ class ReservationResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-
-# Register the resource with the API, including the new route for reservation_id-based reservation access
 api.add_resource(ReservationResource, '/reservations', '/reservations/<int:reservation_id>')
+
 
 
 
