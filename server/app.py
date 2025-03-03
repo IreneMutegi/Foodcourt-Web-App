@@ -667,7 +667,6 @@ api.add_resource(RestaurantOrderResource,
 
 
 
-
 class ReservationResource(Resource):
     def get(self, client_id=None, reservation_id=None):
         if reservation_id:
@@ -684,7 +683,7 @@ class ReservationResource(Resource):
             if not reservation:
                 return {"message": "Reservation not found"}, 404
 
-            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
+            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time = reservation
 
             # Convert date to iso format if it's a valid date or datetime object
             reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
@@ -748,7 +747,6 @@ class ReservationResource(Resource):
             })
 
         return {"reservations": reservations_list}, 200
-
 
     def post(self):
         data = request.get_json()
@@ -857,6 +855,7 @@ class ReservationResource(Resource):
         except SQLAlchemyError as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
 
 api.add_resource(ReservationResource, '/reservations', '/reservations/<int:reservation_id>')
 
