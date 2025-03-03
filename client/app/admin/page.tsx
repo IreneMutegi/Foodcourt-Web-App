@@ -15,6 +15,7 @@ interface RestaurantType {
   admin_id: number;
 }
 
+
 const AdminDashboard = () => {
   const [showForm, setShowForm] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -27,6 +28,18 @@ const AdminDashboard = () => {
     admin_id: 1, // Set a default admin_id (change if needed)
   });
   const [restaurants, setRestaurants] = useState<RestaurantType[]>([]);
+
+  const resetForm = () => {
+    setRestaurantData({
+      name: "",
+      cuisine: "",
+      email: "",
+      password: "",
+      image_url: "",
+      admin_id: 1,
+    });
+    setEditIndex(null);
+  };
 
   // Fetch Restaurants from Backend
   useEffect(() => {
@@ -77,57 +90,54 @@ const AdminDashboard = () => {
 
   // Handle Form Submission (Add or Edit Restaurant)
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  event.preventDefault();
 
-    try {
-      if (editIndex !== null) {
-        // UPDATE Restaurant
-        const restaurantId = restaurants[editIndex]?.id;
-        if (!restaurantId) {
-          console.error("Error: Missing restaurant ID for update.");
-          return;
-        }
-
-        const response = await fetch(`${API_URL}/${restaurantId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(restaurantData),
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("Failed to update restaurant:", errorText);
-          return;
-        }
-
-        const updatedRestaurants = [...restaurants];
-        updatedRestaurants[editIndex] = { ...restaurantData, id: restaurantId };
-        setRestaurants(updatedRestaurants);
-        setEditIndex(null);
-      } else {
-        // ADD Restaurant
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(restaurantData),
-        });
-
-        if (!response.ok) {
-          console.error("Failed to add restaurant.");
-          return;
-        }
-
-        const newRestaurant = await response.json();
-        setRestaurants([...restaurants, newRestaurant]);
+  try {
+    let response;
+    
+    if (editIndex !== null) {
+      // UPDATE Restaurant
+      const restaurantId = restaurants[editIndex]?.id;
+      if (!restaurantId) {
+        console.error("Error: Missing restaurant ID for update.");
+        return;
       }
 
-      // Reset Form
-      setRestaurantData({ name: "", cuisine: "", email: "", password: "", image_url: "", admin_id: 1 });
-      setShowForm(false);
-    } catch (error) {
-      console.error("Error saving restaurant:", error);
+      response = await fetch(`${API_URL}/${restaurantId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(restaurantData),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to update restaurant.");
+        return;
+      }
+    } else {
+      // ADD Restaurant
+      response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(restaurantData),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to add restaurant.");
+        return;
+      }
     }
-  };
+
+    // Fetch updated restaurants list
+    await fetchRestaurants();
+
+    // Reset form and close modal
+    resetForm();
+    setShowForm(false); // ✅ Ensures form closes
+  } catch (error) {
+    console.error("Error saving restaurant:", error);
+  }
+};
+
 
   return (
     <div className="dashboard">
