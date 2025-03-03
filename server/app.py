@@ -662,9 +662,6 @@ api.add_resource(RestaurantOrderResource,
 
 
 
-
-
-
 class ReservationResource(Resource):
     def get(self, client_id=None, reservation_id=None):
         if reservation_id:
@@ -841,10 +838,6 @@ class ReservationResource(Resource):
             return {"error": str(e)}, 500
 
 api.add_resource(ReservationResource, '/reservations', '/reservations/<int:reservation_id>')
-
-
-
-
 
 
 
