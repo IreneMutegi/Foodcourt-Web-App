@@ -4,7 +4,7 @@ from flask_restful import Api, Resource
 from flask_migrate import Migrate
 from server.models import db, Client, Admin, Restaurant, Menu, orders_association, reservation_association ,RestaurantTable
 from sqlalchemy import select, delete 
-from datetime import datetime,date
+from datetime import datetime, date, time
 import os
 
 app = Flask(__name__)
@@ -666,6 +666,8 @@ api.add_resource(RestaurantOrderResource,
 
 
 
+
+
 class ReservationResource(Resource):
     def get(self, client_id=None, reservation_id=None):
         if reservation_id:
@@ -682,17 +684,20 @@ class ReservationResource(Resource):
             if not reservation:
                 return {"message": "Reservation not found"}, 404
 
-            reservation_id, client_id, restaurant_table_id, reservation_date, time, timestamp = reservation
+            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
 
-            # Fix: Robust check for the correct type before calling isoformat
+            # Convert date to iso format if it's a valid date or datetime object
             reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
+
+            # Convert time object to string format if it's a time object
+            reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
 
             return {
                 "reservation_id": reservation_id,
                 "client_id": client_id,
                 "restaurant_table_id": restaurant_table_id,
                 "date": reservation_date_str,
-                "time": time,
+                "time": reservation_time_str,
                 "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
             }, 200
 
@@ -725,17 +730,20 @@ class ReservationResource(Resource):
 
         reservations_list = []
         for reservation in reservations:
-            reservation_id, client_id, restaurant_table_id, reservation_date, time, timestamp = reservation
+            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
 
-            # Fix: Robust check for the correct type before calling isoformat
+            # Convert date to iso format if it's a valid date or datetime object
             reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
+
+            # Convert time object to string format if it's a time object
+            reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
 
             reservations_list.append({
                 "reservation_id": reservation_id,
                 "client_id": client_id,
                 "restaurant_table_id": restaurant_table_id,
                 "date": reservation_date_str,
-                "time": time,
+                "time": reservation_time_str,
                 "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
             })
 
