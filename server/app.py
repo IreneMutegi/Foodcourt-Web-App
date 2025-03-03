@@ -594,7 +594,8 @@ class RestaurantOrderResource(Resource):
                 orders_association.c.status,
                 orders_association.c.timestamp,
                 reservation_association.c.restaurant_table_id  # Fetch correct table ID
-            ).join(
+            ).distinct()  # <-- FIX: Add DISTINCT to prevent duplicates
+            .join(
                 reservation_association, 
                 reservation_association.c.client_id == orders_association.c.client_id
             ).where(orders_association.c.restaurant_id == restaurant_id)
