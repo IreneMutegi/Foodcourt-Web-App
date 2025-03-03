@@ -369,10 +369,14 @@ class OrdersResource(Resource):
             orders_association.c.status
         )
 
-        if order_id:
+        # If both client_id and order_id are provided, filter by both
+        if client_id and order_id:
+            query = query.where(orders_association.c.client_id == client_id)
             query = query.where(orders_association.c.id == order_id)
         elif client_id:
             query = query.where(orders_association.c.client_id == client_id)
+        elif order_id:
+            query = query.where(orders_association.c.id == order_id)
 
         orders = db.session.execute(query).fetchall()
 
@@ -519,8 +523,13 @@ class OrdersResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
+
 # Register the resource with the API
-api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>', '/orders/id/<int:order_id>')
+api.add_resource(OrdersResource, 
+                 '/orders', 
+                 '/orders/<int:client_id>', 
+                 '/orders/id/<int:order_id>', 
+                 '/orders/<int:client_id>/<int:order_id>')
 
 
 
