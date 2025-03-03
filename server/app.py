@@ -528,7 +528,7 @@ api.add_resource(OrdersResource,
 
 
 class RestaurantOrderResource(Resource):
-    # GET - Retrieve all orders for a specific restaurant
+    # GET - Retrieve all orders for a specific restaurant or a specific order
     def get(self, restaurant_id=None, client_id=None, order_id=None):
         if order_id:  # If order_id is provided, get specific order
             order = db.session.execute(
@@ -540,6 +540,7 @@ class RestaurantOrderResource(Resource):
                     orders_association.c.status,
                     orders_association.c.timestamp
                 ).where(orders_association.c.id == order_id)
+                .where(orders_association.c.restaurant_id == restaurant_id)  # Ensure restaurant_id is used here
             ).fetchone()
 
             if not order:
@@ -559,7 +560,6 @@ class RestaurantOrderResource(Resource):
             ).fetchone()
 
             restaurant_table_id = reservation[0] if reservation else "Unknown Table"
-
             timestamp_str = timestamp.isoformat() if timestamp else None
 
             meal = Menu.query.get(meal_id)
@@ -581,7 +581,51 @@ class RestaurantOrderResource(Resource):
             }
 
             return {"order": order_details}, 200
+        
+        # If no order_id is provided, get all orders for the restaurant
+        orders = db.session.execute(
+            select(
+                orders_association.c.id,
+                orders_association.c.client_id,
+                orders_association.c.meal_id,
+                orders_association.c.restaurant_table_id,
+                orders_association.c.quantity,
+                orders_association.c.status,
+                orders_association.c.timestamp
+            ).where(orders_association.c.restaurant_id == restaurant_id)
+        ).fetchall()
 
+        # If no orders found
+        if not orders:
+            return {"error": "No orders found for this restaurant"}, 404
+
+        order_list = []
+        for order in orders:
+            client_id = order[1]
+            meal_id = order[2]
+            table_id = order[3]
+            quantity = order[4]
+            status = order[5]
+            timestamp = order[6]
+
+            meal = Menu.query.get(meal_id)
+            client = Client.query.get(client_id)
+            restaurant_table = RestaurantTable.query.get(table_id)
+
+            order_details = {
+                "order_id": order[0],
+                "client_name": client.name if client else "Unknown Client",
+                "meal_name": meal.name if meal else "Unknown Meal",
+                "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
+                "quantity": quantity,
+                "price": meal.price if meal else "Unknown Price",
+                "total": meal.price * quantity if meal else "Unknown Total",
+                "status": status,
+                "timestamp": timestamp.isoformat() if timestamp else None
+            }
+            order_list.append(order_details)
+
+        return {"orders": order_list}, 200
 
     # PATCH - Update an existing order by order_id and restaurant_id
     def patch(self, restaurant_id, order_id):
@@ -647,6 +691,7 @@ class RestaurantOrderResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
 
 # Register the resource and the endpoints with the Api object
 api.add_resource(RestaurantOrderResource, 
