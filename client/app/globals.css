@@ -1,10 +1,61 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
 
-body {
+* {
+  box-sizing: border-box;
+}
+
+
+html, body {
   color: var(--foreground);
   background: var(--background);
   font-family: "Poppins", sans-serif;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  min-height: 100vh;
+  overflow-x: hidden;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
+
+/* Header Styling */
+header {
+  width: 100%;
+  max-width: 100vw;
+  min-height: 60px; /* Prevents squishing */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  position: sticky; /* Stays at top when scrolling */
+  top: 0;
+  z-index: 1000; /* Ensures it stays on top */
+}
+
+/* Main Content Container */
+.container {
+  flex: 1; /* Pushes footer down */
+  width: 100%;
+  max-width: 1200px; /* Adjust as needed */
+  margin: auto;
+  padding: 15px;
+}
+@media (max-width: 768px) {
+  .container {
+    width: 100%;
+    padding: 0 10px; /* Add padding to prevent content sticking to edges */
+  }
+}
+
+
+/* Footer Styling */
+footer {
+  width: 100%;
+  max-width: 100vw;
+  padding: 15px;
+  text-align: center;
+  position: relative; /* Adjust if necessary */
+  bottom: 0;
+}
+

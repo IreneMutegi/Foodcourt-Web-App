@@ -10,6 +10,7 @@
     margin-top: 80px;
     /* background: #4db6ac27; */
     padding: 15px;
+    flex: 1;
   }
 
   .empty-bag {
@@ -76,13 +77,15 @@
   
   .rating {
     display: flex;
-    gap: 5px;
+    gap: 8px;
     margin-top: 5px;
+    flex-wrap: wrap;
   }
   
   .star {
     cursor: pointer;
     transition: color 0.2s;
+    font-size: 22px;
   }
   
   .star:hover {
@@ -122,6 +125,36 @@
   .statusText.completed {
     color: green;
   }
+
+  /* for mobile users */
+  @media (max-width: 480px) {
+    .orderCard {
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+    }
+  
+    .orderImage {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 10px;
+    }
+  
+    .orderInfo {
+      padding: 10px 0;
+    }
+  }
+  @media (max-width: 480px) {
+    .deleteBtn {
+      position: static;
+      margin-top: 10px;
+      align-self: flex-start;
+    }
+  }
+
+ 
+
+    
   
   
   
