@@ -2,8 +2,9 @@
 import "./page.css";
 import { FcEmptyTrash } from "react-icons/fc";
 import { useCart } from "../context/CartContext-temp";
-import { FaPlus, FaMinus, FaTrash } from "react-icons/fa";
-import { useState } from "react";
+import { FaPlus, FaMinus, FaTrash, FaTimes } from "react-icons/fa";
+import { useEffect, useState } from "react";
+
 import { useSession } from "next-auth/react";
 
 export default function Cart() {
@@ -12,6 +13,33 @@ export default function Cart() {
   const [tableNumber, setTableNumber] = useState("");
   const [showPrompt, setShowPrompt] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [tables, setTables] = useState([]);
+  const [selectedTable, setSelectedTable] = useState("");
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [selectedTime, setSelectedTime] = useState("");
+
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    const fetchTables = async () => {
+      try {
+        const response = await fetch(
+          "https://foodcourt-web-app-4.onrender.com/restaurant_tables"
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch tables");
+        }
+        const data = await response.json();
+        setTables(data.tables);
+      } catch (error) {
+        console.error("Error fetching tables", error);
+      }
+    };
+    fetchTables();
+  }, []);
 
   const clientId = session?.user?.id;
   // Ensure only the logged-in client's cart items are shown
@@ -54,110 +82,185 @@ export default function Cart() {
     setCart((prevCart) => prevCart.filter((_, i) => i !== index));
   };
 
-  // const handleCheckout = async () => {
-  //   if (!tableNumber.trim()) {
-  //     alert("Please enter a valid table number");
-  //     return;
-  //   }
-
-  //   setLoading(true);
-
-  //   try {
-  //     for (const item of cart) {
-  //       const orderData = {
-  //         ...item,
-  //         table_number: tableNumber,
-  //       };
-
-  //       const response = await fetch(
-  //         "https://foodcourt-web-app-4.onrender.com/orders",
-  //         {
-  //           method: "POST",
-  //           headers: {
-  //             "Content-Type": "application/json",
-  //           },
-  //           body: JSON.stringify(orderData),
-  //         }
-  //       );
-  //       console.log(cart)
-
-  //       if (!response.ok) {
-  //         throw new Error(`Failed to place order for ${item.meal}`);
-  //       }
-  //     }
-
-  //     alert("Order placed successfully");
-  //     setCart([]);
-  //     setShowPrompt(false);
-  //     setTableNumber("");
-  //   } catch (error) {
-  //     console.error("Error submitting order:", error);
-  //     alert("Something went wrong, please try again");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  const handleCheckout = async () => {
-    if (!tableNumber.trim()) {
-      alert("Please enter a valid table number");
+  const handleOrder = async () => {
+    console.log("Selected Table Number:", tableNumber);
+    console.log("Available Tables:", tables);
+    if (cart.length === 0) {
+      console.error("Cart is empty");
       return;
     }
-  
-    setLoading(true);
-  
+    if (!tableNumber) {
+      console.error("Please select a table before proceeding");
+      return;
+    }
+
+    const table = tables.find((t) => t.table_number === tableNumber);
+    if (!table) {
+      console.error("Invalid table selected, check tables list", tables);
+      return;
+    }
+
+    const tableId = table.restaurant_table_id;
+
+    const now = new Date();
+
     try {
-      const orderRequests = cart.map(async (item) => {
-        const orderData = {
-          meal_id: item.meal_id,  // Ensure backend expects `meal_id`, not `id`
-          client_id: item.client_id,
+      //First request
+      const reservationResponse = await fetch(
+        "https://foodcourt-web-app-4.onrender.com/reservations",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            client_id: Number(session.user.id),
+            restaurant_table_id: Number(tableId),
+            reservation_date: now.toISOString().split("T")[0], //current date
+            reservation_time: now.toLocaleTimeString("en-GB"), //current time
+          }),
+        }
+      );
+
+      if (!reservationResponse.ok) {
+        throw new Error("Failed to create reservation");
+      }
+      const reservationData = await reservationResponse.json();
+      console.log(reservationData);
+      const reservationId = reservationData.id;
+
+      for (const item of cart) {
+        console.log({
+          client_id: session.user.id,
           restaurant_id: item.restaurant_id,
-          price: item.price,
+          meal_id: item.meal_id,
           quantity: item.quantity,
-          total: item.total,
-          table_number: tableNumber, // Add table number here before submitting
-        };
-  
-        const response = await fetch(
+          reservation_id: reservationId,
+        });
+        const orderResponse = await fetch(
           "https://foodcourt-web-app-4.onrender.com/orders",
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(orderData),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              client_id: session.user.id,
+              restaurant_id: item.restaurant_id,
+              meal_id: item.meal_id,
+              quantity: item.quantity,
+              reservation_id: reservationId,
+            }),
           }
         );
-  
-        if (!response.ok) {
-          throw new Error(`Failed to place order for ${item.meal}`);
+        if (!orderResponse.ok) {
+          throw new Error(
+            `Failed to place order for meal ${item.meal_id} at restaurant ${item.restaurant_id}`
+          );
         }
-      });
-  
-      // Wait for all orders to be processed before proceeding
-      await Promise.all(orderRequests);
-  
-      alert("Order placed successfully");
-      setCart([]); // Clear cart after successful checkout
-      setShowPrompt(false);
-      setTableNumber("");
+        console.log(
+          `Order placed successfully for meal ${item.meal_id} at ${item.restaurant_id}`
+        );
+      }
+      setCart([]);
+      console.log("All orders placed successfully");
     } catch (error) {
-      console.error("Error submitting order:", error);
-      alert("Something went wrong, please try again");
-    } finally {
-      setLoading(false);
+      console.error("Error processing orders", error);
     }
   };
-  
+
+  console.log("Current Cart", cart);
+
+  const handleMakeReservation = async (tableNumber, date, time) => {
+    const table = tables.find((t) => t.table_number === tableNumber);
+    if (!table) return console.error("Invalid table selected");
+
+    const tableId = table.restaurant_table_id;
+    const formattedTime = `${time}:00`;
+    try {
+      console.log({
+        client_id: Number(session.user.id),
+        restaurant_table_id: Number(tableId),
+        reservation_date: date,
+        reservation_time: formattedTime,
+      });
+      const reservationResponse = await fetch(
+        "https://foodcourt-web-app-4.onrender.com/reservations",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            client_id: Number(session.user.id),
+            restaurant_table_id: Number(tableId),
+            reservation_date: date,
+            reservation_time: formattedTime,
+          }),
+        }
+      );
+      if (!reservationResponse.ok) {
+        throw new Error("Failed to create reservation");
+      }
+      const reservationData = await reservationResponse.json();
+      const reservationId = reservationData.id;
+
+      await placeOrders(reservationId);
+    } catch (error) {
+      console.error("Error processing reservation", error);
+    }
+  };
+
+  const placeOrders = async (reservationId) => {
+    try {
+      for (const item of cart) {
+        console.log({
+          client_id: session.user.id,
+          restaurant_id: item.restaurant_id,
+          meal_id: item.meal_id,
+          quantity: item.quantity,
+          reservation_id: reservationId,
+        });
+        const orderResponse = await fetch(
+          "https://foodcourt-web-app-4.onrender.com/orders",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              client_id: session.user.id,
+              restaurant_id: item.restaurant_id,
+              meal_id: item.meal_id,
+              quantity: item.quantity,
+              reservation_id: reservationId,
+            }),
+          }
+        );
+        if (!orderResponse.ok) {
+          throw new Error(`Failed to place order for ${item.meal_id}`);
+        }
+        setCart([]);
+        console.log("All orders placed successfully");
+      }
+    } catch (error) {
+      console.error("Error processing orders", error);
+    }
+  };
+
+  if (cart.length === 0) {
+    return (
+      <div className="cart-container">
+        <div className="empty-cart">
+          <FcEmptyTrash size={60} color="#4db6ac" />
+          <p>Your Cart is empty</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="cart-container">
       <h2>My Cart</h2>
       <div className="cart-items">
         {cart.map((item, index) => (
-          <div className="cart-item" key={index}>
-            <img src={item.image_url} alt={item.meal} className="cart-item-img" />
+            <img src={item.image} alt={item.name} className="cart-item-img" />
+
             <div className="cart-item-info">
-              <h3>{item.meal}</h3>
+              <h3>{item.name}</h3>
               <p className="item-price">${item.total.toFixed(2)}</p>
               <div className="quantity-controls">
                 <button
@@ -204,23 +307,121 @@ export default function Cart() {
           Proceed to Checkout
         </button>
       </div>
-      {/* Table Number Input Modal */}
+      {/* Checkout Modal */}
       {showPrompt && (
         <div className="checkout-modal">
           <div className="checkout-modal-content">
-            <h3>Enter Table Number</h3>
-            <input
-              type="text"
-              value={tableNumber}
-              onChange={(e) => setTableNumber(e.target.value)}
-              placeholder="Enter table number"
-            />
-            <div className="modal-buttons">
-              <button onClick={handleCheckout} disabled={loading}>
-                {loading ? "Processing..." : "Confirm Order"}
-              </button>
-              <button onClick={() => setShowPrompt(false)}>Cancel</button>
-            </div>
+            <button
+              className="close-btn"
+              onClick={() => {
+                setShowPrompt(false);
+                setSelectedOption(null);
+              }}
+            >
+              <FaTimes />
+            </button>
+            {!selectedOption && (
+              <div className="modal-buttons">
+                <button onClick={() => setSelectedOption("order")}>
+                  Order Now
+                </button>
+                <button onClick={() => setSelectedOption("reservation")}>
+                  Make Reservation
+                </button>
+              </div>
+            )}
+            {selectedOption === "order" && (
+              <div className="order-options">
+                <label>Select Table Number:</label>
+                <select
+                  value={tableNumber}
+                  onChange={(e) => setTableNumber(e.target.value)}
+                  className="styled-select"
+                  required
+                >
+                  <option value="">-- Select Table --</option>
+                  {tables.map((table) => (
+                    <option key={table.id} value={table.table_number}>
+                      {table.table_number}(Capacity{table.capacity})
+                    </option>
+                  ))}
+                </select>
+                <div className="modal-buttons">
+                  <button onClick={handleOrder}>Make Order</button>
+                  <button
+                    onClick={() => {
+                      setShowPrompt(false);
+                      setSelectedOption(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+            {selectedOption === "reservation" && (
+              <div className="reservation-options">
+                <label>Select Table Number:</label>
+                <select
+                  className="styled-select"
+                  value={selectedTable}
+                  onChange={(e) => setSelectedTable(e.target.value)}
+                  required
+                >
+                  <option value="">-- Select Table --</option>
+                  {tables.map((table) => (
+                    <option key={table.id} value={table.table_number}>
+                      {table.table_number}(Capacity{table.capacity})
+                    </option>
+                  ))}
+                </select>
+                <label>Select Date:</label>
+                <input
+                  type="date"
+                  className="styled-input"
+                  min={new Date().toISOString().split("T")[0]}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  value={selectedDate}
+                  required
+                />
+                {/* prevents past dates */}
+                <label>Select Time:</label>
+                <input
+                  type="time"
+                  className="styled-input"
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                  value={selectedTime}
+                  min={
+                    new Date().toISOString().split("T")[0] === selectedDate
+                      ? new Date().toLocaleTimeString("en-GB").slice(0, 5)
+                      : "00:00"
+                  }
+                  required
+                />
+                <div className="modal-buttons">
+                  <button
+                    onClick={() =>
+                      handleMakeReservation(
+                        selectedTable,
+                        selectedDate,
+                        selectedTime
+                      )
+                    }
+                    disabled={!selectedTable || !selectedDate || !selectedTime}
+                  >
+                    Make Reservation
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowPrompt(false);
+                      setSelectedOption(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
