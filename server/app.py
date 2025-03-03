@@ -528,6 +528,7 @@ api.add_resource(OrdersResource,
 
 
 
+
 class RestaurantOrderResource(Resource):
     # GET - Retrieve all orders for a specific restaurant
     def get(self, restaurant_id=None, client_id=None, order_id=None):
@@ -731,9 +732,8 @@ class RestaurantOrderResource(Resource):
 api.add_resource(RestaurantOrderResource, 
                  '/orders/restaurants/<int:restaurant_id>', 
                  '/orders/restaurants/<int:restaurant_id>/client/<int:client_id>',
-                 '/orders/<int:order_id>')  # New endpoint for order_id operations
-
-
+                 '/orders/<int:order_id>', 
+                 '/orders/restaurants/<int:restaurant_id>/order/<int:order_id>')  # New endpoint for order_id operations
 
 
 
