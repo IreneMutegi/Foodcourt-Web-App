@@ -836,7 +836,7 @@ class ReservationResource(Resource):
         restaurant_table_id = data.get("restaurant_table_id")
         reservation_date = data.get("reservation_date")
         reservation_time = data.get("reservation_time")
-        
+
         if not all([client_id, restaurant_table_id, reservation_date, reservation_time]):
             return {"error": "client_id, restaurant_table_id, reservation_date, and reservation_time are required"}, 400
 
@@ -854,17 +854,20 @@ class ReservationResource(Resource):
             return {"error": "Invalid date or time format. Please use 'YYYY-MM-DD' for date and 'HH:MM:SS' for time."}, 400
 
         try:
-            new_reservation = reservation_association.insert().values(
-                client_id=client_id,
-                restaurant_table_id=restaurant_table_id,
-                date=reservation_date,
-                time=reservation_time,
-                timestamp=reservation_datetime
+            # Insert new reservation and return the inserted row
+            result = db.session.execute(
+                reservation_association.insert().returning(reservation_association.c.id).values(
+                    client_id=client_id,
+                    restaurant_table_id=restaurant_table_id,
+                    date=reservation_date,
+                    time=reservation_time,
+                    timestamp=reservation_datetime
+                )
             )
-            db.session.execute(new_reservation)
+            reservation_id = result.fetchone()[0]  # Retrieve the inserted ID
             db.session.commit()
 
-            return {"message": "Reservation created successfully"}, 201
+            return {"message": "Reservation created successfully", "id": reservation_id}, 201
         except SQLAlchemyError as e:
             db.session.rollback()
             return {"error": str(e)}, 500
