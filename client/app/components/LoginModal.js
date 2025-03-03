@@ -44,12 +44,16 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: formData.email, password: formData.password }),
           });
+          const data = await response.json();
     
           if (response.ok) {
-            const data = await response.json();
             user = data.user;
             userRole = table;
             break; // Stop checking after first successful login
+          }else if (response.status === 401) {
+            setError("Invalid email or password.");
+            setLoading(false);
+            return;
           }
         }
     

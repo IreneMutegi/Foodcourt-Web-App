@@ -4,9 +4,11 @@ import { FcEmptyTrash } from "react-icons/fc";
 import { useCart } from "../context/CartContext-temp";
 import { FaPlus, FaMinus, FaTrash, FaTimes } from "react-icons/fa";
 import { useEffect, useState } from "react";
+
 import { useSession } from "next-auth/react";
 
 export default function Cart() {
+  const { data: session } = useSession();
   const { cart, setCart } = useCart();
   const [tableNumber, setTableNumber] = useState("");
   const [showPrompt, setShowPrompt] = useState(false);
@@ -39,6 +41,11 @@ export default function Cart() {
     fetchTables();
   }, []);
 
+  const clientId = session?.user?.id;
+  // Ensure only the logged-in client's cart items are shown
+  const clientCart = clientId ? cart.filter((item) => item.client_id === clientId) : [];
+
+
   const updateCartItem = (index, field, value) => {
     setCart((prevCart) =>
       prevCart.map((item, i) =>
@@ -57,6 +64,19 @@ export default function Cart() {
   const totalAmount = parseFloat(
     cart.reduce((sum, item) => sum + item.total, 0).toFixed(2)
   );
+
+  if (!clientId || cart.length === 0) {
+    return (
+      <div className="cart-container">
+        <div className="empty-cart">
+          <FcEmptyTrash size={60} color="#4db6ac" />
+          <p>Your Cart is empty</p>
+        </div>
+      </div>
+    );
+  }
+
+
 
   const removeCartItem = (index) => {
     setCart((prevCart) => prevCart.filter((_, i) => i !== index));
@@ -237,8 +257,8 @@ export default function Cart() {
       <h2>My Cart</h2>
       <div className="cart-items">
         {cart.map((item, index) => (
-          <div className="cart-item" key={index}>
             <img src={item.image} alt={item.name} className="cart-item-img" />
+
             <div className="cart-item-info">
               <h3>{item.name}</h3>
               <p className="item-price">${item.total.toFixed(2)}</p>
