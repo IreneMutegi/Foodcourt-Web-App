@@ -811,7 +811,8 @@ class RestaurantTableResource(Resource):
         tables_list = []
         for table in tables:
             tables_list.append({
-                "restaurant_table_id": table.id,  # Use restaurant_table_id instead of table_number
+                "restaurant_table_id": table.id,
+                "table_number": table.table_number,  # Added table_number
                 "capacity": table.capacity,
                 "admin": table.admin
             })
@@ -822,12 +823,13 @@ class RestaurantTableResource(Resource):
     def post(self):
         data = request.get_json()
 
-        if not data or not data.get('restaurant_table_id') or not data.get('capacity') or not data.get('admin'):
+        if not data or not data.get('restaurant_table_id') or not data.get('table_number') or not data.get('capacity') or not data.get('admin'):
             return {"error": "Missing required fields"}, 400
 
         try:
             new_table = RestaurantTable(
-                id=data['restaurant_table_id'],  # Use restaurant_table_id instead of table_number
+                id=data['restaurant_table_id'],
+                table_number=data['table_number'],  # Added table_number
                 capacity=data['capacity'],
                 admin=data['admin']
             )
@@ -848,11 +850,11 @@ class RestaurantTableResource(Resource):
             return {"error": "Table not found"}, 404
 
         if "restaurant_table_id" in data:
-            table.id = data["restaurant_table_id"]  # Update restaurant_table_id instead of table_number
-
+            table.id = data["restaurant_table_id"]
+        if "table_number" in data:
+            table.table_number = data["table_number"]  # Added table_number update
         if "capacity" in data:
             table.capacity = data["capacity"]
-
         if "admin" in data:
             table.admin = data["admin"]
 
@@ -863,6 +865,7 @@ class RestaurantTableResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
+    # DELETE - Remove a restaurant table
     def delete(self, table_id):
         table = RestaurantTable.query.get(table_id)
         if not table:
@@ -879,9 +882,6 @@ class RestaurantTableResource(Resource):
 api.add_resource(RestaurantTableResource, 
                  '/restaurant_tables', 
                  '/restaurant_tables/<int:table_id>')
-
-
-
 
 
 
