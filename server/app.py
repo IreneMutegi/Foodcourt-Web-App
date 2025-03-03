@@ -664,6 +664,8 @@ api.add_resource(RestaurantOrderResource,
 
 
 
+
+
 class ReservationResource(Resource):
     def get(self, client_id=None, reservation_id=None):
         if reservation_id:
@@ -683,7 +685,7 @@ class ReservationResource(Resource):
             reservation_id, client_id, restaurant_table_id, reservation_date, time, timestamp = reservation
 
             # Fix: Robust check for the correct type before calling isoformat
-            reservation_date_str = str(reservation_date) if not isinstance(reservation_date, (datetime.date, datetime.datetime)) else reservation_date.isoformat()
+            reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
 
             return {
                 "reservation_id": reservation_id,
@@ -691,7 +693,7 @@ class ReservationResource(Resource):
                 "restaurant_table_id": restaurant_table_id,
                 "date": reservation_date_str,
                 "time": time,
-                "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime.date, datetime.datetime)) else str(timestamp)
+                "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
             }, 200
 
         elif client_id:
@@ -726,7 +728,7 @@ class ReservationResource(Resource):
             reservation_id, client_id, restaurant_table_id, reservation_date, time, timestamp = reservation
 
             # Fix: Robust check for the correct type before calling isoformat
-            reservation_date_str = str(reservation_date) if not isinstance(reservation_date, (datetime.date, datetime.datetime)) else reservation_date.isoformat()
+            reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
 
             reservations_list.append({
                 "reservation_id": reservation_id,
@@ -734,10 +736,11 @@ class ReservationResource(Resource):
                 "restaurant_table_id": restaurant_table_id,
                 "date": reservation_date_str,
                 "time": time,
-                "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime.date, datetime.datetime)) else str(timestamp)
+                "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
             })
 
         return {"reservations": reservations_list}, 200
+
 
     def post(self):
         data = request.get_json()
