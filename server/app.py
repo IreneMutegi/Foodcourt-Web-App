@@ -374,7 +374,6 @@ class OrdersResource(Resource):
                 "restaurant_name": restaurant.name if restaurant else "Unknown Restaurant",
                 "meal_id": meal_id,
                 "meal_name": meal.name if meal else "Unknown Meal",
-                "meal_image": meal.image_url if meal else None,
                 "category": meal.category if meal else "Unknown Category",
                 "restaurant_table_id": restaurant_table_id,  # Use restaurant_table_id instead of table_number
                 "quantity": quantity,
