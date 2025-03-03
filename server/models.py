@@ -1,41 +1,41 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import MetaData, Table, Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import MetaData, Table, Column, Integer, String, ForeignKey, DateTime, Date, Time
 from sqlalchemy.orm import relationship
+from datetime import datetime, timezone
 
-# Define metadata with naming convention
 metadata = MetaData(naming_convention={ 
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s", 
 })
 
 db = SQLAlchemy(metadata=metadata)
 
-#
+# Reservation Association Table
+reservation_association = Table(
+    'reservation',
+    metadata,
+    Column('id', Integer, primary_key=True, autoincrement=True),  # Primary key
+    Column('restaurant_table_id', Integer, ForeignKey('restaurant_tables.id'), nullable=False),
+    Column('client_id', Integer, ForeignKey('client.id'), nullable=False),
+    Column('date', Date, nullable=False),
+    Column('time', Time, nullable=False),
+    Column('timestamp', DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+)
+
 # Orders Association Table
 orders_association = Table(
     'orders',
     metadata,  
-    # Use the two foreign key columns from the reservation_association
-    Column('restaurant_table_id', Integer, ForeignKey('restaurant_tables.id'), primary_key=True),
-    Column('client_id', Integer, ForeignKey('client.id'), primary_key=True),
-    Column('restaurant_id', Integer, ForeignKey('restaurants.id'), primary_key=True),  
-    Column('meal_id', Integer, ForeignKey('menu.id'), primary_key=True),  
+    Column('id', Integer, primary_key=True, autoincrement=True), 
+    Column('reservation_id', Integer, ForeignKey('reservation.id'), nullable=False),  
+    Column('restaurant_table_id', Integer, ForeignKey('restaurant_tables.id'), nullable=False),
+    Column('client_id', Integer, ForeignKey('client.id'), nullable=False),
+    Column('restaurant_id', Integer, ForeignKey('restaurants.id'), nullable=False),
+    Column('meal_id', Integer, ForeignKey('menu.id'), nullable=False),
     Column('quantity', Integer, nullable=False),
     Column('price', Integer, nullable=False),
     Column('total', Integer, nullable=False),
     Column('timestamp', DateTime, nullable=False),
-    Column('datestamp', DateTime, nullable=False),
-    Column('status', String, nullable=False)
-)
-
-
-# Reservation Association Table
-reservation_association = Table(
-    'reservation',
-    metadata,  
-    Column('restaurant_table_id', Integer, ForeignKey('restaurant_tables.id'), primary_key=True),
-    Column('client_id', Integer, ForeignKey('client.id'), primary_key=True),
-    Column('date', DateTime, nullable=False),
-    Column('timestamp', DateTime, nullable=False)
+    Column('status', String(50), nullable=False)  # Booking status (e.g., "Confirmed", "Pending")
 )
 
 # Admin Model
@@ -61,6 +61,7 @@ class Client(db.Model):
 
     reservations = relationship('RestaurantTable', secondary=reservation_association, back_populates="clients")
 
+
     def __repr__(self):  
         return f'<Client {self.id}, {self.name}, {self.email}>'
 
@@ -77,10 +78,14 @@ class Restaurant(db.Model):
 
     admin = relationship('Admin', back_populates='restaurants')
     menus = relationship('Menu', back_populates='restaurant')
+    menus = relationship('Menu', back_populates='restaurant')
 
     def __repr__(self):
         return f'<Restaurant {self.id}, {self.name}, {self.cuisine}>'
+    def __repr__(self):
+        return f'<Restaurant {self.id}, {self.name}, {self.cuisine}>'
 
+# Menu Model
 class Menu(db.Model):  
     __tablename__ = 'menu'
     id = Column(Integer, primary_key=True)
@@ -89,12 +94,17 @@ class Menu(db.Model):
     category = Column(String(100), nullable=False)
     image_url = Column(String, nullable=False)
     restaurant_id = Column(Integer, ForeignKey('restaurants.id'), nullable=False)
+    image_url = Column(String, nullable=False)
+    restaurant_id = Column(Integer, ForeignKey('restaurants.id'), nullable=False)
 
     restaurant = relationship('Restaurant', back_populates='menus')
 
     def __repr__(self):
         return f'<Menu {self.id}, {self.name}, {self.category}>'
+    def __repr__(self):
+        return f'<Menu {self.id}, {self.name}, {self.category}>'
 
+# RestaurantTable Model
 class RestaurantTable(db.Model):  
     __tablename__ = 'restaurant_tables'
     id = Column(Integer, primary_key=True)
