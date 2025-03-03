@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
 export default function Cart() {
-  const { data: session } = useSession();
   const { cart, setCart } = useCart();
   const [tableNumber, setTableNumber] = useState("");
   const [showPrompt, setShowPrompt] = useState(false);
@@ -257,6 +256,7 @@ export default function Cart() {
       <h2>My Cart</h2>
       <div className="cart-items">
         {cart.map((item, index) => (
+          <div key={index} className="cart-item">
             <img src={item.image} alt={item.name} className="cart-item-img" />
 
             <div className="cart-item-info">

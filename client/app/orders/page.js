@@ -37,7 +37,10 @@ export default function OrdersHistory() {
     setSearch(e.target.value);
   };
 
-  const filteredOrders = orders.filter(
+  const filteredOrders = orders
+  .sort((a, b) => b.order_id - a.order_id) // Sort by order_id, newest first
+  .slice(0, 5) // Take only the latest 5 orders
+  .filter(
     (order) =>
       order.restaurant_name.toLowerCase().includes(search.toLowerCase()) ||
       order.meal_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -48,23 +51,6 @@ export default function OrdersHistory() {
     setRatings((prev) => ({ ...prev, [orderId]: rating }));
   };
 
-  const handleDelete = (orderId) => {
-    if (!window.confirm("Are you sure you want to delete this order?")) return;
-  
-    fetch(`https://foodcourt-web-app-4.onrender.com/orders/${clientId}/${orderId}`, {
-      method: "DELETE",
-    })
-      .then((response) => {
-        if (response.ok) {
-          setOrders((prevOrders) =>
-            prevOrders.filter((order) => order.order_id !== orderId)
-          );
-        } else {
-          console.error("Failed to delete order");
-        }
-      })
-      .catch((error) => console.error("Error deleting order:", error));
-  };
 
   if (!clientId || clientOrders.length === 0) {
     return (
@@ -90,7 +76,7 @@ export default function OrdersHistory() {
       />
       <div className="ordersList">
         {filteredOrders.length > 0 ? (
-          filteredOrders.map((order) => (
+          filteredOrders.map((order, index) => (
             <div key={order.order_id} className="orderCard"> 
               <img
                 src={order.image_url}
@@ -123,9 +109,7 @@ export default function OrdersHistory() {
                     );
                   })}
                 </div>
-                <button className="deleteBtn" onClick={() => handleDelete(order.order_id)}>
-                <FaTrash />
-               </button>
+                <p className="orderNumber">Order #{order.order_id}</p>
               </div>
             </div>
           ))
