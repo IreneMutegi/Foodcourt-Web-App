@@ -588,7 +588,7 @@ class RestaurantOrderResource(Resource):
                 orders_association.c.id,
                 orders_association.c.client_id,
                 orders_association.c.meal_id,
-                orders_association.c.restaurant_table_id,
+                orders_association.c.restaurant_table_id,  # Ensure this is being selected
                 orders_association.c.quantity,
                 orders_association.c.status,
                 orders_association.c.timestamp
@@ -610,13 +610,13 @@ class RestaurantOrderResource(Resource):
 
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
-            restaurant_table = RestaurantTable.query.get(table_id)
+            restaurant_table = RestaurantTable.query.get(table_id)  # Use table_id here
 
             order_details = {
                 "order_id": order[0],
                 "client_name": client.name if client else "Unknown Client",
                 "meal_name": meal.name if meal else "Unknown Meal",
-                "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
+                "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",  # Ensure this is populated
                 "quantity": quantity,
                 "price": meal.price if meal else "Unknown Price",
                 "total": meal.price * quantity if meal else "Unknown Total",
