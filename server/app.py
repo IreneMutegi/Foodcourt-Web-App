@@ -548,7 +548,12 @@ class RestaurantOrderResource(Resource):
             if not order:
                 return {"error": "Order not found"}, 404
 
-            client_id, meal_id, table_id, quantity, status, timestamp = order
+            client_id = order[0]
+            meal_id = order[1]
+            table_id = order[2]
+            quantity = order[3]
+            status = order[4]
+            timestamp = order[5]
 
             # Retrieve restaurant_table_id from reservation_association
             reservation = db.session.execute(
@@ -578,7 +583,7 @@ class RestaurantOrderResource(Resource):
             }
 
             return {"order": order_details}, 200
-
+        
         # If no order_id is provided, get all orders for the restaurant
         orders = db.session.execute(
             select(
@@ -598,20 +603,22 @@ class RestaurantOrderResource(Resource):
             .where(orders_association.c.restaurant_id == restaurant_id)
         ).fetchall()
 
+        print(orders)  # Debugging line to check the fetched result structure
+
         # If no orders found
         if not orders:
             return {"error": "No orders found for this restaurant"}, 404
 
         order_list = []
         for order in orders:
-            client_id, meal_id, quantity, status, timestamp, restaurant_table_id = order
+            order_id, client_id, meal_id, quantity, status, timestamp, restaurant_table_id = order
 
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
             restaurant_table = RestaurantTable.query.get(restaurant_table_id)
 
             order_details = {
-                "order_id": order[0],
+                "order_id": order_id,
                 "client_name": client.name if client else "Unknown Client",
                 "meal_name": meal.name if meal else "Unknown Meal",
                 "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
@@ -624,8 +631,6 @@ class RestaurantOrderResource(Resource):
             order_list.append(order_details)
 
         return {"orders": order_list}, 200
-
-
 
 
 
