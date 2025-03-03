@@ -329,51 +329,41 @@ api.add_resource(MenuResource, '/menu/restaurant/<int:restaurant_id>/meal/<int:m
 
 
 
+class OrdersResource(Resource): 
+    def get(self, client_id=None, order_id=None):
+        query = select(
+            orders_association.c.id,
+            orders_association.c.client_id,
+            orders_association.c.reservation_id,
+            orders_association.c.restaurant_id,
+            orders_association.c.meal_id,
+            orders_association.c.restaurant_table_id,
+            orders_association.c.quantity,
+            orders_association.c.price,
+            orders_association.c.total,
+            orders_association.c.status
+        )
 
+        if order_id:
+            query = query.where(orders_association.c.id == order_id)
+        elif client_id:
+            query = query.where(orders_association.c.client_id == client_id)
 
-class OrdersResource(Resource):
-    def get(self, client_id=None):
-        if client_id:
-            orders = db.session.execute(
-                select(
-                    orders_association.c.client_id,
-                    orders_association.c.reservation_id,
-                    orders_association.c.restaurant_id,
-                    orders_association.c.meal_id,
-                    orders_association.c.restaurant_table_id,
-                    orders_association.c.quantity,
-                    orders_association.c.price,
-                    orders_association.c.total,
-                    orders_association.c.status
-                ).where(orders_association.c.client_id == client_id)
-            ).fetchall()
-        else:
-            orders = db.session.execute(
-                select(
-                    orders_association.c.client_id,
-                    orders_association.c.reservation_id,
-                    orders_association.c.restaurant_id,
-                    orders_association.c.meal_id,
-                    orders_association.c.restaurant_table_id,
-                    orders_association.c.quantity,
-                    orders_association.c.price,
-                    orders_association.c.total,
-                    orders_association.c.status
-                )
-            ).fetchall()
+        orders = db.session.execute(query).fetchall()
 
         if not orders:
             return {"message": "No orders found"}, 404
 
         orders_list = []
         for order in orders:
-            client_id, reservation_id, restaurant_id, meal_id, restaurant_table_id, quantity, price, total, status = order
+            order_id, client_id, reservation_id, restaurant_id, meal_id, restaurant_table_id, quantity, price, total, status = order
 
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
             restaurant = Restaurant.query.get(restaurant_id)
 
             orders_list.append({
+                "order_id": order_id,
                 "client_id": client_id,
                 "client_name": client.name if client else "Unknown Client",
                 "reservation_id": reservation_id,
@@ -387,14 +377,14 @@ class OrdersResource(Resource):
                 "price": price,
                 "total": total,
                 "status": status,
-                "image_url": meal.image_url if meal else None  # Include image URL
+                "image_url": meal.image_url if meal else None
             })
 
         return {"orders": orders_list}, 200
 
     def post(self):
         data = request.get_json()
-
+        
         client_id = data.get("client_id")
         restaurant_id = data.get("restaurant_id")
         meal_id = data.get("meal_id")
@@ -404,20 +394,15 @@ class OrdersResource(Resource):
         status = data.get("status", "Pending")
 
         if not all([client_id, restaurant_id, meal_id, quantity, reservation_id, restaurant_table_id]):
-            return {"error": "client_id, restaurant_id, meal_id, quantity, reservation_id, and restaurant_table_id are required"}, 400
+            return {"error": "All fields are required"}, 400
 
         meal = Menu.query.get(meal_id)
         if not meal:
             return {"error": "Invalid meal_id"}, 400
 
-        restaurant = Restaurant.query.get(restaurant_id)
-        if not restaurant:
-            return {"error": "Invalid restaurant_id"}, 400
-
         price = meal.price
         total = price * quantity
-        image_url = meal.image_url  # Get the image URL from the Menu table
-
+        
         try:
             new_order = orders_association.insert().values(
                 client_id=client_id,
@@ -433,23 +418,23 @@ class OrdersResource(Resource):
             db.session.execute(new_order)
             db.session.commit()
 
-            return {"message": "Order created successfully", "image_url": image_url}, 201
+            return {"message": "Order created successfully"}, 201
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
 
-    def patch(self, client_id):
+    def patch(self, order_id):
         data = request.get_json()
-
-        if not client_id:
-            return {"error": "client_id is required"}, 400
+        
+        if not order_id:
+            return {"error": "order_id is required"}, 400
 
         order = db.session.execute(
-            select(orders_association).where(orders_association.c.client_id == client_id)
+            select(orders_association).where(orders_association.c.id == order_id)
         ).fetchone()
 
         if not order:
-            return {"error": "No order found for this client"}, 404
+            return {"error": "No order found for this ID"}, 404
 
         update_data = {}
 
@@ -462,10 +447,7 @@ class OrdersResource(Resource):
 
         if "quantity" in data:
             update_data["quantity"] = data["quantity"]
-            if "meal_id" in data or "price" in update_data:
-                update_data["total"] = update_data["price"] * data["quantity"]
-            else:
-                update_data["total"] = order.total / order.quantity * data["quantity"]
+            update_data["total"] = update_data.get("price", order.price) * data["quantity"]
 
         if "restaurant_table_id" in data:
             update_data["restaurant_table_id"] = data["restaurant_table_id"]
@@ -480,7 +462,7 @@ class OrdersResource(Resource):
             try:
                 db.session.execute(
                     orders_association.update()
-                    .where(orders_association.c.client_id == client_id)
+                    .where(orders_association.c.id == order_id)
                     .values(update_data)
                 )
                 db.session.commit()
@@ -491,29 +473,29 @@ class OrdersResource(Resource):
 
         return {"message": "No updates provided"}, 400
 
-    def delete(self, client_id):
-        if not client_id:
-            return {"error": "client_id is required"}, 400
+    def delete(self, order_id):
+        if not order_id:
+            return {"error": "order_id is required"}, 400
 
-        orders = db.session.execute(
-            select(orders_association).where(orders_association.c.client_id == client_id)
-        ).fetchall()
+        order = db.session.execute(
+            select(orders_association).where(orders_association.c.id == order_id)
+        ).fetchone()
 
-        if not orders:
-            return {"error": "No orders found for this client"}, 404
+        if not order:
+            return {"error": "No order found for this ID"}, 404
 
         try:
             db.session.execute(
-                delete(orders_association).where(orders_association.c.client_id == client_id)
+                delete(orders_association).where(orders_association.c.id == order_id)
             )
             db.session.commit()
-            return {"message": "Orders deleted successfully"}, 200
+            return {"message": "Order deleted successfully"}, 200
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
 
-# Register the resource and the endpoints with the Api object
-api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>')
+# Register the resource with the API
+api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>', '/orders/id/<int:order_id>')
 
 
 
