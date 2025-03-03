@@ -672,6 +672,7 @@ class ReservationResource(Resource):
         if reservation_id:
             reservation = db.session.execute(
                 select(
+                    reservation_association.c.id,
                     reservation_association.c.client_id,
                     reservation_association.c.restaurant_table_id,
                     reservation_association.c.date,
@@ -683,7 +684,7 @@ class ReservationResource(Resource):
             if not reservation:
                 return {"message": "Reservation not found"}, 404
 
-            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time = reservation
+            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
 
             # Convert date to iso format if it's a valid date or datetime object
             reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
@@ -747,6 +748,7 @@ class ReservationResource(Resource):
             })
 
         return {"reservations": reservations_list}, 200
+
 
     def post(self):
         data = request.get_json()
