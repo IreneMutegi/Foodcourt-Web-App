@@ -669,13 +669,15 @@ class RestaurantOrderResource(Resource):
 
             return {"orders": orders_list}, 200
 
-    # PATCH - Update an existing order by order_id
-    def patch(self, order_id):
+    # PATCH - Update an existing order by order_id and restaurant_id
+    def patch(self, restaurant_id, order_id):
         data = request.get_json()
 
-        # Find the existing order by order_id
+        # Find the existing order by order_id and restaurant_id
         order = db.session.execute(
-            select(orders_association).where(orders_association.c.id == order_id)
+            select(orders_association)
+            .where(orders_association.c.id == order_id)
+            .where(orders_association.c.restaurant_id == restaurant_id)
         ).fetchone()
 
         if not order:
@@ -699,6 +701,7 @@ class RestaurantOrderResource(Resource):
             db.session.execute(
                 orders_association.update()
                 .where(orders_association.c.id == order_id)
+                .where(orders_association.c.restaurant_id == restaurant_id)
                 .values(update_data)
             )
             db.session.commit()
@@ -707,11 +710,13 @@ class RestaurantOrderResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-    # DELETE - Delete an order by order_id
-    def delete(self, order_id):
-        # Find the order by order_id
+    # DELETE - Delete an order by order_id and restaurant_id
+    def delete(self, restaurant_id, order_id):
+        # Find the order by order_id and restaurant_id
         order = db.session.execute(
-            select(orders_association).where(orders_association.c.id == order_id)
+            select(orders_association)
+            .where(orders_association.c.id == order_id)
+            .where(orders_association.c.restaurant_id == restaurant_id)
         ).fetchone()
 
         if not order:
@@ -719,7 +724,9 @@ class RestaurantOrderResource(Resource):
 
         try:
             db.session.execute(
-                orders_association.delete().where(orders_association.c.id == order_id)
+                orders_association.delete()
+                .where(orders_association.c.id == order_id)
+                .where(orders_association.c.restaurant_id == restaurant_id)
             )
             db.session.commit()
             return {"message": "Order deleted successfully"}, 200
@@ -727,13 +734,11 @@ class RestaurantOrderResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-
 # Register the resource and the endpoints with the Api object
 api.add_resource(RestaurantOrderResource, 
-                 '/orders/restaurants/<int:restaurant_id>', 
-                 '/orders/restaurants/<int:restaurant_id>/client/<int:client_id>',
-                 '/orders/<int:order_id>', 
-                 '/orders/restaurants/<int:restaurant_id>/order/<int:order_id>')  # New endpoint for order_id operations
+                 '/orders/restaurants/<int:restaurant_id>/order/<int:order_id>',  # Path for single order actions
+                 '/orders/restaurants/<int:restaurant_id>/client/<int:client_id>',  # Path for specific client orders
+                 '/orders/restaurants/<int:restaurant_id>')  # Path for all orders from a restaurant
 
 
 
