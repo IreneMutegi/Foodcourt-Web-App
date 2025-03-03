@@ -527,6 +527,8 @@ api.add_resource(OrdersResource,
 
 
 
+
+
 class RestaurantOrderResource(Resource):
     # GET - Retrieve all orders for a specific restaurant or a specific order
     def get(self, restaurant_id=None, client_id=None, order_id=None):
@@ -588,10 +590,13 @@ class RestaurantOrderResource(Resource):
                 orders_association.c.id,
                 orders_association.c.client_id,
                 orders_association.c.meal_id,
-                orders_association.c.restaurant_table_id,
                 orders_association.c.quantity,
                 orders_association.c.status,
-                orders_association.c.timestamp
+                orders_association.c.timestamp,
+                reservation_association.c.restaurant_table_id  # Fetch correct table ID
+            ).join(
+                reservation_association, 
+                reservation_association.c.client_id == orders_association.c.client_id
             ).where(orders_association.c.restaurant_id == restaurant_id)
         ).fetchall()
 
@@ -603,14 +608,14 @@ class RestaurantOrderResource(Resource):
         for order in orders:
             client_id = order[1]
             meal_id = order[2]
-            table_id = order[3]
-            quantity = order[4]
-            status = order[5]
-            timestamp = order[6]
+            quantity = order[3]
+            status = order[4]
+            timestamp = order[5]
+            restaurant_table_id = order[6]  # Use the correctly fetched restaurant_table_id
 
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
-            restaurant_table = RestaurantTable.query.get(table_id)
+            restaurant_table = RestaurantTable.query.get(restaurant_table_id)
 
             order_details = {
                 "order_id": order[0],
@@ -626,6 +631,7 @@ class RestaurantOrderResource(Resource):
             order_list.append(order_details)
 
         return {"orders": order_list}, 200
+
 
 
 
