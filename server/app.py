@@ -3,8 +3,8 @@ from flask_cors import CORS
 from flask_restful import Api, Resource
 from flask_migrate import Migrate
 from server.models import db, Client, Admin, Restaurant, Menu, orders_association, reservation_association ,RestaurantTable
-from sqlalchemy import select, delete , DateTime
-from datetime import datetime
+from sqlalchemy import select, delete 
+from datetime import datetime,date
 import os
 
 app = Flask(__name__)
@@ -663,6 +663,8 @@ api.add_resource(RestaurantOrderResource,
 
 
 
+
+
 class ReservationResource(Resource):
     def get(self, client_id=None, reservation_id=None):
         if reservation_id:
@@ -683,9 +685,9 @@ class ReservationResource(Resource):
                 "reservation_id": reservation_id,
                 "client_id": reservation.client_id,
                 "restaurant_table_id": reservation.restaurant_table_id,
-                "date": reservation.date.isoformat() if isinstance(reservation.date, (datetime.date, datetime.datetime)) else str(reservation.date),
+                "date": reservation.date.isoformat() if isinstance(reservation.date, (date, datetime)) else str(reservation.date),
                 "time": reservation.time,
-                "timestamp": reservation.timestamp.isoformat() if isinstance(reservation.timestamp, datetime.datetime) else str(reservation.timestamp)
+                "timestamp": reservation.timestamp.isoformat() if isinstance(reservation.timestamp, (date, datetime)) else str(reservation.timestamp)
             }, 200
 
         elif client_id:
@@ -723,9 +725,9 @@ class ReservationResource(Resource):
                 "reservation_id": reservation_id,
                 "client_id": client_id,
                 "restaurant_table_id": restaurant_table_id,
-                "date": date.isoformat() if isinstance(date, (datetime.date, datetime.datetime)) else str(date),
+                "date": date.isoformat() if isinstance(date, (date, datetime)) else str(date),
                 "time": time,
-                "timestamp": timestamp.isoformat() if isinstance(timestamp, datetime.datetime) else str(timestamp)
+                "timestamp": timestamp.isoformat() if isinstance(timestamp, (date, datetime)) else str(timestamp)
             })
 
         return {"reservations": reservations_list}, 200
@@ -839,6 +841,7 @@ class ReservationResource(Resource):
             return {"error": str(e)}, 500
 
 api.add_resource(ReservationResource, '/reservations', '/reservations/<int:reservation_id>')
+
 
 
 
