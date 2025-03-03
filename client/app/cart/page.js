@@ -4,12 +4,18 @@ import { FcEmptyTrash } from "react-icons/fc";
 import { useCart } from "../context/CartContext-temp";
 import { FaPlus, FaMinus, FaTrash } from "react-icons/fa";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 export default function Cart() {
+  const { data: session } = useSession();
   const { cart, setCart } = useCart();
   const [tableNumber, setTableNumber] = useState("");
   const [showPrompt, setShowPrompt] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const clientId = session?.user?.id;
+  // Ensure only the logged-in client's cart items are shown
+  const clientCart = clientId ? cart.filter((item) => item.client_id === clientId) : [];
 
 
   const updateCartItem = (index, field, value) => {
@@ -31,7 +37,7 @@ export default function Cart() {
     cart.reduce((sum, item) => sum + item.total, 0).toFixed(2)
   );
 
-  if (cart.length === 0) {
+  if (!clientId || cart.length === 0) {
     return (
       <div className="cart-container">
         <div className="empty-cart">
@@ -41,6 +47,8 @@ export default function Cart() {
       </div>
     );
   }
+
+
 
   const removeCartItem = (index) => {
     setCart((prevCart) => prevCart.filter((_, i) => i !== index));
