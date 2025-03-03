@@ -528,8 +528,9 @@ api.add_resource(OrdersResource,
 
 
 class RestaurantOrderResource(Resource):
+    # GET - Retrieve all orders for a specific restaurant or a specific order
     def get(self, restaurant_id=None, client_id=None, order_id=None):
-        if order_id:  # If order_id is provided, get a specific order
+        if order_id:  # If order_id is provided, get specific order
             order = db.session.execute(
                 select(
                     orders_association.c.client_id,
@@ -538,9 +539,8 @@ class RestaurantOrderResource(Resource):
                     orders_association.c.quantity,
                     orders_association.c.status,
                     orders_association.c.timestamp
-                )
-                .where(orders_association.c.id == order_id)
-                .where(orders_association.c.restaurant_id == restaurant_id)
+                ).where(orders_association.c.id == order_id)
+                .where(orders_association.c.restaurant_id == restaurant_id)  # Ensure restaurant_id is used here
             ).fetchone()
 
             if not order:
@@ -553,19 +553,18 @@ class RestaurantOrderResource(Resource):
             status = order[4]
             timestamp = order[5]
 
-            # Fetching restaurant table details for specific order
-            reservation = None
-            if table_id:
-                reservation = Reservation.query.filter_by(id=table_id).first()
+            # Retrieve restaurant_table_id from reservation_association
+            reservation = db.session.execute(
+                select(reservation_association.c.restaurant_table_id)
+                .where(reservation_association.c.client_id == client_id)
+            ).fetchone()
 
-            # Handle case where restaurant table is not assigned
-            if not reservation or not reservation.table:
-                table_number = "No Table Assigned"
-            else:
-                table_number = reservation.table.table_number
+            restaurant_table_id = reservation[0] if reservation else "Unknown Table"
+            timestamp_str = timestamp.isoformat() if timestamp else None
 
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
+            restaurant_table = RestaurantTable.query.get(restaurant_table_id)
 
             order_details = {
                 "client_id": client_id,
@@ -573,28 +572,27 @@ class RestaurantOrderResource(Resource):
                 "meal_id": meal_id,
                 "meal_name": meal.name if meal else "Unknown Meal",
                 "category": meal.category if meal else "Unknown Category",
-                "table_number": table_number,
+                "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
                 "quantity": quantity,
                 "price": meal.price if meal else "Unknown Price",
                 "total": meal.price * quantity if meal else "Unknown Total",
                 "status": status,
-                "timestamp": timestamp.isoformat() if timestamp else None
+                "timestamp": timestamp_str
             }
 
             return {"order": order_details}, 200
-
+        
         # If no order_id is provided, get all orders for the restaurant
         orders = db.session.execute(
             select(
                 orders_association.c.id,
                 orders_association.c.client_id,
                 orders_association.c.meal_id,
-                orders_association.c.restaurant_table_id,  # Ensure this is being selected
+                orders_association.c.restaurant_table_id,
                 orders_association.c.quantity,
                 orders_association.c.status,
                 orders_association.c.timestamp
-            )
-            .where(orders_association.c.restaurant_id == restaurant_id)
+            ).where(orders_association.c.restaurant_id == restaurant_id)
         ).fetchall()
 
         # If no orders found
@@ -612,23 +610,13 @@ class RestaurantOrderResource(Resource):
 
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
-
-            # Fetching restaurant table details for each order from reservations
-            reservation = None
-            if table_id:
-                reservation = Reservation.query.filter_by(id=table_id).first()
-
-            # Handle case where restaurant table is not assigned
-            if not reservation or not reservation.table:
-                table_number = "No Table Assigned"
-            else:
-                table_number = reservation.table.table_number
+            restaurant_table = RestaurantTable.query.get(table_id)
 
             order_details = {
                 "order_id": order[0],
                 "client_name": client.name if client else "Unknown Client",
                 "meal_name": meal.name if meal else "Unknown Meal",
-                "table_number": table_number,  # Ensure this is populated
+                "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
                 "quantity": quantity,
                 "price": meal.price if meal else "Unknown Price",
                 "total": meal.price * quantity if meal else "Unknown Total",
@@ -638,6 +626,7 @@ class RestaurantOrderResource(Resource):
             order_list.append(order_details)
 
         return {"orders": order_list}, 200
+
 
 
 
