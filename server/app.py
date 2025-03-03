@@ -354,7 +354,7 @@ api.add_resource(MenuResource,
 
 
 
-class OrdersResource(Resource):
+class OrdersResource(Resource): 
     def get(self, client_id=None, order_id=None):
         query = select(
             orders_association.c.id,
@@ -362,7 +362,7 @@ class OrdersResource(Resource):
             orders_association.c.reservation_id,
             orders_association.c.restaurant_id,
             orders_association.c.meal_id,
-            orders_association.c.table_number,  # Changed from restaurant_table_id to table_number
+            orders_association.c.restaurant_table_id,
             orders_association.c.quantity,
             orders_association.c.price,
             orders_association.c.total,
@@ -385,7 +385,7 @@ class OrdersResource(Resource):
 
         orders_list = []
         for order in orders:
-            order_id, client_id, reservation_id, restaurant_id, meal_id, table_number, quantity, price, total, status = order
+            order_id, client_id, reservation_id, restaurant_id, meal_id, restaurant_table_id, quantity, price, total, status = order
 
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
@@ -401,7 +401,7 @@ class OrdersResource(Resource):
                 "meal_id": meal_id,
                 "meal_name": meal.name if meal else "Unknown Meal",
                 "category": meal.category if meal else "Unknown Category",
-                "table_number": table_number,  # Changed to table_number
+                "restaurant_table_id": restaurant_table_id,
                 "quantity": quantity,
                 "price": price,
                 "total": total,
@@ -419,10 +419,10 @@ class OrdersResource(Resource):
         meal_id = data.get("meal_id")
         quantity = data.get("quantity")
         reservation_id = data.get("reservation_id")
-        table_number = data.get("table_number")  # Changed to table_number
+        restaurant_table_id = data.get("restaurant_table_id")
         status = data.get("status", "Pending")
 
-        if not all([client_id, restaurant_id, meal_id, quantity, reservation_id, table_number]):
+        if not all([client_id, restaurant_id, meal_id, quantity, reservation_id, restaurant_table_id]):
             return {"error": "All fields are required"}, 400
 
         meal = Menu.query.get(meal_id)
@@ -441,7 +441,7 @@ class OrdersResource(Resource):
                 price=price,
                 total=total,
                 reservation_id=reservation_id,
-                table_number=table_number,  # Changed to table_number
+                restaurant_table_id=restaurant_table_id,
                 status=status
             )
             db.session.execute(new_order)
@@ -478,8 +478,8 @@ class OrdersResource(Resource):
             update_data["quantity"] = data["quantity"]
             update_data["total"] = update_data.get("price", order.price) * data["quantity"]
 
-        if "table_number" in data:  # Changed to table_number
-            update_data["table_number"] = data["table_number"]
+        if "restaurant_table_id" in data:
+            update_data["restaurant_table_id"] = data["restaurant_table_id"]
 
         if "reservation_id" in data:
             update_data["reservation_id"] = data["reservation_id"]
@@ -672,7 +672,7 @@ class ReservationResource(Resource):
             reservation = db.session.execute(
                 select(
                     reservation_association.c.client_id,
-                    reservation_association.c.table_number,  # Changed to table_number
+                    reservation_association.c.restaurant_table_id,
                     reservation_association.c.date,
                     reservation_association.c.time,
                     reservation_association.c.timestamp
@@ -685,7 +685,7 @@ class ReservationResource(Resource):
             return {
                 "reservation_id": reservation_id,
                 "client_id": reservation.client_id,
-                "table_number": reservation.table_number,  # Changed to table_number
+                "restaurant_table_id": reservation.restaurant_table_id,
                 "date": reservation.date,
                 "time": reservation.time,
                 "timestamp": reservation.timestamp
@@ -694,44 +694,67 @@ class ReservationResource(Resource):
         elif client_id:
             # Get reservations for a specific client
             reservations = db.session.execute(
-                select(reservation_association.c.id)
-                .where(reservation_association.c.client_id == client_id)
+                select(
+                    reservation_association.c.id,
+                    reservation_association.c.client_id,
+                    reservation_association.c.restaurant_table_id,
+                    reservation_association.c.date,
+                    reservation_association.c.time,
+                    reservation_association.c.timestamp
+                ).where(reservation_association.c.client_id == client_id)
             ).fetchall()
 
         else:
             # Get all reservations
             reservations = db.session.execute(
-                select(reservation_association.c.id)
+                select(
+                    reservation_association.c.id,
+                    reservation_association.c.client_id,
+                    reservation_association.c.restaurant_table_id,
+                    reservation_association.c.date,
+                    reservation_association.c.time,
+                    reservation_association.c.timestamp
+                )
             ).fetchall()
 
         if not reservations:
             return {"message": "No reservations found"}, 404
 
-        reservation_ids = [reservation[0] for reservation in reservations]
+        reservations_list = []
+        for reservation in reservations:
+            reservation_id, client_id, restaurant_table_id, date, time, timestamp = reservation
 
-        return {"reservation_ids": reservation_ids}, 200
+            reservations_list.append({
+                "reservation_id": reservation_id,
+                "client_id": client_id,
+                "restaurant_table_id": restaurant_table_id,
+                "date": date,
+                "time": time,
+                "timestamp": timestamp
+            })
+
+        return {"reservations": reservations_list}, 200
 
     # Create a new reservation
     def post(self):
         data = request.get_json()
 
         client_id = data.get("client_id")
-        table_number = data.get("table_number")  # Changed to table_number
+        restaurant_table_id = data.get("restaurant_table_id")
         reservation_date = data.get("reservation_date")  # Separate date
         reservation_time = data.get("reservation_time")  # Separate time
         
-        if not all([client_id, table_number, reservation_date, reservation_time]):
-            return {"error": "client_id, table_number, reservation_date, and reservation_time are required"}, 400
+        if not all([client_id, restaurant_table_id, reservation_date, reservation_time]):
+            return {"error": "client_id, restaurant_table_id, reservation_date, and reservation_time are required"}, 400
 
-        # Validate client existence
+        # Validate client and table existence
         client = Client.query.get(client_id)
         if not client:
             return {"error": "Invalid client_id"}, 400
 
-        # Validate table_number existence
-        table = RestaurantTable.query.filter_by(table_number=table_number).first()
-        if not table:
-            return {"error": "Invalid table_number"}, 400
+        restaurant_table = RestaurantTable.query.get(restaurant_table_id)
+        if not restaurant_table:
+            return {"error": "Invalid restaurant_table_id"}, 400
 
         # Combine the date and time to create the full timestamp
         try:
@@ -742,7 +765,7 @@ class ReservationResource(Resource):
         try:
             new_reservation = reservation_association.insert().values(
                 client_id=client_id,
-                table_number=table_number,  # Insert table_number instead of restaurant_table_id
+                restaurant_table_id=restaurant_table_id,
                 date=reservation_date,
                 time=reservation_time,
                 timestamp=reservation_datetime
@@ -771,12 +794,12 @@ class ReservationResource(Resource):
 
         update_data = {}
 
-        # Check if table_number is being updated
-        if "table_number" in data:
-            table = RestaurantTable.query.filter_by(table_number=data["table_number"]).first()
-            if not table:
-                return {"error": "Invalid table_number"}, 400
-            update_data["table_number"] = data["table_number"]
+        # Check if restaurant_table_id is being updated
+        if "restaurant_table_id" in data:
+            restaurant_table = RestaurantTable.query.get(data["restaurant_table_id"])
+            if not restaurant_table:
+                return {"error": "Invalid restaurant_table_id"}, 400
+            update_data["restaurant_table_id"] = data["restaurant_table_id"]
 
         # Check if reservation date is being updated
         if "reservation_date" in data:
@@ -831,7 +854,6 @@ class ReservationResource(Resource):
 
 # Register the resource with the API, including the new route for reservation_id-based reservation access
 api.add_resource(ReservationResource, '/reservations', '/reservations/<int:reservation_id>')
-
 
 
 
