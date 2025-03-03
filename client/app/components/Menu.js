@@ -10,6 +10,7 @@ export default function Menu({ restaurant, onClose, meals, addToCart }) {
 
   const { data: session, status } = useSession();
 
+  console.log(meals);
   const handleCartToggle = (item) => {
     if (!session) {
       setShowLoginPrompt(true);
@@ -29,6 +30,8 @@ export default function Menu({ restaurant, onClose, meals, addToCart }) {
           price: item.price,
           quantity: 1,
           total: item.price,
+          image: item.image_url,
+          name: item.name,
         },
       ]);
     }

@@ -185,33 +185,74 @@
   border: 1px solid #ccc;
   border-radius: 4px;
 }
+/* Styling for the Order Now Select */
+.order-options label {
+  color: #4db6ac;
+  font-weight: 400;
+}
+.order-options .styled-select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 5px;
+  border: 2px solid #2b8178;
+  background-color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+.order-options .styled-select:focus {
+  border: 3px solid #2b8178;
+}
 
+/* Styling for the Reservation Form */
+.reservation-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+.reservation-options label {
+  color: #4db6ac;
+  font-weight: 400;
+}
+.reservation-options .styled-select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 2px solid #2b8178;
+  font-size: 16px;
+}
+.reservation-options .styled-select:focus {
+  border: 3px solid #2b8178;
+}
+.reservation-options .styled-input {
+  width: 90%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 2px solid #2b8178;
+  font-size: 16px;
+}
+.reservation-options .styled-input:focus {
+  border: 3px solid #2b8178;
+}
 .modal-buttons {
   display: flex;
   justify-content: space-between;
+  margin-top: 15px;
 }
 
 .modal-buttons button {
-  padding: 8px 16px;
+  padding: 10px 15px;
   border: none;
-  cursor: pointer;
   border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
 }
 
-.modal-buttons button:first-child {
+.modal-buttons button {
   background-color: #4db6ac;
   color: white;
 }
-
-.modal-buttons button:first-child:hover {
+.modal-buttons button:hover {
   background-color: #2b8178;
-}
-
-.modal-buttons button:last-child {
-  background-color: #ff4b5c;
-  color: white;
-}
-
-.modal-buttons button:last-child:hover {
-  background-color: #ff2d42;
 }
