@@ -642,6 +642,7 @@ class RestaurantOrderResource(Resource):
         return {"orders": order_list}, 200
 
 
+
     # DELETE - Delete an order by order_id and restaurant_id
     def delete(self, restaurant_id, order_id):
         # Find the order by order_id and restaurant_id
