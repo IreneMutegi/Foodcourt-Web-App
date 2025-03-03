@@ -340,25 +340,25 @@ class OrdersResource(Resource):
                     orders_association.c.reservation_id,
                     orders_association.c.restaurant_id,
                     orders_association.c.meal_id,
-                    orders_association.c.restaurant_table_id,  # Fetch restaurant_table_id
+                    orders_association.c.restaurant_table_id,
                     orders_association.c.quantity,
                     orders_association.c.price,
                     orders_association.c.total,
-                    orders_association.c.status  # Fetch status as well
+                    orders_association.c.status
                 ).where(orders_association.c.client_id == client_id)
             ).fetchall()
         else:
             orders = db.session.execute(
                 select(
                     orders_association.c.client_id,
-                    orders_association.c.reservation_id,  # Include reservation_id
+                    orders_association.c.reservation_id,
                     orders_association.c.restaurant_id,
                     orders_association.c.meal_id,
-                    orders_association.c.restaurant_table_id,  # Include restaurant_table_id
+                    orders_association.c.restaurant_table_id,
                     orders_association.c.quantity,
                     orders_association.c.price,
                     orders_association.c.total,
-                    orders_association.c.status  # Fetch status as well
+                    orders_association.c.status
                 )
             ).fetchall()
 
@@ -382,11 +382,12 @@ class OrdersResource(Resource):
                 "meal_id": meal_id,
                 "meal_name": meal.name if meal else "Unknown Meal",
                 "category": meal.category if meal else "Unknown Category",
-                "restaurant_table_id": restaurant_table_id,  # Include restaurant_table_id in response
+                "restaurant_table_id": restaurant_table_id,
                 "quantity": quantity,
                 "price": price,
                 "total": total,
-                "status": status
+                "status": status,
+                "image_url": meal.image_url if meal else None  # Include image URL
             })
 
         return {"orders": orders_list}, 200
@@ -398,9 +399,9 @@ class OrdersResource(Resource):
         restaurant_id = data.get("restaurant_id")
         meal_id = data.get("meal_id")
         quantity = data.get("quantity")
-        reservation_id = data.get("reservation_id")  # Include reservation_id
-        restaurant_table_id = data.get("restaurant_table_id")  # Get the restaurant_table_id
-        status = data.get("status", "Pending")  # Default to "Pending" if no status is provided
+        reservation_id = data.get("reservation_id")
+        restaurant_table_id = data.get("restaurant_table_id")
+        status = data.get("status", "Pending")
 
         if not all([client_id, restaurant_id, meal_id, quantity, reservation_id, restaurant_table_id]):
             return {"error": "client_id, restaurant_id, meal_id, quantity, reservation_id, and restaurant_table_id are required"}, 400
@@ -415,6 +416,7 @@ class OrdersResource(Resource):
 
         price = meal.price
         total = price * quantity
+        image_url = meal.image_url  # Get the image URL from the Menu table
 
         try:
             new_order = orders_association.insert().values(
@@ -424,14 +426,14 @@ class OrdersResource(Resource):
                 quantity=quantity,
                 price=price,
                 total=total,
-                reservation_id=reservation_id,  # Include reservation_id
-                restaurant_table_id=restaurant_table_id,  # Use restaurant_table_id instead of table_number
-                status=status  # Set the status to "Pending" or the provided status
+                reservation_id=reservation_id,
+                restaurant_table_id=restaurant_table_id,
+                status=status
             )
             db.session.execute(new_order)
             db.session.commit()
 
-            return {"message": "Order created successfully"}, 201
+            return {"message": "Order created successfully", "image_url": image_url}, 201
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
@@ -465,13 +467,13 @@ class OrdersResource(Resource):
             else:
                 update_data["total"] = order.total / order.quantity * data["quantity"]
 
-        if "restaurant_table_id" in data:  # Allow updating restaurant_table_id
+        if "restaurant_table_id" in data:
             update_data["restaurant_table_id"] = data["restaurant_table_id"]
 
-        if "reservation_id" in data:  # Allow updating reservation_id
+        if "reservation_id" in data:
             update_data["reservation_id"] = data["reservation_id"]
 
-        if "status" in data:  # Allow updating status
+        if "status" in data:
             update_data["status"] = data["status"]
 
         if update_data:
@@ -512,6 +514,7 @@ class OrdersResource(Resource):
 
 # Register the resource and the endpoints with the Api object
 api.add_resource(OrdersResource, '/orders', '/orders/<int:client_id>')
+
 
 
 
