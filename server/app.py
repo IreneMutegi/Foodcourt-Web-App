@@ -529,7 +529,9 @@ api.add_resource(OrdersResource,
 
 
 
-def get(self, restaurant_id=None, client_id=None, order_id=None):
+class RestaurantOrderResource(Resource):
+    # GET - Retrieve all orders for a specific restaurant or a specific order
+   def get(self, restaurant_id=None, client_id=None, order_id=None):
     if order_id:  # Fetch a single order
         order = db.session.execute(
             select(
@@ -642,7 +644,6 @@ def get(self, restaurant_id=None, client_id=None, order_id=None):
         order_list.append(order_details)
 
     return {"orders": order_list}, 200
-
 
 
 
