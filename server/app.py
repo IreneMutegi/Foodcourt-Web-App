@@ -598,6 +598,7 @@ class RestaurantOrderResource(Resource):
                 reservation_association, 
                 reservation_association.c.client_id == orders_association.c.client_id
             ).where(orders_association.c.restaurant_id == restaurant_id)
+            .distinct()  # Ensure unique orders
         ).fetchall()
 
         # If no orders found
