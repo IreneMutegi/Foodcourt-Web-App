@@ -6,6 +6,8 @@ from server.models import db, Client, Admin, Restaurant, Menu, orders_associatio
 from sqlalchemy import select, delete 
 from datetime import datetime, date, time
 import os
+from sqlalchemy.exc import SQLAlchemyError
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'postgresql://malldb_u5p5_user:A5tnGchdaALQQYm2ylzxnT73oenbwn77@dpg-cusvqnbqf0us739q23rg-a.oregon-postgres.render.com/malldb_u5p5')
@@ -354,7 +356,7 @@ api.add_resource(MenuResource,
 
 
 
-class OrdersResource(Resource): 
+class OrdersResource(Resource):
     def get(self, client_id=None, order_id=None):
         query = select(
             orders_association.c.id,
@@ -362,7 +364,6 @@ class OrdersResource(Resource):
             orders_association.c.reservation_id,
             orders_association.c.restaurant_id,
             orders_association.c.meal_id,
-            orders_association.c.restaurant_table_id,
             orders_association.c.quantity,
             orders_association.c.price,
             orders_association.c.total,
@@ -385,7 +386,7 @@ class OrdersResource(Resource):
 
         orders_list = []
         for order in orders:
-            order_id, client_id, reservation_id, restaurant_id, meal_id, restaurant_table_id, quantity, price, total, status = order
+            order_id, client_id, reservation_id, restaurant_id, meal_id, quantity, price, total, status = order
 
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
@@ -401,7 +402,6 @@ class OrdersResource(Resource):
                 "meal_id": meal_id,
                 "meal_name": meal.name if meal else "Unknown Meal",
                 "category": meal.category if meal else "Unknown Category",
-                "restaurant_table_id": restaurant_table_id,
                 "quantity": quantity,
                 "price": price,
                 "total": total,
@@ -419,11 +419,11 @@ class OrdersResource(Resource):
         meal_id = data.get("meal_id")
         quantity = data.get("quantity")
         reservation_id = data.get("reservation_id")
-        restaurant_table_id = data.get("restaurant_table_id")
         status = data.get("status", "Pending")
 
-        if not all([client_id, restaurant_id, meal_id, quantity, reservation_id, restaurant_table_id]):
-            return {"error": "All fields are required"}, 400
+        # Validation: Removed restaurant_table_id
+        if not all([client_id, restaurant_id, meal_id, quantity, reservation_id]):
+            return {"error": "All fields are required except restaurant_table_id"}, 400
 
         meal = Menu.query.get(meal_id)
         if not meal:
@@ -441,7 +441,6 @@ class OrdersResource(Resource):
                 price=price,
                 total=total,
                 reservation_id=reservation_id,
-                restaurant_table_id=restaurant_table_id,
                 status=status
             )
             db.session.execute(new_order)
@@ -477,12 +476,6 @@ class OrdersResource(Resource):
         if "quantity" in data:
             update_data["quantity"] = data["quantity"]
             update_data["total"] = update_data.get("price", order.price) * data["quantity"]
-
-        if "restaurant_table_id" in data:
-            update_data["restaurant_table_id"] = data["restaurant_table_id"]
-
-        if "reservation_id" in data:
-            update_data["reservation_id"] = data["reservation_id"]
 
         if "status" in data:
             update_data["status"] = data["status"]
@@ -530,6 +523,7 @@ api.add_resource(OrdersResource,
                  '/orders/<int:client_id>', 
                  '/orders/id/<int:order_id>', 
                  '/orders/<int:client_id>/<int:order_id>')
+
 
 
 
