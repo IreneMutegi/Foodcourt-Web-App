@@ -678,13 +678,16 @@ class ReservationResource(Resource):
             if not reservation:
                 return {"message": "Reservation not found"}, 404
 
+            reservation_id, client_id, restaurant_table_id, date, time, timestamp = reservation
+
+            # Handle 'date' and 'timestamp' types correctly
             return {
                 "reservation_id": reservation_id,
-                "client_id": reservation.client_id,
-                "restaurant_table_id": reservation.restaurant_table_id,
-                "date": reservation.date.isoformat() if isinstance(reservation.date, (date, datetime)) else str(reservation.date),
-                "time": reservation.time,
-                "timestamp": reservation.timestamp.isoformat() if isinstance(reservation.timestamp, (date, datetime)) else str(reservation.timestamp)
+                "client_id": client_id,
+                "restaurant_table_id": restaurant_table_id,
+                "date": date.isoformat() if isinstance(date, (date, datetime)) else str(date),
+                "time": time,
+                "timestamp": timestamp.isoformat() if isinstance(timestamp, (date, datetime)) else str(timestamp)
             }, 200
 
         elif client_id:
@@ -718,6 +721,7 @@ class ReservationResource(Resource):
         for reservation in reservations:
             reservation_id, client_id, restaurant_table_id, date, time, timestamp = reservation
 
+            # Ensure date and timestamp are correctly handled
             reservations_list.append({
                 "reservation_id": reservation_id,
                 "client_id": client_id,
@@ -765,7 +769,7 @@ class ReservationResource(Resource):
             db.session.commit()
 
             return {"message": "Reservation created successfully"}, 201
-        except Exception as e:
+        except SQLAlchemyError as e:
             db.session.rollback()
             return {"error": str(e)}, 500
 
@@ -810,7 +814,7 @@ class ReservationResource(Resource):
                 )
                 db.session.commit()
                 return {"message": "Reservation updated successfully"}, 200
-            except Exception as e:
+            except SQLAlchemyError as e:
                 db.session.rollback()
                 return {"error": str(e)}, 500
 
@@ -833,11 +837,12 @@ class ReservationResource(Resource):
             )
             db.session.commit()
             return {"message": "Reservation deleted successfully"}, 200
-        except Exception as e:
+        except SQLAlchemyError as e:
             db.session.rollback()
             return {"error": str(e)}, 500
 
 api.add_resource(ReservationResource, '/reservations', '/reservations/<int:reservation_id>')
+
 
 
 
