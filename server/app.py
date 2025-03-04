@@ -7,9 +7,10 @@ from sqlalchemy import select, delete
 from datetime import datetime, date, time
 import os
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import update
 
 
-app = Flask(_name_)
+app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'postgresql://malldb_u5p5_user:A5tnGchdaALQQYm2ylzxnT73oenbwn77@dpg-cusvqnbqf0us739q23rg-a.oregon-postgres.render.com/malldb_u5p5')
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -1196,5 +1197,5 @@ api.add_resource(RestaurantReservation, "/reservations/restaurant/<int:restauran
 
 
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     app.run(debug=True, port=5555)
