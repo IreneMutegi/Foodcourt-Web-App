@@ -1162,7 +1162,7 @@ class RestaurantReservation(Resource):
                     reservation_association.c.timestamp
                 )
                 .join(orders_association, orders_association.c.reservation_id == reservation_association.c.id, isouter=True)  # LEFT JOIN to include all reservations, even without orders
-                .where(orders_association.c.restaurant_id == restaurant_id)  # Correctly filter by restaurant_id in orders_association
+                .where(reservation_association.c.restaurant_id == restaurant_id)  # Use reservation_association for restaurant_id
             ).fetchall()
 
             if not reservations:
@@ -1222,32 +1222,15 @@ class RestaurantReservation(Resource):
             return {"reservations": reservations_list}, 200
 
 
-
     def patch(self, restaurant_id, reservation_id):
         try:
-            # Retrieve the new status from the request body, defaulting to "Reserved"
+            # Get the data from the request body
             data = request.get_json()
-            new_status = data.get("status", "Reserved")
+            new_status = data.get("status", "Reserved")  # Default to "Reserved" if no status is provided
 
-            # Query the reservation_association table and join it with orders_association to check for the restaurant_id
-            reservation_query = select(reservation_association).join(
-                orders_association, orders_association.c.reservation_id == reservation_association.c.id
-            ).where(
-                orders_association.c.restaurant_id == restaurant_id,  # Filter by the restaurant_id from orders_association
-                reservation_association.c.id == reservation_id        # Also filter by the reservation_id
-            )
-            reservation = db.session.execute(reservation_query).fetchone()
-
-            if not reservation:
-                return {"message": f"No reservation found for restaurant {restaurant_id} with reservation ID {reservation_id}"}, 404
-
-            # Now that we found the reservation, update its status
-            update_query = update(reservation_association).where(
-                reservation_association.c.id == reservation_id
-            ).values(status=new_status)
-
-            # Execute the update query
-            db.session.execute(update_query)
+            # Update the reservation status for the given reservation
+            query = update(reservation_association).where(reservation_association.c.id == reservation_id).values(status=new_status)
+            db.session.execute(query)
             db.session.commit()
 
             return {"message": "Reservation status updated successfully"}, 200
@@ -1256,6 +1239,9 @@ class RestaurantReservation(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
+
+
+# Add the resources to the API
 
 api.add_resource(RestaurantReservation, "/reservations/restaurant/<int:restaurant_id>", "/reservations/restaurant/<int:restaurant_id>/<int:reservation_id>")
 
