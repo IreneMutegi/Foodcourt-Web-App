@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FiMenu, FiX, FiUser, FiHome, FiShoppingCart, FiShoppingBag, FiInfo } from "react-icons/fi";
+import { FiMenu, FiX, FiUser, FiHome, FiShoppingCart, FiShoppingBag, FiInfo, FiCalender } from "react-icons/fi";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import OrdersPopup from "./ordersPopup";  // ✅ Import Orders Popup
+import OrdersPopup from "./ordersPopup";
+import ReservationsPopup from "./reservationsPopup";
 import "./Header.css";
 
 const Header = ({ setIsModalOpen }) => {
@@ -15,7 +16,8 @@ const Header = ({ setIsModalOpen }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { data: session } = useSession();
   const [showWelcome, setShowWelcome] = useState(true);
-  const [showOrdersPopup, setShowOrdersPopup] = useState(false); // ✅ State for Orders Popup
+  const [showOrdersPopup, setShowOrdersPopup] = useState(false);
+  const [showReservationsPopup, setShowReservationsPopup] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -61,11 +63,20 @@ const Header = ({ setIsModalOpen }) => {
               </li>
               <li>
                 <button 
-                  onClick={() => setShowOrdersPopup(true)}  // ✅ Open Orders Popup
+                  onClick={() => setShowOrdersPopup(true)}
                   className="nav-item orders-btn"
                 >
                   <FiShoppingCart size={26} />
                   <span>Orders</span>
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => setShowReservationsPopup(true)}
+                  className="nav-item reservations-btn"
+                >
+                  <FiCalendar size={26} />
+                  <span>Reservations</span>
                 </button>
               </li>
               <li><button onClick={logout} className="nav-item logout-btn">Logout</button></li>
@@ -96,7 +107,6 @@ const Header = ({ setIsModalOpen }) => {
                   <span>About</span>
                 </Link>
               </li>
-
               <li className="user-dropdown">
                 {session ? (
                   <div className="user-container">
@@ -118,8 +128,8 @@ const Header = ({ setIsModalOpen }) => {
         </ul>
       </nav>
 
-      {/* ✅ Orders Pop-up */}
       {showOrdersPopup && <OrdersPopup onClose={() => setShowOrdersPopup(false)} />}
+      {showReservationsPopup && <ReservationsPopup onClose={() => setShowReservationsPopup(false)} />}
     </header>
   );
 };
