@@ -1161,14 +1161,8 @@ class RestaurantReservation(Resource):
                     reservation_association.c.time,
                     reservation_association.c.timestamp
                 )
-                .join(
-                    orders_association, 
-                    orders_association.c.reservation_id == reservation_association.c.id, 
-                    isouter=True  # LEFT JOIN to include reservations without orders
-                )
-                .where(
-                    orders_association.c.restaurant_id == restaurant_id  # Filter by restaurant_id in orders_association
-                )
+                .join(orders_association, orders_association.c.reservation_id == reservation_association.c.id, isouter=True)  # LEFT JOIN to include all reservations, even without orders
+                .where(reservation_association.c.restaurant_id == restaurant_id)  # Use reservation_association for restaurant_id
             ).fetchall()
 
             if not reservations:
@@ -1226,6 +1220,7 @@ class RestaurantReservation(Resource):
                 })
 
             return {"reservations": reservations_list}, 200
+
 
     def patch(self, restaurant_id, reservation_id):
         try:
