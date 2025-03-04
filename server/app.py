@@ -603,7 +603,7 @@ class RestaurantOrderResource(Resource):
                 reservation_association.c.client_id == orders_association.c.client_id
             )
             .where(orders_association.c.restaurant_id == restaurant_id)  # Ensure restaurant_id is used
-            .distinct()  # Ensure unique orders
+            .group_by(orders_association.c.id)  # Group by order_id to avoid duplicates
         ).fetchall()
 
         if not orders:
@@ -642,6 +642,7 @@ class RestaurantOrderResource(Resource):
             order_list.append(order_details)
 
         return {"orders": order_list}, 200
+
 
 
 
