@@ -18,6 +18,7 @@ reservation_association = Table(
     Column('client_id', Integer, ForeignKey('client.id'), nullable=False),
     Column('date', Date, nullable=False),
     Column('time', Time, nullable=False),
+    Column('status', String(50), nullable=False)  # Booking status (e.g., "Confirmed", "Pending")
     Column('timestamp', DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 )
 
