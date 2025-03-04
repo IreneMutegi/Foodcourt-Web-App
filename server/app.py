@@ -603,7 +603,15 @@ class RestaurantOrderResource(Resource):
                     )
                     .join(reservation_association, reservation_association.c.client_id == orders_association.c.client_id)
                     .where(orders_association.c.restaurant_id == restaurant_id)
-                    .group_by(orders_association.c.id)
+                    .group_by(
+                        orders_association.c.id,
+                        orders_association.c.client_id,
+                        orders_association.c.meal_id,
+                        orders_association.c.quantity,
+                        orders_association.c.status,
+                        orders_association.c.timestamp,
+                        reservation_association.c.restaurant_table_id  # Group by restaurant_table_id
+                    )
                 ).fetchall()
 
                 if not orders:
@@ -714,7 +722,6 @@ api.add_resource(RestaurantOrderResource,
                  '/orders/restaurants/<int:restaurant_id>/order/<int:order_id>',  # Path for single order actions
                  '/orders/restaurants/<int:restaurant_id>/client/<int:client_id>',  # Path for specific client orders
                  '/orders/restaurants/<int:restaurant_id>')  # Path for all orders from a restaurant
-
 
 
 
