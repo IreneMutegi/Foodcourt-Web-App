@@ -3,7 +3,7 @@ from flask_cors import CORS
 from flask_restful import Api, Resource
 from flask_migrate import Migrate
 from server.models import db, Client, Admin, Restaurant, Menu, orders_association, reservation_association ,RestaurantTable
-from sqlalchemy import select, delete 
+from sqlalchemy import select, delete,update 
 from datetime import datetime, date, time
 import os
 from sqlalchemy.exc import SQLAlchemyError
@@ -1095,10 +1095,16 @@ class ClientReservation(Resource):
 api.add_resource(ClientReservation, "/reservations/client/<int:client_id>", "/reservations/client/<int:client_id>/<int:reservation_id>")
 
 
+from flask import request
+from flask_restful import Resource
+from sqlalchemy import select, update
+from datetime import datetime, date, time
+from sqlalchemy.exc import SQLAlchemyError
+
 class RestaurantReservation(Resource):
     def get(self, restaurant_id=None, reservation_id=None):
+        # If reservation_id is provided, get reservation by reservation_id
         if reservation_id:
-            # Get reservation by reservation_id
             reservation = db.session.execute(
                 select(
                     reservation_association.c.id,
@@ -1128,7 +1134,7 @@ class RestaurantReservation(Resource):
             }, 200
 
         elif restaurant_id:
-            # Get all reservations for a restaurant
+            # If only restaurant_id is provided, get all reservations for the given restaurant
             reservations = db.session.execute(
                 select(
                     reservation_association.c.id,
@@ -1140,7 +1146,30 @@ class RestaurantReservation(Resource):
                 ).join(RestaurantTable).where(RestaurantTable.id == restaurant_id)
             ).fetchall()
 
+            if not reservations:
+                # If no reservations are found, return a friendly message
+                return {"message": f"No reservations found for restaurant {restaurant_id}"}, 200
+
+            reservations_list = []
+            for reservation in reservations:
+                reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
+
+                reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
+                reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
+
+                reservations_list.append({
+                    "reservation_id": reservation_id,
+                    "client_id": client_id,
+                    "restaurant_table_id": restaurant_table_id,
+                    "date": reservation_date_str,
+                    "time": reservation_time_str,
+                    "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
+                })
+
+            return {"reservations": reservations_list}, 200
+
         else:
+            # If no restaurant_id or reservation_id is provided, return all reservations
             reservations = db.session.execute(
                 select(
                     reservation_association.c.id,
@@ -1152,26 +1181,26 @@ class RestaurantReservation(Resource):
                 )
             ).fetchall()
 
-        if not reservations:
-            return {"message": "No reservations found"}, 404
+            if not reservations:
+                return {"message": "No reservations found"}, 404
 
-        reservations_list = []
-        for reservation in reservations:
-            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
+            reservations_list = []
+            for reservation in reservations:
+                reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
 
-            reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
-            reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
+                reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
+                reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
 
-            reservations_list.append({
-                "reservation_id": reservation_id,
-                "client_id": client_id,
-                "restaurant_table_id": restaurant_table_id,
-                "date": reservation_date_str,
-                "time": reservation_time_str,
-                "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
-            })
+                reservations_list.append({
+                    "reservation_id": reservation_id,
+                    "client_id": client_id,
+                    "restaurant_table_id": restaurant_table_id,
+                    "date": reservation_date_str,
+                    "time": reservation_time_str,
+                    "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
+                })
 
-        return {"reservations": reservations_list}, 200
+            return {"reservations": reservations_list}, 200
 
     def patch(self, reservation_id):
         try:
@@ -1193,7 +1222,6 @@ class RestaurantReservation(Resource):
 # Add the resources to the API
 
 api.add_resource(RestaurantReservation, "/reservations/restaurant/<int:restaurant_id>", "/reservations/restaurant/<int:restaurant_id>/<int:reservation_id>")
-
 
 
 if __name__ == "_main_":
