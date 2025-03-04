@@ -17,7 +17,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 api = Api(app)
 migrate = Migrate(app, db)
-CORS(app)
+CORS(app, methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"])
 
 class Welcome(Resource):
     def get(self):
@@ -370,7 +370,6 @@ class OrdersResource(Resource):
             orders_association.c.status
         )
 
-        # If both client_id and order_id are provided, filter by both
         if client_id and order_id:
             query = query.where(orders_association.c.client_id == client_id)
             query = query.where(orders_association.c.id == order_id)
@@ -552,7 +551,6 @@ class RestaurantOrderResource(Resource):
                 if not order:
                     return {"error": "Order not found"}, 404
 
-                # Extract order details
                 client_id = order[0]
                 meal_id = order[1]
                 quantity = order[2]
@@ -561,7 +559,6 @@ class RestaurantOrderResource(Resource):
                 timestamp = order[5]
                 restaurant_table_id = order[6]
 
-                # Get table number
                 table = db.session.execute(
                     select(RestaurantTable.table_number)
                     .where(RestaurantTable.id == restaurant_table_id)
@@ -569,7 +566,6 @@ class RestaurantOrderResource(Resource):
 
                 table_number = table[0] if table else "Unknown Table"
 
-                # Fetch meal and client details
                 meal = Menu.query.get(meal_id)
                 client = Client.query.get(client_id)
 
@@ -589,7 +585,7 @@ class RestaurantOrderResource(Resource):
 
                 return {"order": order_details}, 200
 
-            else:  # Fetch all orders for a restaurant
+            else:  
                 orders = db.session.execute(
                     select(
                         orders_association.c.id,
@@ -657,7 +653,6 @@ class RestaurantOrderResource(Resource):
         if not order:
             return {"error": "Order not found"}, 404
 
-        # Update the order fields with the data provided
         try:
             if 'quantity' in order_data:
                 db.session.execute(
@@ -679,9 +674,7 @@ class RestaurantOrderResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-    # DELETE - Delete an order by order_id and restaurant_id
     def delete(self, restaurant_id, order_id):
-        # Find the order by order_id and restaurant_id
         order = db.session.execute(
             select(orders_association)
             .where(orders_association.c.id == order_id)
