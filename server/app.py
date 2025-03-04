@@ -1139,8 +1139,8 @@ class RestaurantReservation(Resource):
                     reservation_association.c.time,
                     reservation_association.c.timestamp
                 )
-                .join(order_association, order_association.c.reservation_id == reservation_association.c.id)  # Correct join condition
-                .where(order_association.c.restaurant_id == restaurant_id)  # Filter by restaurant_id from order_association
+                .join(orders_association, orders_association.c.reservation_id == reservation_association.c.id)  # Correct join condition
+                .where(orders_association.c.restaurant_id == restaurant_id)  # Filter by restaurant_id from order_association
             ).fetchall()
 
             if not reservations:
