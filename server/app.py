@@ -1095,6 +1095,7 @@ class ClientReservation(Resource):
 api.add_resource(ClientReservation, "/reservations/client/<int:client_id>", "/reservations/client/<int:client_id>/<int:reservation_id>")
 
 
+
 class RestaurantReservation(Resource):
     def get(self, restaurant_id=None, reservation_id=None):
         # If reservation_id is provided, get reservation by reservation_id
@@ -1138,8 +1139,8 @@ class RestaurantReservation(Resource):
                     reservation_association.c.time,
                     reservation_association.c.timestamp
                 )
-                .join(orders_association, reservation_association.c.order_id == orders_association.c.id)  # Join with order_association table
-                .where(orders_association.c.restaurant_id == restaurant_id)  # Filter by restaurant_id from order_association
+                .join(order_association, order_association.c.reservation_id == reservation_association.c.id)  # Correct join condition
+                .where(order_association.c.restaurant_id == restaurant_id)  # Filter by restaurant_id from order_association
             ).fetchall()
 
             if not reservations:
@@ -1216,7 +1217,10 @@ class RestaurantReservation(Resource):
 
 
 # Add the resources to the API
+
 api.add_resource(RestaurantReservation, "/reservations/restaurant/<int:restaurant_id>", "/reservations/restaurant/<int:restaurant_id>/<int:reservation_id>")
+
+
 
 
 
