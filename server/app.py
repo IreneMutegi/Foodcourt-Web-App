@@ -561,8 +561,13 @@ class RestaurantOrderResource(Resource):
                 timestamp = order[5]
                 restaurant_table_id = order[6]
 
-                # Fetch the table number from Reservation using the restaurant_table_id
-                reservation = Reservation.query.filter_by(id=restaurant_table_id).first()
+                # Fetch the table number from reservation_association using the restaurant_table_id
+                reservation = db.session.execute(
+                    select(reservation_association.c.restaurant_table_id, restaurant_tables.c.table_number)
+                    .join(restaurant_tables, restaurant_tables.c.id == reservation_association.c.restaurant_table_id)
+                    .where(reservation_association.c.id == restaurant_table_id)
+                ).fetchone()
+
                 table_number = reservation.table_number if reservation else "Unknown Table"
 
                 # Fetch related meal and client details
@@ -634,8 +639,13 @@ class RestaurantOrderResource(Resource):
                     if restaurant_table_id in processed_table_numbers:
                         continue
 
-                    # Fetch the table number from Reservation using the restaurant_table_id
-                    reservation = Reservation.query.filter_by(id=restaurant_table_id).first()
+                    # Fetch the table number from reservation_association using the restaurant_table_id
+                    reservation = db.session.execute(
+                        select(reservation_association.c.restaurant_table_id, restaurant_tables.c.table_number)
+                        .join(restaurant_tables, restaurant_tables.c.id == reservation_association.c.restaurant_table_id)
+                        .where(reservation_association.c.id == restaurant_table_id)
+                    ).fetchone()
+
                     table_number = reservation.table_number if reservation else "Unknown Table"
 
                     # Fetch related meal and client details
@@ -724,6 +734,7 @@ class RestaurantOrderResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
 
 # Register the resource and the endpoints with the Api object
 api.add_resource(RestaurantOrderResource, 
