@@ -993,5 +993,78 @@ api.add_resource(RestaurantTableResource,
 
 
 
+# Get Client Reservations
+class ClientReservations(Resource):
+    def get(self, client_id):
+        try:
+            query = select(reservation_association).where(reservation_association.c.client_id == client_id)
+            result = db.session.execute(query).fetchall()
+
+            reservations = [
+                {
+                    "id": row.id,
+                    "restaurant_table_id": row.restaurant_table_id,
+                    "date": row.date.strftime("%Y-%m-%d"),
+                    "time": row.time.strftime("%H:%M"),
+                    "status": row.status
+                } 
+                for row in result
+            ]
+
+            return {"reservations": reservations}, 200
+
+        except SQLAlchemyError as e:
+            return {"error": str(e)}, 500
+
+api.add_resource(ClientReservations, "/reservations/client/<int:client_id>")
+
+# Get Restaurant Reservations
+class RestaurantReservations(Resource):
+    def get(self, restaurant_id):
+        try:
+            query = select(reservation_association).join(RestaurantTable).where(RestaurantTable.id == restaurant_id)
+            result = db.session.execute(query).fetchall()
+
+            reservations = [
+                {
+                    "id": row.id,
+                    "restaurant_table_id": row.restaurant_table_id,
+                    "client_id": row.client_id,
+                    "date": row.date.strftime("%Y-%m-%d"),
+                    "time": row.time.strftime("%H:%M"),
+                    "status": row.status
+                } 
+                for row in result
+            ]
+
+            return {"reservations": reservations}, 200
+
+        except SQLAlchemyError as e:
+            return {"error": str(e)}, 500
+
+api.add_resource(RestaurantReservations, "/reservations/restaurant/<int:restaurant_id>")
+
+# Update Reservation Status
+class UpdateReservationStatus(Resource):
+    def patch(self, reservation_id):
+        try:
+            data = request.get_json()
+            new_status = data.get("status")
+
+            if new_status not in ["Confirmed", "Pending", "Canceled"]:
+                return {"message": "Invalid status value"}, 400
+
+            query = update(reservation_association).where(reservation_association.c.id == reservation_id).values(status=new_status)
+            db.session.execute(query)
+            db.session.commit()
+
+            return {"message": "Reservation status updated successfully"}, 200
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+api.add_resource(UpdateReservationStatus, "/reservations/<int:reservation_id>")
+
 if __name__ == "__main__":
     app.run(debug=True, port=5555)
