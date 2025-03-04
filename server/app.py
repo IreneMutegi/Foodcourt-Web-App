@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_restful import Api, Resource
 from flask_migrate import Migrate
-from server.models import db, Client, Admin, Restaurant, Menu, orders_association, reservation_association ,RestaurantTable
+from models import db, Client, Admin, Restaurant, Menu, orders_association, reservation_association ,RestaurantTable
 from sqlalchemy import select, delete,update 
 from datetime import datetime, date, time
 import os
@@ -993,6 +993,11 @@ api.add_resource(RestaurantTableResource,
 
 
 # Client Reservation Resource (GET and PATCH)
+from flask import request
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import select, update
+from datetime import date, time, datetime
+
 class ClientReservation(Resource):
     def get(self, client_id=None, reservation_id=None):
         if reservation_id:
@@ -1016,15 +1021,9 @@ class ClientReservation(Resource):
              reservation_date, reservation_time, timestamp, status) = reservation
 
             # Convert date and time to appropriate format
-            reservation_date_str = (reservation_date.isoformat() 
-                                    if isinstance(reservation_date, (date, datetime)) 
-                                    else str(reservation_date))
-            reservation_time_str = (reservation_time.strftime('%H:%M:%S') 
-                                    if isinstance(reservation_time, time) 
-                                    else str(reservation_time))
-            timestamp_str = (timestamp.isoformat() 
-                             if isinstance(timestamp, (datetime, date)) 
-                             else str(timestamp))
+            reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
+            reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
+            timestamp_str = timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
 
             return {
                 "reservation_id": reservation_id,
@@ -1049,6 +1048,7 @@ class ClientReservation(Resource):
                     reservation_association.c.status  # Include status
                 ).where(reservation_association.c.client_id == client_id)
             ).fetchall()
+
         else:
             # Get all reservations including the status column
             reservations = db.session.execute(
@@ -1071,15 +1071,9 @@ class ClientReservation(Resource):
             (reservation_id, client_id, restaurant_table_id, 
              reservation_date, reservation_time, timestamp, status) = reservation
 
-            reservation_date_str = (reservation_date.isoformat() 
-                                    if isinstance(reservation_date, (date, datetime)) 
-                                    else str(reservation_date))
-            reservation_time_str = (reservation_time.strftime('%H:%M:%S') 
-                                    if isinstance(reservation_time, time) 
-                                    else str(reservation_time))
-            timestamp_str = (timestamp.isoformat() 
-                             if isinstance(timestamp, (datetime, date)) 
-                             else str(timestamp))
+            reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
+            reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
+            timestamp_str = timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
 
             reservations_list.append({
                 "reservation_id": reservation_id,
@@ -1098,6 +1092,10 @@ class ClientReservation(Resource):
             data = request.get_json()
             # Use "Reserved" as the default if status isn't provided in the request body
             new_status = data.get("status", "Reserved")
+
+            # Ensure status is valid before updating
+            if new_status not in ["Reserved", "Confirmed", "Pending", "Cancelled"]:  # Example valid status values
+                return {"error": "Invalid status value"}, 400
 
             # Update the reservation's status for the given reservation and client
             query = update(reservation_association).where(
@@ -1120,6 +1118,7 @@ api.add_resource(
     "/reservations/client/<int:client_id>", 
     "/reservations/client/<int:client_id>/<int:reservation_id>"
 )
+
 
 
 
