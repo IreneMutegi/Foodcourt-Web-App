@@ -655,6 +655,7 @@ class RestaurantOrderResource(Resource):
             db.session.rollback()
             return {"error": f"An error occurred: {str(e)}"}, 500
 
+
     # PATCH - Update an order's details
     def patch(self, restaurant_id, order_id):
         order_data = request.get_json()
