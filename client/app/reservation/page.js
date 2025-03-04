@@ -85,7 +85,7 @@ setShowPopup(false);
           <div className="reservation-card">
             <div className="reservation-details">
               <p><strong>Reservation NO:</strong> # {reservation.reservation_id}</p>
-              <p><strong>Table:</strong> {reservation.table_number}</p>
+              <p><strong>Table NO:</strong> {reservation.table_number}</p>
               <p><strong>Date:</strong> {reservation.date}</p>
               <p><strong>Time:</strong> {reservation.time}</p>
               <p className="reservationStatus">
