@@ -1241,7 +1241,11 @@ class RestaurantReservation(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-
+api.add_resource(
+    RestaurantReservation,
+    "/reservations/restaurant/<int:restaurant_id>",
+    "/reservations/restaurant/<int:restaurant_id>/<int:reservation_id>"
+)
 
 if __name__ == "_main_":
     app.run(debug=True, port=5555)
