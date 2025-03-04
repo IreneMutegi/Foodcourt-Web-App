@@ -17,7 +17,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 api = Api(app)
 migrate = Migrate(app, db)
-CORS(app, methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"])
+CORS(app, supports_credentials=True, methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"])
 
 class Welcome(Resource):
     def get(self):
