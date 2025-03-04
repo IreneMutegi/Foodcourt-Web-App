@@ -3,7 +3,7 @@ from flask_cors import CORS
 from flask_restful import Api, Resource
 from flask_migrate import Migrate
 from server.models import db, Client, Admin, Restaurant, Menu, orders_association, reservation_association ,RestaurantTable
-from sqlalchemy import select, delete 
+from sqlalchemy import select, delete, update
 from datetime import datetime, date, time
 import os
 from sqlalchemy.exc import SQLAlchemyError
@@ -17,7 +17,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 api = Api(app)
 migrate = Migrate(app, db)
-CORS(app)
+CORS(app, supports_credentials=True, methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"])
 
 class Welcome(Resource):
     def get(self):
@@ -370,7 +370,6 @@ class OrdersResource(Resource):
             orders_association.c.status
         )
 
-        # If both client_id and order_id are provided, filter by both
         if client_id and order_id:
             query = query.where(orders_association.c.client_id == client_id)
             query = query.where(orders_association.c.id == order_id)
@@ -552,7 +551,6 @@ class RestaurantOrderResource(Resource):
                 if not order:
                     return {"error": "Order not found"}, 404
 
-                # Extract order details
                 client_id = order[0]
                 meal_id = order[1]
                 quantity = order[2]
@@ -561,7 +559,6 @@ class RestaurantOrderResource(Resource):
                 timestamp = order[5]
                 restaurant_table_id = order[6]
 
-                # Get table number
                 table = db.session.execute(
                     select(RestaurantTable.table_number)
                     .where(RestaurantTable.id == restaurant_table_id)
@@ -569,7 +566,6 @@ class RestaurantOrderResource(Resource):
 
                 table_number = table[0] if table else "Unknown Table"
 
-                # Fetch meal and client details
                 meal = Menu.query.get(meal_id)
                 client = Client.query.get(client_id)
 
@@ -589,7 +585,7 @@ class RestaurantOrderResource(Resource):
 
                 return {"order": order_details}, 200
 
-            else:  # Fetch all orders for a restaurant
+            else:  
                 orders = db.session.execute(
                     select(
                         orders_association.c.id,
@@ -657,7 +653,6 @@ class RestaurantOrderResource(Resource):
         if not order:
             return {"error": "Order not found"}, 404
 
-        # Update the order fields with the data provided
         try:
             if 'quantity' in order_data:
                 db.session.execute(
@@ -679,9 +674,7 @@ class RestaurantOrderResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-    # DELETE - Delete an order by order_id and restaurant_id
     def delete(self, restaurant_id, order_id):
-        # Find the order by order_id and restaurant_id
         order = db.session.execute(
             select(orders_association)
             .where(orders_association.c.id == order_id)
@@ -999,6 +992,79 @@ api.add_resource(RestaurantTableResource,
 
 
 
+
+# Get Client Reservations
+class ClientReservations(Resource):
+    def get(self, client_id):
+        try:
+            query = select(reservation_association).where(reservation_association.c.client_id == client_id)
+            result = db.session.execute(query).fetchall()
+
+            reservations = [
+                {
+                    "id": row.id,
+                    "restaurant_table_id": row.restaurant_table_id,
+                    "date": row.date.strftime("%Y-%m-%d"),
+                    "time": row.time.strftime("%H:%M"),
+                    "status": row.status
+                } 
+                for row in result
+            ]
+
+            return {"reservations": reservations}, 200
+
+        except SQLAlchemyError as e:
+            return {"error": str(e)}, 500
+
+api.add_resource(ClientReservations, "/reservations/client/<int:client_id>")
+
+# Get Restaurant Reservations
+class RestaurantReservations(Resource):
+    def get(self, restaurant_id):
+        try:
+            query = select(reservation_association).join(RestaurantTable).where(RestaurantTable.id == restaurant_id)
+            result = db.session.execute(query).fetchall()
+
+            reservations = [
+                {
+                    "id": row.id,
+                    "restaurant_table_id": row.restaurant_table_id,
+                    "client_id": row.client_id,
+                    "date": row.date.strftime("%Y-%m-%d"),
+                    "time": row.time.strftime("%H:%M"),
+                    "status": row.status
+                } 
+                for row in result
+            ]
+
+            return {"reservations": reservations}, 200
+
+        except SQLAlchemyError as e:
+            return {"error": str(e)}, 500
+
+api.add_resource(RestaurantReservations, "/reservations/restaurant/<int:restaurant_id>")
+
+# Update Reservation Status
+class UpdateReservationStatus(Resource):
+    def patch(self, reservation_id):
+        try:
+            data = request.get_json()
+            new_status = data.get("status")
+
+            if new_status not in ["Confirmed", "Pending", "Canceled"]:
+                return {"message": "Invalid status value"}, 400
+
+            query = update(reservation_association).where(reservation_association.c.id == reservation_id).values(status=new_status)
+            db.session.execute(query)
+            db.session.commit()
+
+            return {"message": "Reservation status updated successfully"}, 200
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+api.add_resource(UpdateReservationStatus, "/reservations/<int:reservation_id>")
 
 if __name__ == "__main__":
     app.run(debug=True, port=5555)
