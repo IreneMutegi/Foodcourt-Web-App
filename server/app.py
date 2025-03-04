@@ -530,17 +530,17 @@ api.add_resource(OrdersResource,
 
 
 class RestaurantOrderResource(Resource):
-    # GET - Retrieve all orders for a specific restaurant or a specific order
     def get(self, restaurant_id=None, client_id=None, order_id=None):
         if order_id:  # If order_id is provided, get specific order
             order = db.session.execute(
                 select(
                     orders_association.c.client_id,
                     orders_association.c.meal_id,
-                    orders_association.c.restaurant_table_id,
                     orders_association.c.quantity,
+                    orders_association.c.price,
                     orders_association.c.status,
-                    orders_association.c.timestamp
+                    orders_association.c.timestamp,
+                    reservation_association.c.restaurant_table_id  # Fetch restaurant_table_id from reservation_association
                 )
                 .where(orders_association.c.id == order_id)
                 .where(orders_association.c.restaurant_id == restaurant_id)  # Ensure restaurant_id is used here
@@ -551,26 +551,25 @@ class RestaurantOrderResource(Resource):
 
             client_id = order[0]
             meal_id = order[1]
-            table_id = order[2]
-            quantity = order[3]
+            quantity = order[2]
+            price = order[3]
             status = order[4]
             timestamp = order[5]
+            restaurant_table_id = order[6]  # Fetch restaurant_table_id
 
-            # Retrieve restaurant_table_id from reservation_association
-            reservation = db.session.execute(
-                select(reservation_association.c.restaurant_table_id)
-                .where(reservation_association.c.client_id == client_id)
-                .where(reservation_association.c.restaurant_id == restaurant_id)  # Ensure restaurant_id is considered
-                .where(reservation_association.c.timestamp == timestamp)  # Assuming the timestamp helps to get the reservation
-            ).fetchone()
+            # Fetch the table number from RestaurantTable using the restaurant_table_id from reservation_association
+            restaurant_table = RestaurantTable.query.get(restaurant_table_id)
+            table_number = restaurant_table.table_number if restaurant_table else "Unknown Table"
 
-            restaurant_table_id = reservation[0] if reservation else "Unknown Table"
-            timestamp_str = timestamp.isoformat() if timestamp else None
-
-            # Retrieve related meal and client details
+            # Fetch related meal and client details
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
-            restaurant_table = RestaurantTable.query.get(restaurant_table_id)
+
+            # Calculate the total
+            total = price * quantity
+
+            # Format timestamp
+            timestamp_str = timestamp.isoformat() if timestamp else None
 
             order_details = {
                 "client_id": client_id,
@@ -578,10 +577,10 @@ class RestaurantOrderResource(Resource):
                 "meal_id": meal_id,
                 "meal_name": meal.name if meal else "Unknown Meal",
                 "category": meal.category if meal else "Unknown Category",
-                "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
+                "table_number": table_number,
                 "quantity": quantity,
-                "price": meal.price if meal else "Unknown Price",
-                "total": meal.price * quantity if meal else "Unknown Total",
+                "price": price,
+                "total": total,
                 "status": status,
                 "timestamp": timestamp_str
             }
@@ -597,17 +596,16 @@ class RestaurantOrderResource(Resource):
                 orders_association.c.quantity,
                 orders_association.c.status,
                 orders_association.c.timestamp,
-                reservation_association.c.restaurant_table_id  # Fetch correct table ID
+                reservation_association.c.restaurant_table_id  # Fetch restaurant_table_id
             )
             .join(
                 reservation_association, 
                 reservation_association.c.client_id == orders_association.c.client_id
             )
-            .where(orders_association.c.restaurant_id == restaurant_id)
+            .where(orders_association.c.restaurant_id == restaurant_id)  # Ensure restaurant_id is used
             .distinct()  # Ensure unique orders
         ).fetchall()
 
-        # If no orders found
         if not orders:
             return {"error": "No orders found for this restaurant"}, 404
 
@@ -618,28 +616,32 @@ class RestaurantOrderResource(Resource):
             quantity = order[3]
             status = order[4]
             timestamp = order[5]
-            restaurant_table_id = order[6]  # Use the correctly fetched restaurant_table_id
+            restaurant_table_id = order[6]
 
-            # Retrieve related meal, client, and restaurant table details
+            # Fetch the table number from RestaurantTable
+            restaurant_table = RestaurantTable.query.get(restaurant_table_id)
+            table_number = restaurant_table.table_number if restaurant_table else "Unknown Table"
+
+            # Fetch related meal and client details
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
-            restaurant_table = RestaurantTable.query.get(restaurant_table_id)
+
+            total = meal.price * quantity if meal else "Unknown Total"
 
             order_details = {
                 "order_id": order[0],
                 "client_name": client.name if client else "Unknown Client",
                 "meal_name": meal.name if meal else "Unknown Meal",
-                "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
+                "table_number": table_number,
                 "quantity": quantity,
                 "price": meal.price if meal else "Unknown Price",
-                "total": meal.price * quantity if meal else "Unknown Total",
+                "total": total,
                 "status": status,
                 "timestamp": timestamp.isoformat() if timestamp else None
             }
             order_list.append(order_details)
 
         return {"orders": order_list}, 200
-
 
 
 
