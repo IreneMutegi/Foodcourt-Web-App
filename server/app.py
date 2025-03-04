@@ -534,7 +534,7 @@ class RestaurantOrderResource(Resource):
     # GET - Fetch all or specific orders for a restaurant or a client
     def get(self, restaurant_id=None, client_id=None, order_id=None):
         try:
-            if order_id:  # If order_id is provided, get specific order
+            if order_id:  # If order_id is provided, get a specific order
                 order = db.session.execute(
                     select(
                         orders_association.c.client_id,
@@ -610,7 +610,7 @@ class RestaurantOrderResource(Resource):
                         orders_association.c.quantity,
                         orders_association.c.status,
                         orders_association.c.timestamp,
-                        reservation_association.c.restaurant_table_id  # Group by restaurant_table_id
+                        reservation_association.c.restaurant_table_id
                     )
                 ).fetchall()
 
@@ -654,7 +654,6 @@ class RestaurantOrderResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": f"An error occurred: {str(e)}"}, 500
-
 
     # PATCH - Update an order's details
     def patch(self, restaurant_id, order_id):
@@ -722,8 +721,6 @@ api.add_resource(RestaurantOrderResource,
                  '/orders/restaurants/<int:restaurant_id>/order/<int:order_id>',  # Path for single order actions
                  '/orders/restaurants/<int:restaurant_id>/client/<int:client_id>',  # Path for specific client orders
                  '/orders/restaurants/<int:restaurant_id>')  # Path for all orders from a restaurant
-
-
 
 
 
