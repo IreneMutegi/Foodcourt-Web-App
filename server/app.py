@@ -1001,31 +1001,34 @@ api.add_resource(RestaurantTableResource,
 class ClientReservation(Resource):
     def get(self, client_id=None, reservation_id=None):
         if reservation_id:
-            # Get a specific reservation by reservation_id including the status column
+            # Get a specific reservation by reservation_id and ensure only one table_number is selected
             reservation = db.session.execute(
                 select(
                     reservation_association.c.id,
                     reservation_association.c.date,
                     reservation_association.c.time,
                     reservation_association.c.timestamp,
-                    reservation_association.c.status,  # Include status in the selection
-                    RestaurantTable.table_number  # Get table_number instead of restaurant_table_id
-                ).where(reservation_association.c.id == reservation_id)
+                    reservation_association.c.status,
+                    RestaurantTable.table_number  # Ensure we get only one table_number for the reservation
+                )
+                .join(RestaurantTable, RestaurantTable.id == reservation_association.c.restaurant_table_id)  # Join to get the table number
+                .where(reservation_association.c.id == reservation_id)
             ).fetchone()
 
             if not reservation:
                 return {"message": "Reservation not found"}, 404
 
+            # Extract reservation details
             (reservation_id, reservation_date, reservation_time, timestamp, status, table_number) = reservation
 
-            # Convert date and time to appropriate format
+            # Format date and time
             reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
             reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
             timestamp_str = timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
 
             return {
                 "reservation_id": reservation_id,
-                "table_number": table_number,
+                "table_number": table_number,  # Return only the selected table_number
                 "date": reservation_date_str,
                 "time": reservation_time_str,
                 "timestamp": timestamp_str,
@@ -1033,29 +1036,32 @@ class ClientReservation(Resource):
             }, 200
 
         elif client_id:
-            # Get all reservations for a client including the status column
+            # Get all reservations for a client, ensuring only one table_number per reservation
             reservations = db.session.execute(
                 select(
                     reservation_association.c.id,
                     reservation_association.c.date,
                     reservation_association.c.time,
                     reservation_association.c.timestamp,
-                    reservation_association.c.status,  # Include status
-                    RestaurantTable.table_number  # Get table_number instead of restaurant_table_id
-                ).where(reservation_association.c.client_id == client_id)
+                    reservation_association.c.status,
+                    RestaurantTable.table_number  # Ensure we get only one table_number for the reservation
+                )
+                .join(RestaurantTable, RestaurantTable.id == reservation_association.c.restaurant_table_id)  # Join to get the table number
+                .where(reservation_association.c.client_id == client_id)
             ).fetchall()
 
         else:
-            # Get all reservations including the status column
+            # Get all reservations, ensuring only one table_number per reservation
             reservations = db.session.execute(
                 select(
                     reservation_association.c.id,
                     reservation_association.c.date,
                     reservation_association.c.time,
                     reservation_association.c.timestamp,
-                    reservation_association.c.status,  # Include status
-                    RestaurantTable.table_number  # Get table_number instead of restaurant_table_id
+                    reservation_association.c.status,
+                    RestaurantTable.table_number  # Ensure we get only one table_number for the reservation
                 )
+                .join(RestaurantTable, RestaurantTable.id == reservation_association.c.restaurant_table_id)  # Join to get the table number
             ).fetchall()
 
         if not reservations:
@@ -1071,7 +1077,7 @@ class ClientReservation(Resource):
 
             reservations_list.append({
                 "reservation_id": reservation_id,
-                "table_number": table_number,
+                "table_number": table_number,  # Return only the selected table_number for the reservation
                 "date": reservation_date_str,
                 "time": reservation_time_str,
                 "timestamp": timestamp_str,
@@ -1079,6 +1085,7 @@ class ClientReservation(Resource):
             })
 
         return {"reservations": reservations_list}, 200
+
 
     def patch(self, client_id, reservation_id):
         try:
