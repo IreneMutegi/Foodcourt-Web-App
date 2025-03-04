@@ -1122,7 +1122,7 @@ api.add_resource(
 class RestaurantReservation(Resource):
     def get(self, restaurant_id=None, reservation_id=None):
         if reservation_id:
-            # Get a specific reservation by reservation_id
+            # Fetch a single reservation by ID
             reservation = db.session.execute(
                 select(
                     reservation_association.c.id,
@@ -1143,13 +1143,13 @@ class RestaurantReservation(Resource):
                 "reservation_id": reservation_id,
                 "client_id": client_id,
                 "restaurant_table_id": restaurant_table_id,
-                "date": reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date),
-                "time": reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time),
-                "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
+                "date": reservation_date.isoformat(),
+                "time": reservation_time.strftime('%H:%M:%S'),
+                "timestamp": timestamp.isoformat()
             }, 200
 
         elif restaurant_id:
-            # Get all reservations for a given restaurant by joining orders_association
+            # Fetch all reservations for the given restaurant by joining orders_association
             reservations = db.session.execute(
                 select(
                     reservation_association.c.id,
@@ -1159,12 +1159,8 @@ class RestaurantReservation(Resource):
                     reservation_association.c.time,
                     reservation_association.c.timestamp
                 )
-                .join(
-                    orders_association,  
-                    orders_association.c.reservation_id == reservation_association.c.id,
-                    isouter=True  # LEFT JOIN to include reservations without orders
-                )
-                .where(orders_association.c.restaurant_id == restaurant_id)  # Get restaurant_id from orders_association
+                .join(orders_association, orders_association.c.reservation_id == reservation_association.c.id)
+                .where(orders_association.c.restaurant_id == restaurant_id)  # Ensure we filter by restaurant_id from orders_association
             ).fetchall()
 
             if not reservations:
@@ -1178,15 +1174,15 @@ class RestaurantReservation(Resource):
                     "reservation_id": reservation_id,
                     "client_id": client_id,
                     "restaurant_table_id": restaurant_table_id,
-                    "date": reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date),
-                    "time": reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time),
-                    "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
+                    "date": reservation_date.isoformat(),
+                    "time": reservation_time.strftime('%H:%M:%S'),
+                    "timestamp": timestamp.isoformat()
                 })
 
             return {"reservations": reservations_list}, 200
 
         else:
-            # Get all reservations without filtering by restaurant
+            # Fetch all reservations (if no restaurant_id provided)
             reservations = db.session.execute(
                 select(
                     reservation_association.c.id,
@@ -1209,9 +1205,9 @@ class RestaurantReservation(Resource):
                     "reservation_id": reservation_id,
                     "client_id": client_id,
                     "restaurant_table_id": restaurant_table_id,
-                    "date": reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date),
-                    "time": reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time),
-                    "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
+                    "date": reservation_date.isoformat(),
+                    "time": reservation_time.strftime('%H:%M:%S'),
+                    "timestamp": timestamp.isoformat()
                 })
 
             return {"reservations": reservations_list}, 200
@@ -1221,36 +1217,29 @@ class RestaurantReservation(Resource):
             data = request.get_json()
             new_status = data.get("status", "Reserved")  # Default to "Reserved" if not provided
 
-            # Join orders_association to get restaurant_id indirectly
-            query = update(reservation_association) \
+            # Ensure that the reservation belongs to the given restaurant by checking orders_association
+            existing_reservation = db.session.execute(
+                select(reservation_association.c.id)
+                .join(orders_association, orders_association.c.reservation_id == reservation_association.c.id)
                 .where(
                     reservation_association.c.id == reservation_id,
-                    orders_association.c.reservation_id == reservation_association.c.id,
-                    orders_association.c.restaurant_id == restaurant_id  # Ensure correct restaurant_id
-                ) \
-                .values(status=new_status)
+                    orders_association.c.restaurant_id == restaurant_id
+                )
+            ).fetchone()
 
-            result = db.session.execute(query)
-            db.session.commit()
-
-            if result.rowcount == 0:
+            if not existing_reservation:
                 return {"message": "No matching reservation found"}, 404
+
+            # Update the reservation status
+            query = update(reservation_association).where(reservation_association.c.id == reservation_id).values(status=new_status)
+            db.session.execute(query)
+            db.session.commit()
 
             return {"message": "Reservation status updated successfully"}, 200
 
         except SQLAlchemyError as e:
             db.session.rollback()
             return {"error": str(e)}, 500
-
-
-# Add the resources to the API
-api.add_resource(
-    RestaurantReservation,
-    "/reservations/restaurant/<int:restaurant_id>",
-    "/reservations/restaurant/<int:restaurant_id>/<int:reservation_id>"
-)
-
-
 
 
 
