@@ -50,13 +50,14 @@
   margin-bottom: 0px;
   text-align: center;
   font-size: 30px;
+  color: white;
 }
 
 .menu-container h3 {
   margin-top: 0px;
   margin-bottom: 0px;
   text-align: center;
-  font-weight: normal; 
+  font-weight: normal;
   color: white;
 }
 
@@ -74,9 +75,8 @@
   width: 60px; /* Adjust size as needed */
   height: 60px;
   object-fit: cover;
-  border-radius: 20%; 
+  border-radius: 20%;
 }
-
 
 .menu-grid {
   display: grid;
@@ -107,7 +107,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;  /* Semi-transparent background */
+  z-index: 1000; /* Semi-transparent background */
 }
 /* Center a single menu item */
 .menu-grid:has(.menu-item:only-child) {
@@ -145,7 +145,7 @@
 .menu-overlay.modal-open {
   pointer-events: none;
   filter: blur(2px); /* Slight blur effect */
- }
+}
 .menu-item {
   background: #1e1e1eb8;
   color: white;
@@ -167,7 +167,7 @@
   object-fit: cover;
   border-radius: 50%;
   position: absolute;
-  top: -50px; /* Move image upwards */
+  top: -60px; /* Move image upwards */
   left: 50%;
   transform: translateX(-50%); /* Center the image */
 }
@@ -175,7 +175,7 @@
 .menu-item h4 {
   bottom: 100px;
   margin: 5px 0; /* Reduce space above and below */
-  font-size: 16px; /* Adjust font size if needed */
+  font-size: 12px; /* Adjust font size if needed */
 }
 
 .menu-item p {
@@ -208,4 +208,3 @@
 .order-btn:hover {
   background: #17857a;
 }
-
