@@ -541,7 +541,8 @@ class RestaurantOrderResource(Resource):
                     orders_association.c.quantity,
                     orders_association.c.status,
                     orders_association.c.timestamp
-                ).where(orders_association.c.id == order_id)
+                )
+                .where(orders_association.c.id == order_id)
                 .where(orders_association.c.restaurant_id == restaurant_id)  # Ensure restaurant_id is used here
             ).fetchone()
 
@@ -559,12 +560,14 @@ class RestaurantOrderResource(Resource):
             reservation = db.session.execute(
                 select(reservation_association.c.restaurant_table_id)
                 .where(reservation_association.c.client_id == client_id)
-                .where(reservation_association.c.restaurant_id == restaurant_id)
+                .where(reservation_association.c.restaurant_id == restaurant_id)  # Ensure restaurant_id is considered
+                .where(reservation_association.c.timestamp == timestamp)  # Assuming the timestamp helps to get the reservation
             ).fetchone()
 
             restaurant_table_id = reservation[0] if reservation else "Unknown Table"
             timestamp_str = timestamp.isoformat() if timestamp else None
 
+            # Retrieve related meal and client details
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
             restaurant_table = RestaurantTable.query.get(restaurant_table_id)
@@ -584,7 +587,7 @@ class RestaurantOrderResource(Resource):
             }
 
             return {"order": order_details}, 200
-
+        
         # If no order_id is provided, get all orders for the restaurant
         orders = db.session.execute(
             select(
@@ -594,12 +597,14 @@ class RestaurantOrderResource(Resource):
                 orders_association.c.quantity,
                 orders_association.c.status,
                 orders_association.c.timestamp,
-                reservation_association.c.restaurant_table_id  # Fetch correct table ID from reservations
-            ).join(
+                reservation_association.c.restaurant_table_id  # Fetch correct table ID
+            )
+            .join(
                 reservation_association, 
                 reservation_association.c.client_id == orders_association.c.client_id
-            ).where(orders_association.c.restaurant_id == restaurant_id)
-            .distinct(orders_association.c.id)  # Ensure unique orders by order_id
+            )
+            .where(orders_association.c.restaurant_id == restaurant_id)
+            .distinct()  # Ensure unique orders
         ).fetchall()
 
         # If no orders found
@@ -608,7 +613,6 @@ class RestaurantOrderResource(Resource):
 
         order_list = []
         for order in orders:
-            order_id = order[0]
             client_id = order[1]
             meal_id = order[2]
             quantity = order[3]
@@ -616,12 +620,13 @@ class RestaurantOrderResource(Resource):
             timestamp = order[5]
             restaurant_table_id = order[6]  # Use the correctly fetched restaurant_table_id
 
+            # Retrieve related meal, client, and restaurant table details
             meal = Menu.query.get(meal_id)
             client = Client.query.get(client_id)
             restaurant_table = RestaurantTable.query.get(restaurant_table_id)
 
             order_details = {
-                "order_id": order_id,
+                "order_id": order[0],
                 "client_name": client.name if client else "Unknown Client",
                 "meal_name": meal.name if meal else "Unknown Meal",
                 "table_number": restaurant_table.table_number if restaurant_table else "Unknown Table",
