@@ -1005,14 +1005,18 @@ class ClientReservation(Resource):
                     reservation_association.c.restaurant_table_id,
                     reservation_association.c.date,
                     reservation_association.c.time,
-                    reservation_association.c.timestamp
-                ).where(reservation_association.c.id == reservation_id)
+                    reservation_association.c.timestamp,
+                    Restaurant.id.label('restaurant_id'),  # Fetch restaurant ID
+                    Restaurant.name.label('restaurant_name')  # Fetch restaurant name
+                )
+                .join(Restaurant, Restaurant.id == reservation_association.c.restaurant_table_id)  # Join with the Restaurant table
+                .where(reservation_association.c.id == reservation_id)
             ).fetchone()
 
             if not reservation:
                 return {"message": "Reservation not found"}, 404
 
-            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
+            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp, restaurant_id, restaurant_name = reservation
 
             # Convert date and time to appropriate format
             reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
@@ -1022,6 +1026,8 @@ class ClientReservation(Resource):
                 "reservation_id": reservation_id,
                 "client_id": client_id,
                 "restaurant_table_id": restaurant_table_id,
+                "restaurant_id": restaurant_id,  # Add restaurant ID
+                "restaurant_name": restaurant_name,  # Add restaurant name
                 "date": reservation_date_str,
                 "time": reservation_time_str,
                 "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
@@ -1036,8 +1042,12 @@ class ClientReservation(Resource):
                     reservation_association.c.restaurant_table_id,
                     reservation_association.c.date,
                     reservation_association.c.time,
-                    reservation_association.c.timestamp
-                ).where(reservation_association.c.client_id == client_id)
+                    reservation_association.c.timestamp,
+                    Restaurant.id.label('restaurant_id'),  # Fetch restaurant ID
+                    Restaurant.name.label('restaurant_name')  # Fetch restaurant name
+                )
+                .join(Restaurant, Restaurant.id == reservation_association.c.restaurant_table_id)  # Join with the Restaurant table
+                .where(reservation_association.c.client_id == client_id)
             ).fetchall()
 
         else:
@@ -1048,8 +1058,11 @@ class ClientReservation(Resource):
                     reservation_association.c.restaurant_table_id,
                     reservation_association.c.date,
                     reservation_association.c.time,
-                    reservation_association.c.timestamp
+                    reservation_association.c.timestamp,
+                    Restaurant.id.label('restaurant_id'),  # Fetch restaurant ID
+                    Restaurant.name.label('restaurant_name')  # Fetch restaurant name
                 )
+                .join(Restaurant, Restaurant.id == reservation_association.c.restaurant_table_id)  # Join with the Restaurant table
             ).fetchall()
 
         if not reservations:
@@ -1057,7 +1070,7 @@ class ClientReservation(Resource):
 
         reservations_list = []
         for reservation in reservations:
-            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
+            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp, restaurant_id, restaurant_name = reservation
 
             reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
             reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
@@ -1066,6 +1079,8 @@ class ClientReservation(Resource):
                 "reservation_id": reservation_id,
                 "client_id": client_id,
                 "restaurant_table_id": restaurant_table_id,
+                "restaurant_id": restaurant_id,  # Add restaurant ID
+                "restaurant_name": restaurant_name,  # Add restaurant name
                 "date": reservation_date_str,
                 "time": reservation_time_str,
                 "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
@@ -1073,25 +1088,6 @@ class ClientReservation(Resource):
 
         return {"reservations": reservations_list}, 200
 
-    def patch(self, client_id, reservation_id):
-        try:
-            data = request.get_json()
-            new_status = data.get("status", "Reserved")  # Default to "Reserved" if no status is provided
-
-
-            query = update(reservation_association).where(
-                reservation_association.c.id == reservation_id,
-                reservation_association.c.client_id == client_id
-            ).values(status=new_status)
-
-            db.session.execute(query)
-            db.session.commit()
-
-            return {"message": "Client reservation status updated successfully"}, 200
-
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            return {"error": str(e)}, 500
 
 api.add_resource(ClientReservation, "/reservations/client/<int:client_id>", "/reservations/client/<int:client_id>/<int:reservation_id>")
 
