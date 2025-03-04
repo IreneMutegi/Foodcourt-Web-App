@@ -992,6 +992,209 @@ api.add_resource(RestaurantTableResource,
 
 
 
+# Client Reservation Resource (GET and PATCH)
+class ClientReservation(Resource):
+    def get(self, client_id=None, reservation_id=None):
+        if reservation_id:
+            # Get reservation by reservation_id
+            reservation = db.session.execute(
+                select(
+                    reservation_association.c.id,
+                    reservation_association.c.client_id,
+                    reservation_association.c.restaurant_table_id,
+                    reservation_association.c.date,
+                    reservation_association.c.time,
+                    reservation_association.c.timestamp
+                ).where(reservation_association.c.id == reservation_id)
+            ).fetchone()
+
+            if not reservation:
+                return {"message": "Reservation not found"}, 404
+
+            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
+
+            # Convert date and time to appropriate format
+            reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
+            reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
+
+            return {
+                "reservation_id": reservation_id,
+                "client_id": client_id,
+                "restaurant_table_id": restaurant_table_id,
+                "date": reservation_date_str,
+                "time": reservation_time_str,
+                "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
+            }, 200
+
+        elif client_id:
+            # Get all reservations for a client
+            reservations = db.session.execute(
+                select(
+                    reservation_association.c.id,
+                    reservation_association.c.client_id,
+                    reservation_association.c.restaurant_table_id,
+                    reservation_association.c.date,
+                    reservation_association.c.time,
+                    reservation_association.c.timestamp
+                ).where(reservation_association.c.client_id == client_id)
+            ).fetchall()
+
+        else:
+            reservations = db.session.execute(
+                select(
+                    reservation_association.c.id,
+                    reservation_association.c.client_id,
+                    reservation_association.c.restaurant_table_id,
+                    reservation_association.c.date,
+                    reservation_association.c.time,
+                    reservation_association.c.timestamp
+                )
+            ).fetchall()
+
+        if not reservations:
+            return {"message": "No reservations found"}, 404
+
+        reservations_list = []
+        for reservation in reservations:
+            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
+
+            reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
+            reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
+
+            reservations_list.append({
+                "reservation_id": reservation_id,
+                "client_id": client_id,
+                "restaurant_table_id": restaurant_table_id,
+                "date": reservation_date_str,
+                "time": reservation_time_str,
+                "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
+            })
+
+        return {"reservations": reservations_list}, 200
+
+    def patch(self, client_id, reservation_id):
+        try:
+            data = request.get_json()
+            new_status = data.get("status", "Reserved")  # Default to "Reserved" if no status is provided
+
+
+            query = update(reservation_association).where(
+                reservation_association.c.id == reservation_id,
+                reservation_association.c.client_id == client_id
+            ).values(status=new_status)
+
+            db.session.execute(query)
+            db.session.commit()
+
+            return {"message": "Client reservation status updated successfully"}, 200
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+api.add_resource(ClientReservation, "/reservations/client/<int:client_id>", "/reservations/client/<int:client_id>/<int:reservation_id>")
+
+
+class RestaurantReservation(Resource):
+    def get(self, restaurant_id=None, reservation_id=None):
+        if reservation_id:
+            # Get reservation by reservation_id
+            reservation = db.session.execute(
+                select(
+                    reservation_association.c.id,
+                    reservation_association.c.client_id,
+                    reservation_association.c.restaurant_table_id,
+                    reservation_association.c.date,
+                    reservation_association.c.time,
+                    reservation_association.c.timestamp
+                ).where(reservation_association.c.id == reservation_id)
+            ).fetchone()
+
+            if not reservation:
+                return {"message": "Reservation not found"}, 404
+
+            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
+
+            reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
+            reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
+
+            return {
+                "reservation_id": reservation_id,
+                "client_id": client_id,
+                "restaurant_table_id": restaurant_table_id,
+                "date": reservation_date_str,
+                "time": reservation_time_str,
+                "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
+            }, 200
+
+        elif restaurant_id:
+            # Get all reservations for a restaurant
+            reservations = db.session.execute(
+                select(
+                    reservation_association.c.id,
+                    reservation_association.c.client_id,
+                    reservation_association.c.restaurant_table_id,
+                    reservation_association.c.date,
+                    reservation_association.c.time,
+                    reservation_association.c.timestamp
+                ).join(RestaurantTable).where(RestaurantTable.id == restaurant_id)
+            ).fetchall()
+
+        else:
+            reservations = db.session.execute(
+                select(
+                    reservation_association.c.id,
+                    reservation_association.c.client_id,
+                    reservation_association.c.restaurant_table_id,
+                    reservation_association.c.date,
+                    reservation_association.c.time,
+                    reservation_association.c.timestamp
+                )
+            ).fetchall()
+
+        if not reservations:
+            return {"message": "No reservations found"}, 404
+
+        reservations_list = []
+        for reservation in reservations:
+            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
+
+            reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
+            reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
+
+            reservations_list.append({
+                "reservation_id": reservation_id,
+                "client_id": client_id,
+                "restaurant_table_id": restaurant_table_id,
+                "date": reservation_date_str,
+                "time": reservation_time_str,
+                "timestamp": timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
+            })
+
+        return {"reservations": reservations_list}, 200
+
+    def patch(self, reservation_id):
+        try:
+            data = request.get_json()
+            new_status = data.get("status", "Reserved")  # Default to "Reserved" if no status is provided
+
+            # Update the reservation status for the given reservation
+            query = update(reservation_association).where(reservation_association.c.id == reservation_id).values(status=new_status)
+            db.session.execute(query)
+            db.session.commit()
+
+            return {"message": "Reservation status updated successfully"}, 200
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+
+# Add the resources to the API
+
+api.add_resource(RestaurantReservation, "/reservations/restaurant/<int:restaurant_id>", "/reservations/restaurant/<int:restaurant_id>/<int:reservation_id>")
+
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5555)
