@@ -591,6 +591,7 @@ class RestaurantOrderResource(Resource):
 
                 return {"order": order_details}, 200
             else:
+                # Fetch all orders ensuring no duplicates based on order_id and restaurant_table_id
                 orders = db.session.execute(
                     select(
                         orders_association.c.id,
@@ -603,15 +604,7 @@ class RestaurantOrderResource(Resource):
                     )
                     .join(reservation_association, reservation_association.c.client_id == orders_association.c.client_id)
                     .where(orders_association.c.restaurant_id == restaurant_id)
-                    .group_by(
-                        orders_association.c.id,
-                        orders_association.c.client_id,
-                        orders_association.c.meal_id,
-                        orders_association.c.quantity,
-                        orders_association.c.status,
-                        orders_association.c.timestamp,
-                        reservation_association.c.restaurant_table_id
-                    )
+                    .distinct(orders_association.c.id, reservation_association.c.restaurant_table_id)  # Prevent duplicates by ensuring unique table_id per order
                 ).fetchall()
 
                 if not orders:
