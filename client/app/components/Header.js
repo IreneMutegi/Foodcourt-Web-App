@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import OrdersPopup from "./ordersPopup";
 import { FiCalendar } from "react-icons/fi";
 import ReservationsPopup from "./reservationsPopup";
+import { FiCalendar } from "react-icons/fi";
 import "./Header.css";
 
 const Header = ({ setIsModalOpen }) => {
