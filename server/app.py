@@ -530,6 +530,11 @@ api.add_resource(OrdersResource,
 
 
 
+from flask_restful import Resource
+from flask import request
+from sqlalchemy import select
+from server.models import db, Client, Admin, Restaurant, Menu, orders_association, reservation_association, RestaurantTable
+
 class RestaurantOrderResource(Resource):
     # GET - Fetch all or specific orders for a restaurant or a client
     def get(self, restaurant_id=None, client_id=None, order_id=None):
@@ -561,14 +566,9 @@ class RestaurantOrderResource(Resource):
                 timestamp = order[5]
                 restaurant_table_id = order[6]
 
-                # Fetch the table number from reservation_association using the restaurant_table_id
-                reservation = db.session.execute(
-                    select(reservation_association.c.restaurant_table_id, restaurant_tables.c.table_number)
-                    .join(restaurant_tables, restaurant_tables.c.id == reservation_association.c.restaurant_table_id)
-                    .where(reservation_association.c.id == restaurant_table_id)
-                ).fetchone()
-
-                table_number = reservation.table_number if reservation else "Unknown Table"
+                # Fetch the table number from Reservation using the restaurant_table_id
+                reservation = db.session.query(reservation_association).filter_by(id=restaurant_table_id).first()
+                table_number = reservation.restaurant_table_id if reservation else "Unknown Table"
 
                 # Fetch related meal and client details
                 meal = Menu.query.get(meal_id)
@@ -639,14 +639,9 @@ class RestaurantOrderResource(Resource):
                     if restaurant_table_id in processed_table_numbers:
                         continue
 
-                    # Fetch the table number from reservation_association using the restaurant_table_id
-                    reservation = db.session.execute(
-                        select(reservation_association.c.restaurant_table_id, restaurant_tables.c.table_number)
-                        .join(restaurant_tables, restaurant_tables.c.id == reservation_association.c.restaurant_table_id)
-                        .where(reservation_association.c.id == restaurant_table_id)
-                    ).fetchone()
-
-                    table_number = reservation.table_number if reservation else "Unknown Table"
+                    # Fetch the table number from Reservation using the restaurant_table_id
+                    reservation = db.session.query(reservation_association).filter_by(id=restaurant_table_id).first()
+                    table_number = reservation.restaurant_table_id if reservation else "Unknown Table"
 
                     # Fetch related meal and client details
                     meal = Menu.query.get(meal_id)
