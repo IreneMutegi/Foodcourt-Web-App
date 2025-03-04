@@ -992,11 +992,7 @@ api.add_resource(RestaurantTableResource,
 
 
 
-# Client Reservation Resource (GET and PATCH)
-from flask import request
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import select, update
-from datetime import date, time, datetime
+
 
 class ClientReservation(Resource):
     def get(self, client_id=None, reservation_id=None):
@@ -1231,8 +1227,9 @@ class RestaurantReservation(Resource):
 
             return {"reservations": reservations_list}, 200
 
-    def patch(self, reservation_id):
+    def patch(self, restaurant_id, reservation_id):
         try:
+            # Get the data from the request body
             data = request.get_json()
             new_status = data.get("status", "Reserved")  # Default to "Reserved" if no status is provided
 
@@ -1246,6 +1243,7 @@ class RestaurantReservation(Resource):
         except SQLAlchemyError as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
 
 
 # Add the resources to the API
