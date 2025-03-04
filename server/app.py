@@ -529,7 +529,9 @@ api.add_resource(OrdersResource,
 
 
 
+# Define the Orders Resource
 class RestaurantOrderResource(Resource):
+    # GET - Fetch all or specific orders for a restaurant or a client
     def get(self, restaurant_id=None, client_id=None, order_id=None):
         if order_id:  # If order_id is provided, get specific order
             order = db.session.execute(
@@ -643,9 +645,41 @@ class RestaurantOrderResource(Resource):
 
         return {"orders": order_list}, 200
 
+    # PATCH - Update an order's details
+    def patch(self, restaurant_id, order_id):
+        order_data = request.get_json()
 
+        # Fetch the existing order
+        order = db.session.execute(
+            select(orders_association)
+            .where(orders_association.c.id == order_id)
+            .where(orders_association.c.restaurant_id == restaurant_id)
+        ).fetchone()
 
+        if not order:
+            return {"error": "Order not found"}, 404
 
+        # Update the order fields with the data provided
+        try:
+            if 'quantity' in order_data:
+                db.session.execute(
+                    orders_association.update()
+                    .where(orders_association.c.id == order_id)
+                    .where(orders_association.c.restaurant_id == restaurant_id)
+                    .values(quantity=order_data['quantity'])
+                )
+            if 'status' in order_data:
+                db.session.execute(
+                    orders_association.update()
+                    .where(orders_association.c.id == order_id)
+                    .where(orders_association.c.restaurant_id == restaurant_id)
+                    .values(status=order_data['status'])
+                )
+            db.session.commit()
+            return {"message": "Order updated successfully"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
 
     # DELETE - Delete an order by order_id and restaurant_id
     def delete(self, restaurant_id, order_id):
@@ -677,6 +711,7 @@ api.add_resource(RestaurantOrderResource,
                  '/orders/restaurants/<int:restaurant_id>/order/<int:order_id>',  # Path for single order actions
                  '/orders/restaurants/<int:restaurant_id>/client/<int:client_id>',  # Path for specific client orders
                  '/orders/restaurants/<int:restaurant_id>')  # Path for all orders from a restaurant
+
 
 
 
