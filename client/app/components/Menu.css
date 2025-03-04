@@ -50,6 +50,7 @@
   margin-bottom: 0px;
   text-align: center;
   font-size: 30px;
+  color: white;
 }
 
 .menu-container h3 {
@@ -167,7 +168,7 @@
   object-fit: cover;
   border-radius: 50%;
   position: absolute;
-  top: -50px; /* Move image upwards */
+  top: -60px; /* Move image upwards */
   left: 50%;
   transform: translateX(-50%); /* Center the image */
 }
@@ -175,7 +176,7 @@
 .menu-item h4 {
   bottom: 100px;
   margin: 5px 0; /* Reduce space above and below */
-  font-size: 16px; /* Adjust font size if needed */
+  font-size: 12px; /* Adjust font size if needed */
 }
 
 .menu-item p {
@@ -208,4 +209,27 @@
 .order-btn:hover {
   background: #17857a;
 }
+
+@media (max-width: 768px) { 
+  .menu-grid {
+    grid-template-columns: repeat(2, minmax(200px, 1fr)); 
+  }
+}
+
+@media (max-width: 500px) { 
+  .menu-grid {
+    grid-template-columns: repeat(1, minmax(200px, 1fr)); 
+  }
+  .menu-container {
+    max-width: 70%; 
+  }
+}
+@media (max-width: 1024px) { 
+  .menu-grid {
+    grid-template-columns: repeat(1, minmax(200px, 1fr)); 
+  }
+}
+
+
+
 
