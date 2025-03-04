@@ -42,8 +42,9 @@ export default function Cart() {
 
   const clientId = session?.user?.id;
   // Ensure only the logged-in client's cart items are shown
-  const clientCart = clientId ? cart.filter((item) => item.client_id === clientId) : [];
-
+  const clientCart = clientId
+    ? cart.filter((item) => item.client_id === clientId)
+    : [];
 
   const updateCartItem = (index, field, value) => {
     setCart((prevCart) =>
@@ -74,8 +75,6 @@ export default function Cart() {
       </div>
     );
   }
-
-
 
   const removeCartItem = (index) => {
     setCart((prevCart) => prevCart.filter((_, i) => i !== index));
@@ -258,7 +257,6 @@ export default function Cart() {
         {cart.map((item, index) => (
           <div key={index} className="cart-item">
             <img src={item.image} alt={item.name} className="cart-item-img" />
-
             <div className="cart-item-info">
               <h3>{item.name}</h3>
               <p className="item-price">${item.total.toFixed(2)}</p>

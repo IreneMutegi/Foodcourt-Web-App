@@ -238,3 +238,17 @@
 .orders-btn:hover{
   background: #1d7a71;
 }
+
+.reservations-btn {
+  background: #4DB6AC;
+  color: white;
+  padding: 2.5px 5px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.reservations-btn:hover {
+  background: #1d7a71;
+}

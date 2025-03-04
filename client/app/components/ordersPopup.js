@@ -1,59 +1,90 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react"; 
 import { FiX } from "react-icons/fi";
 import "./OrdersPopup.css";
 
 const API_BASE_URL = "https://foodcourt-web-app-4.onrender.com";
 
 const OrdersPopup = ({ onClose }) => {
+  const { data: session, status } = useSession();
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const statusOptions = ["Pending", "Confirmed", "Completed", "Cancelled"];
 
   useEffect(() => {
+    if (status === "loading") return;
+
+    const restaurantId = session?.user?.id;
+    if (!restaurantId) {
+      console.error("No restaurant ID found in session.");
+      return;
+    }
+
     const fetchOrders = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/orders`);
+        const response = await fetch(`${API_BASE_URL}/orders/restaurants/${restaurantId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch orders");
+        }
+
         const data = await response.json();
-        setOrders(
-          (data.orders || []).map((order) => ({
-            ...order,
-            status: "Pending", 
-          }))
-        );
+        console.log("Orders received:", data);
+
+        setOrders(data.orders || []);
       } catch (error) {
         console.error("Error fetching orders:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchOrders();
-  }, []);
+  }, [session, status]);
 
-  const toggleOrderStatus = async (index) => {
-    const updatedStatus = orders[index].status === "Pending" ? "Done" : "Pending";
+  // ✅ Function to handle status update
+  const handleStatusChange = async (orderId, newStatus) => {
+    const restaurantId = session?.user?.id; 
 
-    // Update the local state
-    setOrders((prevOrders) =>
-      prevOrders.map((order, i) =>
-        i === index
-          ? { ...order, status: updatedStatus }
-          : order
-      )
-    );
+    console.log("🔹 restaurantId:", restaurantId);
+console.log("🔹 orderId:", orderId);
+console.log("🔹 Updating status to:", newStatus);
 
-    // Update the order status in the backend
+    if (!restaurantId) {
+      console.error("🚨 No restaurant ID found in session.");
+      return;
+    }
+  
+    const url = `${API_BASE_URL}/orders/restaurants/${restaurantId}/order/${orderId}`;
+    console.log("🔹 PATCH request to:", url);
+    console.log("🔹 Request body:", JSON.stringify({ status: newStatus }));
+  
     try {
-      const response = await fetch(`${API_BASE_URL}/orders/${orders[index].id}`, {
-        method: "PATCH", // or "PUT" based on your API design
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: updatedStatus }),
+      const response = await fetch(url, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+        credentials: "include",
       });
 
+      console.log("🔹 Response status:", response.status);
+      const responseData = await response.json();
+      console.log("🔹 Response data:", responseData);
+  
       if (!response.ok) {
-        throw new Error("Failed to update order status");
+        throw new Error(`Failed to update: ${responseData.message || response.statusText}`);
       }
+  
+      // ✅ Update UI after successful patch
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.order_id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
+  
+      console.log(`✅ Order ${orderId} updated to ${newStatus}`);
     } catch (error) {
-      console.error("Error updating order status:", error);
+      console.error("🚨 Error updating order status:", error.message);
     }
   };
 
@@ -72,25 +103,31 @@ const OrdersPopup = ({ onClose }) => {
               <th>Meal</th>
               <th>Quantity</th>
               <th>Status</th>
-              <th>Action</th>
+              <th>Actions</th>  {/* ✅ Added Actions Column */}
             </tr>
           </thead>
           <tbody>
             {orders.length > 0 ? (
-              orders.map((order, index) => (
-                <tr key={index}>
-                  <td>{order.table_number}</td>
+              orders.map((order) => (
+                <tr key={order.order_id}>
+                  <td>{order.table_number || "N/A"}</td>
                   <td>{order.client_name}</td>
                   <td>{order.meal_name}</td>
                   <td>{order.quantity}</td>
-                  <td>{order.status}</td>
+                  <td className={`status ${order.status.toLowerCase()}`}>{order.status}</td>
                   <td>
-                    <button
-                      className={`status-btn ${order.status.toLowerCase()}`}
-                      onClick={() => toggleOrderStatus(index)}
+                    {/* ✅ Dropdown for selecting a new status */}
+                    <select
+                      className="actions-dropdown"
+                      onChange={(e) => handleStatusChange(order.order_id, e.target.value)}
+                      value={order.status}
                     >
-                      {order.status === "Pending" ? "Mark as Done" : "Mark as Pending"}
-                    </button>
+                      {statusOptions.map((statusOption) => (
+                        <option key={statusOption} value={statusOption}>
+                          {statusOption}
+                        </option>
+                      ))}
+                    </select>
                   </td>
                 </tr>
               ))

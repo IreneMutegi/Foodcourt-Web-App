@@ -150,3 +150,34 @@
   .toggle-switch.active::before {
     transform: translateX(25px);
   }
+  /* Style for the status dropdown */
+.status-dropdown {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  outline: none;
+}
+
+/* Status colors */
+.status-dropdown.pending {
+  background-color: #ffcc00; /* Yellow */
+  color: #333;
+}
+
+.status-dropdown.confirmed {
+  background-color: #007bff; /* Blue */
+  color: white;
+}
+
+.status-dropdown.completed {
+  background-color: #28a745; /* Green */
+  color: white;
+}
+
+.status-dropdown.canceled {
+  background-color: #dc3545; /* Red */
+  color: white;
+}
