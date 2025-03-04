@@ -1095,11 +1095,6 @@ class ClientReservation(Resource):
 api.add_resource(ClientReservation, "/reservations/client/<int:client_id>", "/reservations/client/<int:client_id>/<int:reservation_id>")
 
 
-from flask import request
-from flask_restful import Resource
-from sqlalchemy import select, update
-from datetime import datetime, date, time
-from sqlalchemy.exc import SQLAlchemyError
 
 class RestaurantReservation(Resource):
     def get(self, restaurant_id=None, reservation_id=None):
@@ -1143,7 +1138,9 @@ class RestaurantReservation(Resource):
                     reservation_association.c.date,
                     reservation_association.c.time,
                     reservation_association.c.timestamp
-                ).join(RestaurantTable).where(RestaurantTable.id == restaurant_id)
+                )
+                .join(RestaurantTable, reservation_association.c.restaurant_table_id == RestaurantTable.id)  # Join on restaurant_table_id
+                .join(orders_association, orders_association.c.restaurant_id == restaurant_id)  # Join with orders_association to filter by restaurant_id
             ).fetchall()
 
             if not reservations:
@@ -1202,26 +1199,9 @@ class RestaurantReservation(Resource):
 
             return {"reservations": reservations_list}, 200
 
-    def patch(self, reservation_id):
-        try:
-            data = request.get_json()
-            new_status = data.get("status", "Reserved")  # Default to "Reserved" if no status is provided
-
-            # Update the reservation status for the given reservation
-            query = update(reservation_association).where(reservation_association.c.id == reservation_id).values(status=new_status)
-            db.session.execute(query)
-            db.session.commit()
-
-            return {"message": "Reservation status updated successfully"}, 200
-
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            return {"error": str(e)}, 500
-
-
-# Add the resources to the API
 
 api.add_resource(RestaurantReservation, "/reservations/restaurant/<int:restaurant_id>", "/reservations/restaurant/<int:restaurant_id>/<int:reservation_id>")
+
 
 
 if __name__ == "_main_":
