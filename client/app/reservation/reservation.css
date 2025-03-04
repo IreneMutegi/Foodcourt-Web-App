@@ -1,0 +1,145 @@
+Container
+.reservations-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  margin: auto;
+  padding: 15px;
+  min-height: 100vh; /* Ensures full-screen height */
+  margin-top: 80px;
+  z-index: 10;
+  justify-content: flex-start;
+  height: 100%;
+}
+
+.empty-reservations {
+  padding-top: 50vh;
+  text-align: center;
+  background: none;
+  height: 100%;
+  width: 100%;
+}
+
+
+/* Heading */
+.heading {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  color: black;
+  padding-top: 20vh;
+}
+
+/* Reservation Card */
+.reservation-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: column; /* Stack elements */
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 10px auto; /* Ensures proper spacing */
+  width: 80%;
+  max-width: 500px;
+  border: 1px solid black;
+  text-align: center;
+  margin-bottom: 50px; /* Add space between cards */
+}
+
+.statusText {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.statusText.reserved {
+  color: #4ddacc;
+}
+
+.statusText.completed {
+  color: #07a696;
+}
+
+.statusText.pending {
+  color: #c2bf07c0;
+}
+
+.statusText.cancelled {
+  color: red;
+}
+
+.cancel-button {
+  background-color: red;
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  margin-top: auto;
+  width: 30%;
+}
+
+.cancel-button:hover {
+  background-color: darkred;
+}
+
+/* Popup Overlay */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Popup Box */
+.popup-box {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  width: 300px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Popup Buttons */
+.popup-buttons {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.confirm-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background-color: #03b4a2;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.confirm-btn:hover {
+  background-color: #c0392b;
+}
+
+.cancel-btn:hover {
+  background-color: #019687;
+}

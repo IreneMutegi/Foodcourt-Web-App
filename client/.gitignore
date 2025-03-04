@@ -10,6 +10,11 @@
 !app/cart/page.css
 !app/globals.css
 
+# allow reservation folder
+!app/reservation/
+!app/reservation/page.js
+!app/reservation/reservation.css
+
 # Allow public files
 !public/
 !public/images
