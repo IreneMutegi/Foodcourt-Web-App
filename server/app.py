@@ -1104,34 +1104,32 @@ api.add_resource(
 )
 
 
-
-
-
-
 class RestaurantReservation(Resource):
     def get(self, restaurant_id=None, reservation_id=None):
         if reservation_id:
-            # Fetch a single reservation by ID, including the status
+            # Fetch a single reservation by ID, including the status and client name
             reservation = db.session.execute(
                 select(
                     reservation_association.c.id,
-                    reservation_association.c.client_id,
+                    Client.name,  # Fetch client name
                     reservation_association.c.restaurant_table_id,
                     reservation_association.c.date,
                     reservation_association.c.time,
                     reservation_association.c.timestamp,
                     reservation_association.c.status  # Include status in the select
-                ).where(reservation_association.c.id == reservation_id)
+                )
+                .join(Client, Client.id == reservation_association.c.client_id)  # Join with Client table
+                .where(reservation_association.c.id == reservation_id)
             ).fetchone()
 
             if not reservation:
                 return {"message": "Reservation not found"}, 404
 
-            reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp, status = reservation
+            reservation_id, client_name, restaurant_table_id, reservation_date, reservation_time, timestamp, status = reservation
 
             return {
                 "reservation_id": reservation_id,
-                "client_id": client_id,
+                "client_name": client_name,  # Return the client name
                 "restaurant_table_id": restaurant_table_id,
                 "date": reservation_date.isoformat(),
                 "time": reservation_time.strftime('%H:%M:%S'),
@@ -1140,17 +1138,18 @@ class RestaurantReservation(Resource):
             }, 200
 
         elif restaurant_id:
-            # Fetch all reservations for the given restaurant by joining orders_association, including status
+            # Fetch all reservations for the given restaurant by joining orders_association and client to get client name
             reservations = db.session.execute(
                 select(
                     reservation_association.c.id,
-                    reservation_association.c.client_id,
+                    Client.name,  # Fetch client name
                     reservation_association.c.restaurant_table_id,
                     reservation_association.c.date,
                     reservation_association.c.time,
                     reservation_association.c.timestamp,
                     reservation_association.c.status  # Include status
                 )
+                .join(Client, Client.id == reservation_association.c.client_id)  # Join with Client table
                 .join(orders_association, orders_association.c.reservation_id == reservation_association.c.id)
                 .where(orders_association.c.restaurant_id == restaurant_id)  # Filter by restaurant_id from orders_association
             ).fetchall()
@@ -1160,11 +1159,11 @@ class RestaurantReservation(Resource):
 
             reservations_list = []
             for reservation in reservations:
-                reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp, status = reservation
+                reservation_id, client_name, restaurant_table_id, reservation_date, reservation_time, timestamp, status = reservation
 
                 reservations_list.append({
                     "reservation_id": reservation_id,
-                    "client_id": client_id,
+                    "client_name": client_name,  # Return the client name
                     "restaurant_table_id": restaurant_table_id,
                     "date": reservation_date.isoformat(),
                     "time": reservation_time.strftime('%H:%M:%S'),
@@ -1175,17 +1174,18 @@ class RestaurantReservation(Resource):
             return {"reservations": reservations_list}, 200
 
         else:
-            # Fetch all reservations if no restaurant_id is provided, including status
+            # Fetch all reservations if no restaurant_id is provided, including client name and status
             reservations = db.session.execute(
                 select(
                     reservation_association.c.id,
-                    reservation_association.c.client_id,
+                    Client.name,  # Fetch client name
                     reservation_association.c.restaurant_table_id,
                     reservation_association.c.date,
                     reservation_association.c.time,
                     reservation_association.c.timestamp,
                     reservation_association.c.status  # Include status
                 )
+                .join(Client, Client.id == reservation_association.c.client_id)  # Join with Client table
             ).fetchall()
 
             if not reservations:
@@ -1193,11 +1193,11 @@ class RestaurantReservation(Resource):
 
             reservations_list = []
             for reservation in reservations:
-                reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp, status = reservation
+                reservation_id, client_name, restaurant_table_id, reservation_date, reservation_time, timestamp, status = reservation
 
                 reservations_list.append({
                     "reservation_id": reservation_id,
-                    "client_id": client_id,
+                    "client_name": client_name,  # Return the client name
                     "restaurant_table_id": restaurant_table_id,
                     "date": reservation_date.isoformat(),
                     "time": reservation_time.strftime('%H:%M:%S'),
@@ -1241,6 +1241,9 @@ api.add_resource(
     "/reservations/restaurant/<int:restaurant_id>",
     "/reservations/restaurant/<int:restaurant_id>/<int:reservation_id>"
 )
+
+
+    
 
 if __name__ == "_main_":
     app.run(debug=True, port=5555)
