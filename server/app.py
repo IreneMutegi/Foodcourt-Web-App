@@ -559,11 +559,11 @@ class RestaurantOrderResource(Resource):
                 price = order[3]
                 status = order[4]
                 timestamp = order[5]
-                restaurant_table_id = order[6]  # Fetch restaurant_table_id
+                restaurant_table_id = order[6]
 
-                # Fetch the table number from RestaurantTable using the restaurant_table_id from reservation_association
-                restaurant_table = RestaurantTable.query.get(restaurant_table_id)
-                table_number = restaurant_table.table_number if restaurant_table else "Unknown Table"
+                # Fetch the table number from Reservation using the restaurant_table_id
+                reservation = Reservation.query.filter_by(id=restaurant_table_id).first()
+                table_number = reservation.table_number if reservation else "Unknown Table"
 
                 # Fetch related meal and client details
                 meal = Menu.query.get(meal_id)
@@ -591,7 +591,7 @@ class RestaurantOrderResource(Resource):
 
                 return {"order": order_details}, 200
             else:
-                # Fetch all orders ensuring no duplicates based on order_id and restaurant_table_id
+                # Fetch all orders for the restaurant
                 orders = db.session.execute(
                     select(
                         orders_association.c.id,
@@ -604,13 +604,24 @@ class RestaurantOrderResource(Resource):
                     )
                     .join(reservation_association, reservation_association.c.client_id == orders_association.c.client_id)
                     .where(orders_association.c.restaurant_id == restaurant_id)
-                    .distinct(orders_association.c.id, reservation_association.c.restaurant_table_id)  # Prevent duplicates by ensuring unique table_id per order
+                    .group_by(
+                        orders_association.c.id,
+                        orders_association.c.client_id,
+                        orders_association.c.meal_id,
+                        orders_association.c.quantity,
+                        orders_association.c.status,
+                        orders_association.c.timestamp,
+                        reservation_association.c.restaurant_table_id
+                    )
+                    .order_by(orders_association.c.timestamp)  # Order by timestamp to avoid duplicates
                 ).fetchall()
 
                 if not orders:
                     return {"error": "No orders found for this restaurant"}, 404
 
                 order_list = []
+                processed_table_numbers = set()  # Track processed table numbers to avoid duplicates
+
                 for order in orders:
                     client_id = order[1]
                     meal_id = order[2]
@@ -619,9 +630,13 @@ class RestaurantOrderResource(Resource):
                     timestamp = order[5]
                     restaurant_table_id = order[6]
 
-                    # Fetch the table number from RestaurantTable
-                    restaurant_table = RestaurantTable.query.get(restaurant_table_id)
-                    table_number = restaurant_table.table_number if restaurant_table else "Unknown Table"
+                    # Skip orders for the same table number
+                    if restaurant_table_id in processed_table_numbers:
+                        continue
+
+                    # Fetch the table number from Reservation using the restaurant_table_id
+                    reservation = Reservation.query.filter_by(id=restaurant_table_id).first()
+                    table_number = reservation.table_number if reservation else "Unknown Table"
 
                     # Fetch related meal and client details
                     meal = Menu.query.get(meal_id)
@@ -640,14 +655,15 @@ class RestaurantOrderResource(Resource):
                         "status": status,
                         "timestamp": timestamp.isoformat() if timestamp else None
                     }
+
                     order_list.append(order_details)
+                    processed_table_numbers.add(restaurant_table_id)  # Mark table number as processed
 
                 return {"orders": order_list}, 200
 
         except Exception as e:
             db.session.rollback()
             return {"error": f"An error occurred: {str(e)}"}, 500
-
 
     # PATCH - Update an order's details
     def patch(self, restaurant_id, order_id):
@@ -708,7 +724,6 @@ class RestaurantOrderResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
-
 
 # Register the resource and the endpoints with the Api object
 api.add_resource(RestaurantOrderResource, 
