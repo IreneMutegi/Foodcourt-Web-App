@@ -76,4 +76,39 @@
       width: 90%;
     }
   }
+  .status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .btn-pending {
+    background-color: orange;
+    color: white;
+  }
+  
+  .btn-reserved {
+    background-color: blue;
+    color: white;
+  }
+  
+  .btn-completed {
+    background-color:  #4db6ac;
+    color: white;
+  }
+  
+  .btn-cancelled {
+    background-color: red;
+    color: white;
+  }
+  
+  .status-dropdown {
+    padding: 5px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+  }
   
