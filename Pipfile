@@ -9,8 +9,9 @@ flask-cors = "*"
 sqlalchemy = "*"
 flask-migrate = "*"
 flask-sqlalchemy = "*"
-flask-restful = "*"
 psycopg2-binary = "*"
+flask-restful = "*"
+
 [dev-packages]
 
 [requires]
