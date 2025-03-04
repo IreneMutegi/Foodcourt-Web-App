@@ -8,10 +8,9 @@ export default function Menu({ restaurant, onClose, meals, addToCart }) {
   const { cart, setCart } = useCart();
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-
   const { data: session, status } = useSession();
 
-
+  console.log(meals);
   const handleCartToggle = (item) => {
     if (!session) {
       setShowLoginPrompt(true);
@@ -31,6 +30,8 @@ export default function Menu({ restaurant, onClose, meals, addToCart }) {
           price: item.price,
           quantity: 1,
           total: item.price,
+          image: item.image_url,
+          name: item.name,
         },
       ]);
     }
@@ -39,10 +40,17 @@ export default function Menu({ restaurant, onClose, meals, addToCart }) {
   return (
     <div className="menu-overlay">
       <div className="menu-container">
-        <button onClick={onClose} id="close-btn">X</button>
+        <button onClick={onClose} id="close-btn">
+          X
+        </button>
         <div className="menu-header">
           {restaurant.image_url && (
-             <img src={restaurant.image_url} alt={restaurant.name} className="restaurant-image" />)}
+            <img
+              src={restaurant.image_url}
+              alt={restaurant.name}
+              className="restaurant-image"
+            />
+          )}
           <h2>{restaurant.name}</h2>
         </div>
         <h3>Menu</h3>
@@ -50,7 +58,11 @@ export default function Menu({ restaurant, onClose, meals, addToCart }) {
           {meals.length > 0 ? (
             meals.map((item, index) => (
               <div key={index} className="menu-item">
-                <img src={item.image_url} alt={item.name} className="menu-image" />
+                <img
+                  src={item.image_url}
+                  alt={item.name}
+                  className="menu-image"
+                />
                 <h4>{item.name}</h4>
                 <p className="price">${item.price.toFixed(2)}</p>
                 <p className="category">{item.category}</p>

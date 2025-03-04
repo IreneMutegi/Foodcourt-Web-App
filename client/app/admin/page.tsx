@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { useSession } from "next-auth/react";
+import { useRouter, usePathname } from "next/navigation";
 import "./AdminDashboard.css";
 
 const API_URL = "https://foodcourt-web-app-4.onrender.com/restaurants"; // Backend API
