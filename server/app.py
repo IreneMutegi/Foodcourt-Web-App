@@ -529,131 +529,47 @@ api.add_resource(OrdersResource,
 
 
 
-
 class RestaurantOrderResource(Resource):
-    # GET - Fetch all or specific orders for a restaurant or a client
-    def get(self, restaurant_id=None, client_id=None, order_id=None):
+    def get(self, restaurant_id):
         try:
-            if order_id:  # If order_id is provided, get a specific order
-                order = db.session.execute(
-                    select(
-                        orders_association.c.client_id,
-                        orders_association.c.meal_id,
-                        orders_association.c.quantity,
-                        orders_association.c.price,
-                        orders_association.c.status,
-                        orders_association.c.timestamp,
-                        reservation_association.c.restaurant_table_id
-                    )
-                    .where(orders_association.c.id == order_id)
-                    .where(orders_association.c.restaurant_id == restaurant_id)
-                ).fetchone()
+            # Query for all orders for a specific restaurant
+            orders_query = db.session.query(Order).filter(Order.restaurant_id == restaurant_id)
 
-                if not order:
-                    return {"error": "Order not found"}, 404
+            # To prevent duplication, we can group orders by their unique combination of order_id and restaurant_table_id
+            orders = orders_query.all()
 
-                # Extract order details
-                client_id = order[0]
-                meal_id = order[1]
-                quantity = order[2]
-                price = order[3]
-                status = order[4]
-                timestamp = order[5]
-                restaurant_table_id = order[6]  # Fetch restaurant_table_id
+            # This dictionary will store orders grouped by order_id and restaurant_table_id
+            order_grouped = {}
 
-                # Fetch the table number from RestaurantTable using the restaurant_table_id from reservation_association
-                restaurant_table = RestaurantTable.query.get(restaurant_table_id)
-                table_number = restaurant_table.table_number if restaurant_table else "Unknown Table"
+            for order in orders:
+                # Create a unique key for each order based on order_id and restaurant_table_id
+                key = (order.order_id, order.restaurant_table_id)
+                if key not in order_grouped:
+                    order_grouped[key] = []
 
-                # Fetch related meal and client details
-                meal = Menu.query.get(meal_id)
-                client = Client.query.get(client_id)
+                order_grouped[key].append(order)
 
-                # Calculate the total
-                total = price * quantity
+            # Convert the grouped orders into a list of dictionaries for response
+            orders_data = []
+            for key, orders_in_group in order_grouped.items():
+                for order in orders_in_group:
+                    orders_data.append({
+                        "order_id": order.order_id,
+                        "client_name": order.client_name,
+                        "meal_name": order.meal_name,
+                        "table_number": order.restaurant_table_id,  # assuming restaurant_table_id is the table number
+                        "quantity": order.quantity,
+                        "price": order.price,
+                        "total": order.total,
+                        "status": order.status,
+                        "timestamp": order.timestamp.isoformat()
+                    })
 
-                # Format timestamp
-                timestamp_str = timestamp.isoformat() if timestamp else None
-
-                order_details = {
-                    "client_id": client_id,
-                    "client_name": client.name if client else "Unknown Client",
-                    "meal_id": meal_id,
-                    "meal_name": meal.name if meal else "Unknown Meal",
-                    "category": meal.category if meal else "Unknown Category",
-                    "table_number": table_number,
-                    "quantity": quantity,
-                    "price": price,
-                    "total": total,
-                    "status": status,
-                    "timestamp": timestamp_str
-                }
-
-                return {"order": order_details}, 200
-            else:
-                orders = db.session.execute(
-                    select(
-                        orders_association.c.id,
-                        orders_association.c.client_id,
-                        orders_association.c.meal_id,
-                        orders_association.c.quantity,
-                        orders_association.c.status,
-                        orders_association.c.timestamp,
-                        reservation_association.c.restaurant_table_id
-                    )
-                    .join(reservation_association, reservation_association.c.client_id == orders_association.c.client_id)
-                    .where(orders_association.c.restaurant_id == restaurant_id)
-                    .group_by(
-                        orders_association.c.id,
-                        orders_association.c.client_id,
-                        orders_association.c.meal_id,
-                        orders_association.c.quantity,
-                        orders_association.c.status,
-                        orders_association.c.timestamp,
-                        reservation_association.c.restaurant_table_id
-                    )
-                ).fetchall()
-
-                if not orders:
-                    return {"error": "No orders found for this restaurant"}, 404
-
-                order_list = []
-                for order in orders:
-                    client_id = order[1]
-                    meal_id = order[2]
-                    quantity = order[3]
-                    status = order[4]
-                    timestamp = order[5]
-                    restaurant_table_id = order[6]
-
-                    # Fetch the table number from RestaurantTable
-                    restaurant_table = RestaurantTable.query.get(restaurant_table_id)
-                    table_number = restaurant_table.table_number if restaurant_table else "Unknown Table"
-
-                    # Fetch related meal and client details
-                    meal = Menu.query.get(meal_id)
-                    client = Client.query.get(client_id)
-
-                    total = meal.price * quantity if meal else "Unknown Total"
-
-                    order_details = {
-                        "order_id": order[0],
-                        "client_name": client.name if client else "Unknown Client",
-                        "meal_name": meal.name if meal else "Unknown Meal",
-                        "table_number": table_number,
-                        "quantity": quantity,
-                        "price": meal.price if meal else "Unknown Price",
-                        "total": total,
-                        "status": status,
-                        "timestamp": timestamp.isoformat() if timestamp else None
-                    }
-                    order_list.append(order_details)
-
-                return {"orders": order_list}, 200
+            return {"orders": orders_data}, 200
 
         except Exception as e:
-            db.session.rollback()
-            return {"error": f"An error occurred: {str(e)}"}, 500
+            return {"error": str(e)}, 500
+
 
     # PATCH - Update an order's details
     def patch(self, restaurant_id, order_id):
