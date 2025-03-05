@@ -131,6 +131,7 @@ class ClientList(Resource):
         return clients_list, 200  
 
 api.add_resource(ClientList, '/clients')
+
 class RestaurantResource(Resource):
     def post(self):
         data = request.get_json()
@@ -258,7 +259,10 @@ class MenuResource(Resource):
             if not meals:
                 return {"error": "No meals found for this restaurant"}, 404
 
-            meal_list = [{"id": m.id, "name": m.name, "category": m.category, "price": m.price, "image_url": m.image_url} for m in meals]
+            meal_list = [
+                {"id": m.id, "name": m.name, "category": m.category, "price": m.price, "image_url": m.image_url}
+                for m in meals
+            ]
             return {"meals": meal_list}, 200
 
     def post(self, restaurant_id):
@@ -309,15 +313,19 @@ class MenuResource(Resource):
         if not meal:
             return {"error": "Meal not found"}, 404
 
+        # Delete all orders linked to this meal
+        Order.query.filter_by(meal_id=meal_id).delete()
+
         db.session.delete(meal)
         db.session.commit()
         return {"message": "Meal deleted successfully"}, 200
 
-
 # Update routes to support both meal-specific and restaurant-specific actions
-api.add_resource(MenuResource, 
-                 '/menu/restaurant/<int:restaurant_id>/meal/<int:meal_id>', 
-                 '/menu/restaurant/<int:restaurant_id>')
+api.add_resource(
+    MenuResource,
+    '/menu/restaurant/<int:restaurant_id>/meal/<int:meal_id>',
+    '/menu/restaurant/<int:restaurant_id>'
+)
 
 
 
