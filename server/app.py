@@ -218,10 +218,12 @@ class RestaurantResource(Resource):
 
     # Delete related orders associations from orders_association table
         db.session.execute(
-        orders_association.delete().where(orders_association.c.meal_id == restaurant_id)
+            orders_association.delete().where(orders_association.c.meal_id.in_(
+            db.session.query(Menu.id).filter(Menu.restaurant_id == restaurant_id)
+        ))
     )
 
-        # Delete related menu items
+    # Delete related menu items
         Menu.query.filter_by(restaurant_id=restaurant_id).delete()
 
     # Now delete the restaurant
@@ -229,6 +231,7 @@ class RestaurantResource(Resource):
         db.session.commit()
 
         return {"message": "Restaurant and its menu items deleted successfully"}, 200
+
 
 
 
