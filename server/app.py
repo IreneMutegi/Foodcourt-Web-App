@@ -173,13 +173,13 @@ class RestaurantResource(Resource):
                 "email": restaurant.email,
                 "image_url": restaurant.image_url
             }, 200
-        
+
         if name:
             restaurants = Restaurant.query.filter_by(name=name).all()
             if not restaurants:
                 return {"error": "No restaurants found with that name"}, 404
             return [{"id": r.id, "name": r.name, "cuisine": r.cuisine} for r in restaurants], 200
-        
+
         if cuisine:
             restaurants = Restaurant.query.filter_by(cuisine=cuisine).all()
             if not restaurants:
@@ -215,17 +215,23 @@ class RestaurantResource(Resource):
         if not restaurant:
             return {"error": "Restaurant not found"}, 404
 
+        # Delete related menu items first
+        Menu.query.filter_by(restaurant_id=restaurant_id).delete()
+
+        # Now delete the restaurant
         db.session.delete(restaurant)
         db.session.commit()
 
-        return {"message": "Restaurant deleted successfully"}, 200
+        return {"message": "Restaurant and its menu items deleted successfully"}, 200
 
 
-api.add_resource(RestaurantResource, 
-                 '/restaurants', 
-                 '/restaurants/<int:restaurant_id>', 
-                 '/restaurants/name/<string:name>',
-                 '/restaurants/cuisine/<string:cuisine>')
+api.add_resource(
+    RestaurantResource,
+    '/restaurants',
+    '/restaurants/<int:restaurant_id>',
+    '/restaurants/name/<string:name>',
+    '/restaurants/cuisine/<string:cuisine>'
+)
 
 
 
