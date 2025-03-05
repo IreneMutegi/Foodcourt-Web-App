@@ -216,14 +216,20 @@ class RestaurantResource(Resource):
         if not restaurant:
             return {"error": "Restaurant not found"}, 404
 
-        # Delete related menu items first
+    # Delete related orders associations from orders_association table
+        db.session.execute(
+        orders_association.delete().where(orders_association.c.meal_id == restaurant_id)
+    )
+
+        # Delete related menu items
         Menu.query.filter_by(restaurant_id=restaurant_id).delete()
 
-        # Now delete the restaurant
+    # Now delete the restaurant
         db.session.delete(restaurant)
         db.session.commit()
 
         return {"message": "Restaurant and its menu items deleted successfully"}, 200
+
 
 
 api.add_resource(
