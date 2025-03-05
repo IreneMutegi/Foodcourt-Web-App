@@ -236,7 +236,6 @@ api.add_resource(
 
 
 
-
 class MenuResource(Resource):
     def get(self, restaurant_id, meal_id=None):
         if meal_id:
@@ -314,7 +313,9 @@ class MenuResource(Resource):
             return {"error": "Meal not found"}, 404
 
         # Delete all orders linked to this meal
-        Order.query.filter_by(meal_id=meal_id).delete()
+        db.session.execute(
+            orders_association.delete().where(orders_association.c.meal_id == meal_id)
+        )
 
         db.session.delete(meal)
         db.session.commit()
