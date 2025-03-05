@@ -104,6 +104,12 @@ const Header = ({ setIsModalOpen }) => {
                 </Link>
               </li>
               <li>
+                <Link href="/reservation" onClick={() => setIsOpen(false)} className="nav-item">
+                  <FiCalendar size={26} />
+                  <span> My Reservation</span>
+                </Link>
+              </li>
+              <li>
                 <Link href="/about" onClick={() => setIsOpen(false)} className="nav-item">
                   <FiInfo size={26} />
                   <span>About</span>

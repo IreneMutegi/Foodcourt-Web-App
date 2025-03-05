@@ -6,7 +6,7 @@
       "password": "password123"
     },
     {
-      "id": "1aee",
+      "id": "5",
       "email": "zipporah@gmail.com",
       "password": "12345"
     },
@@ -60,20 +60,37 @@
       "password": "12345"
     }
   ],
-    "orders": [
-      {
-        "client_id": 1,
-        "client_name": "cullen",
-        "restaurant_id": 2,
-        "restaurant_name": "Javas House",
-        "meal_id": 2,
-        "meal_name": "fried chicken",
-        "category": "Dinner",
-        "restaurant_table_id": 1,
-        "quantity": 2,
-        "price": 12,
-        "total": 24
-      }
-    ]
-  
+  "orders": [
+    {
+      "client_id": 1,
+      "client_name": "cullen",
+      "restaurant_id": 2,
+      "restaurant_name": "Javas House",
+      "meal_id": 2,
+      "meal_name": "fried chicken",
+      "category": "Dinner",
+      "restaurant_table_id": 1,
+      "quantity": 2,
+      "price": 12,
+      "total": 24
+    }
+  ],
+  "reservations": [
+    {
+      "id": "r1",
+      "clientId": "1",
+      "tableNumber": "5",
+      "date": "2025-03-10",
+      "time": "18:00",
+      "status": "reserved"
+    },
+    {
+      "id": "5",
+      "clientId": "5",
+      "tableNumber": "2",
+      "date": "2025-03-12",
+      "time": "19:30",
+      "status": "reserved"
+    }
+  ]
 }
