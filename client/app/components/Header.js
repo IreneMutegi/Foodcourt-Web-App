@@ -1,12 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FiMenu, FiX, FiUser, FiHome, FiShoppingCart, FiShoppingBag, FiInfo, FiCalender } from "react-icons/fi";
+import { FiMenu, FiX, FiUser, FiHome, FiShoppingCart, FiShoppingBag, FiInfo} from "react-icons/fi";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import OrdersPopup from "./ordersPopup";
-import ReservationsPopup from "./reservationsPopup";
 import { FiCalendar } from "react-icons/fi";
+import ReservationsPopup from "./reservationsPopup";
+// import { FiCalendar } from "react-icons/fi";
 import "./Header.css";
 
 const Header = ({ setIsModalOpen }) => {
@@ -67,7 +68,7 @@ const Header = ({ setIsModalOpen }) => {
                   onClick={() => setShowOrdersPopup(true)}
                   className="nav-item orders-btn"
                 >
-                  <FiShoppingCart size={26} />
+                  { <FiShoppingCart size={26} /> }
                   <span>Orders</span>
                 </button>
               </li>
