@@ -11,7 +11,8 @@ Container
   margin-top: 80px;
   z-index: 10;
   justify-content: flex-start;
-  height: 100%;
+  height: auto;
+  flex-grow: 1;
 }
 
 .empty-reservations {
@@ -142,4 +143,29 @@ Container
 
 .cancel-btn:hover {
   background-color: #019687;
+}
+
+@media screen and (max-width: 1024px) {
+  .reservations-container {
+    min-height: calc(100vh - 100px);  
+    /* max-width: 750px;  */
+  }
+  body {
+    width: 100vw; /* Ensures full width usage */
+    overflow-x: hidden; /* Prevents horizontal scrolling */
+  }
+
+  .empty-reservations {
+    padding-top: 15vh; /* Reduce padding further */
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .reservations-container {
+    min-height: auto;
+  }
+
+  .footer {
+    position: relative; /* Prevent floating issues */
+  }
 }

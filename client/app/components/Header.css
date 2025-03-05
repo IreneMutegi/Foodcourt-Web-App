@@ -45,7 +45,7 @@
   .name-btn {
     background: #4DB6AC; 
     color: white; /* Dark text for contrast */
-    padding: 10px 15px;
+    padding: 5px;
     border-radius: 5px;
     text-decoration: none;
     font-weight: bold;
@@ -55,8 +55,18 @@
     overflow: visible; /* Allow full text to be visible */
     text-align: center; /* Center the text */
     max-width: fit-content; /* Ensure it adjusts to content size */
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   
+  .user-name {
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 2px;
+  }
+
   .name-btn:hover {
     background: #388E8E; /* Slightly darker gold */
   }
@@ -79,7 +89,7 @@
 
   .dropdown-menu {
     position: absolute;
-    top: 45px;
+    top: 50px;
     border: 1px solid #ddd;
     border-radius: 5px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
@@ -252,3 +262,12 @@
 .reservations-btn:hover {
   background: #1d7a71;
 }
+
+@media screen and (max-width: 1280px) { /* Surface Pro 7 */
+  .navList {
+    gap: 30px; /* Reduce spacing between nav items */
+  }
+  
+}
+
+ 
