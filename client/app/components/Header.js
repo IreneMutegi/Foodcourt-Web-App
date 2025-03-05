@@ -17,19 +17,8 @@ const Header = ({ setIsModalOpen }) => {
   const isAdminPage = pathname.startsWith("/admin");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { data: session } = useSession();
-  const [showWelcome, setShowWelcome] = useState(true);
   const [showOrdersPopup, setShowOrdersPopup] = useState(false);
   const [showReservationsPopup, setShowReservationsPopup] = useState(false);
-
-  useEffect(() => {
-    if (session) {
-      setShowWelcome(true);
-      const timer = setTimeout(() => {
-        setShowWelcome(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [session]);
 
   useEffect(() => {
     setDropdownOpen(false);
@@ -118,9 +107,12 @@ const Header = ({ setIsModalOpen }) => {
               <li className="user-dropdown">
                 {session ? (
                   <div className="user-container">
-                    <button className="name-btn" onClick={() => setDropdownOpen(!dropdownOpen)}>
-                      {showWelcome ? `Welcome ${session.user.name}` : <FiUser size={20} />}
-                    </button>
+                 <button className="name-btn" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                   <FiUser size={21} />
+                  <span className="user-name">
+                    {session.user.name.split(" ")[0].charAt(0).toUpperCase() + session.user.name.split(" ")[0].slice(1)}
+                  </span>
+                 </button>
                     {dropdownOpen && (
                       <div className="dropdown-menu">
                         <button onClick={logout}>Logout</button>
