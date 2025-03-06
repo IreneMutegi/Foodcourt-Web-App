@@ -976,7 +976,8 @@ class RestaurantTableResource(Resource):
         if "admin" in data:
             table.admin = data["admin"]
         if "status" in data:  # Check if status is provided and update it
-            table.status = data["status"]
+            if table.status != data["status"]:  # Only update if the status is different
+                table.status = data["status"]
 
         try:
             db.session.commit()  # Commit changes to the database
@@ -984,6 +985,7 @@ class RestaurantTableResource(Resource):
         except Exception as e:
             db.session.rollback()  # Rollback changes in case of an error
             return {"error": str(e)}, 500  # Return error message if update fails
+
 
     def delete(self, table_id):
         table = RestaurantTable.query.get(table_id)
