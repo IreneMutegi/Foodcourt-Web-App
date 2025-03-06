@@ -92,6 +92,9 @@ export default function OrdersHistory() {
                 <p className="orderStatus">Status:{" "}
                   <span className={`statusText ${order.status.toLowerCase()}`}>{order.status}</span>
                  </p>
+                 {order.status.toLowerCase() === "confirmed" && (
+                <p className="orderMessage confirmed">Your order will be served in 20 mins</p>
+                  )}
                 <div className="rating">
                   {[...Array(5)].map((_, index) => {
                     const ratingValue = index + 1;

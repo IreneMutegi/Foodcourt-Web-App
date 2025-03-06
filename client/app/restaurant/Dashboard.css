@@ -10,6 +10,10 @@
   height: 100vh;
 }
 
+.dish-table tr {
+  height: 80px; 
+}
+
 @media (max-width: 768px) {
   .dashboard {
     padding: 10px; /* Reduce padding for smaller screens */
@@ -49,7 +53,9 @@
 .dish-table th:last-child,
 .dish-table td:last-child {
   text-align: center;
-  width: 160px; /* Adjust width to match other columns */
+  width: 160px; 
+  height: 100%; /* Matches row height */
+  vertical-align: middle;
 }
 
 /* Add Dish Button (UNCHANGED) */
@@ -90,6 +96,8 @@
   padding: 10px;
   border-bottom: 1px solid #ddd;
   font-size: 14px;
+  vertical-align: middle;
+  height: 100%;
 }
 
 /* Alternate row colors for better readability */
@@ -114,11 +122,13 @@
 /* Center the Buttons in the Actions Column */
 .actions {
   display: flex;
-  justify-content: center;
-  align-items: center;
   gap: 10px;
-  width: 100%;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  margin-top: 24px;
 }
+
 
 /* Edit & Delete Buttons */
 .edit-btn,
@@ -134,6 +144,7 @@
   border-radius: 8px;
   font-size: 16px;
   transition: transform 0.2s ease-in-out, background 0.2s ease-in-out;
+  height: 100%;
 }
 
 .edit-btn {
