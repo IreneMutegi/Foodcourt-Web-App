@@ -1,13 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FiMenu, FiX, FiUser, FiHome, FiShoppingCart, FiShoppingBag, FiInfo} from "react-icons/fi";
+import { FiMenu, FiX, FiUser, FiHome, FiShoppingCart, FiShoppingBag, FiInfo, FiCalendar, FiTable } from "react-icons/fi";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import OrdersPopup from "./ordersPopup";
-import { FiCalendar } from "react-icons/fi";
 import ReservationsPopup from "./reservationsPopup";
-// import { FiCalendar } from "react-icons/fi";
+import TablesPopup from "./tablesPopup"; // Import TablesPopup component
 import "./Header.css";
 
 const Header = ({ setIsModalOpen }) => {
@@ -17,19 +16,9 @@ const Header = ({ setIsModalOpen }) => {
   const isAdminPage = pathname.startsWith("/admin");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { data: session } = useSession();
-  const [showWelcome, setShowWelcome] = useState(true);
   const [showOrdersPopup, setShowOrdersPopup] = useState(false);
   const [showReservationsPopup, setShowReservationsPopup] = useState(false);
-
-  useEffect(() => {
-    if (session) {
-      setShowWelcome(true);
-      const timer = setTimeout(() => {
-        setShowWelcome(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [session]);
+  const [showTablesPopup, setShowTablesPopup] = useState(false); // New state for TablesPopup
 
   useEffect(() => {
     setDropdownOpen(false);
@@ -39,9 +28,6 @@ const Header = ({ setIsModalOpen }) => {
     signOut({ callbackUrl: "/" });
     setIsOpen(false);
   };
-
-  // <Link href={`/orders/${session?.user?.id}`}>My Orders</Link>
-
 
   return (
     <header className="header">
@@ -54,7 +40,20 @@ const Header = ({ setIsModalOpen }) => {
       <nav className={`nav ${isOpen ? "open" : ""}`}>
         <ul className="navList">
           {isAdminPage ? (
-            <li><button onClick={logout} className="nav-item logout-btn">Logout</button></li>
+            <>
+              <li>
+                <button 
+                  onClick={() => setShowTablesPopup(true)} 
+                  className="nav-item tables-btn"
+                >
+                  <FiTable size={26} />
+                  <span>Tables</span>
+                </button>
+              </li>
+              <li>
+                <button onClick={logout} className="nav-item logout-btn">Logout</button>
+              </li>
+            </>
           ) : isRestaurantPage ? (
             <>
               <li>
@@ -68,7 +67,7 @@ const Header = ({ setIsModalOpen }) => {
                   onClick={() => setShowOrdersPopup(true)}
                   className="nav-item orders-btn"
                 >
-                  { <FiShoppingCart size={26} /> }
+                  <FiShoppingCart size={26} />
                   <span>Orders</span>
                 </button>
               </li>
@@ -81,7 +80,9 @@ const Header = ({ setIsModalOpen }) => {
                   <span>Reservations</span>
                 </button>
               </li>
-              <li><button onClick={logout} className="nav-item logout-btn">Logout</button></li>
+              <li>
+                <button onClick={logout} className="nav-item logout-btn">Logout</button>
+              </li>
             </>
           ) : (
             <>
@@ -118,9 +119,12 @@ const Header = ({ setIsModalOpen }) => {
               <li className="user-dropdown">
                 {session ? (
                   <div className="user-container">
-                    <button className="name-btn" onClick={() => setDropdownOpen(!dropdownOpen)}>
-                      {showWelcome ? `Welcome ${session.user.name}` : <FiUser size={20} />}
-                    </button>
+                 <button className="name-btn" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                   <FiUser size={21} />
+                  <span className="user-name">
+                    {session.user.name.split(" ")[0].charAt(0).toUpperCase() + session.user.name.split(" ")[0].slice(1)}
+                  </span>
+                 </button>
                     {dropdownOpen && (
                       <div className="dropdown-menu">
                         <button onClick={logout}>Logout</button>
@@ -138,6 +142,7 @@ const Header = ({ setIsModalOpen }) => {
 
       {showOrdersPopup && <OrdersPopup onClose={() => setShowOrdersPopup(false)} />}
       {showReservationsPopup && <ReservationsPopup onClose={() => setShowReservationsPopup(false)} />}
+      {showTablesPopup && <TablesPopup onClose={() => setShowTablesPopup(false)} />} {/* New Tables Popup */}
     </header>
   );
 };

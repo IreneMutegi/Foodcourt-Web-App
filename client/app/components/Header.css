@@ -13,7 +13,7 @@
   height: 2.1cm;
   margin: 0;
   padding: 0;
-  display: flex; 
+  display: flex;
   align-items: center;
 }
 
@@ -22,175 +22,188 @@
   padding-top: 70px; 
 } */
 
-  /* Logo Styling */
-  /* .logo {
+/* Logo Styling */
+/* .logo {
     font-size: 1.5rem;
     font-weight: bold;
   } */
 
-  .login-btn, .logout-btn {
-    background: #4DB6AC;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: bold;
-    cursor: pointer;
-  }
+.login-btn,
+.logout-btn {
+  background: #4db6ac;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  cursor: pointer;
+}
 
-  .login-btn, .logout-btn:hover {
-    background: #388E8E;
-  }
+.login-btn,
+.logout-btn:hover {
+  background: #388e8e;
+}
 
-  .name-btn {
-    background: #4DB6AC; 
-    color: white; /* Dark text for contrast */
-    padding: 10px 15px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-    white-space: nowrap; /* Prevent text from wrapping */
-    overflow: visible; /* Allow full text to be visible */
-    text-align: center; /* Center the text */
-    max-width: fit-content; /* Ensure it adjusts to content size */
-  }
-  
-  .name-btn:hover {
-    background: #388E8E; /* Slightly darker gold */
-  }
+.name-btn {
+  background: #4db6ac;
+  color: white; /* Dark text for contrast */
+  padding: 5px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap; /* Prevent text from wrapping */
+  overflow: visible; /* Allow full text to be visible */
+  text-align: center; /* Center the text */
+  max-width: fit-content; /* Ensure it adjusts to content size */
 
-  .user-container {
-    display: flex;
-    align-items: center;
-    margin-right: 30px; /* Adjust this as needed */
-    position: relative;
-  }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  .user-dropdown {
-    position: relative;
-    display: flex;
-    align-items: center;
-    margin-right: 30px; /* Adjust this as needed */
-    justify-content: center;
-    overflow: visible; /* Allow text to expand */
-  }
+.user-name {
+  font-size: 12px;
+  font-weight: bold;
+  margin-top: 2px;
+}
 
-  .dropdown-menu {
-    position: absolute;
-    top: 45px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-  }
+.name-btn:hover {
+  background: #388e8e; /* Slightly darker gold */
+}
 
-  .dropdown-menu button {
-    color: rgb(255, 255, 255);
-    background: #388E8E;
-    border: none;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 5px;
-    text-align: left;
-    text-decoration: none;
-    display: block;
-    width: 100%;
-    padding: 5px; 
-  }
+.user-container {
+  display: flex;
+  align-items: center;
+  margin-right: 30px; /* Adjust this as needed */
+  position: relative;
+}
 
-  .dropdown-menu button:hover{
-    background: #025c54;
-  }
+.user-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-right: 30px; /* Adjust this as needed */
+  justify-content: center;
+  overflow: visible; /* Allow text to expand */
+}
 
-  
-  /* Desktop Navigation */
-  .nav {
-    display: flex;
-  }
-  
-  .navList {
-    list-style: none;
-    display: flex;
-    gap: 90px;
-  }
-  
-  .navList li {
-    padding: 10px;
-  }
-  
-  .navList a {
-    color: white;
-    text-decoration: none;
-    font-size: 1rem;
-  }
-  
-  .navList a:hover {
-    text-decoration: underline;
-  }
-  
-  /* Hamburger Menu Button */
+.dropdown-menu {
+  position: absolute;
+  top: 50px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.dropdown-menu button {
+  color: rgb(255, 255, 255);
+  background: #388e8e;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px;
+  text-align: left;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  padding: 5px;
+}
+
+.dropdown-menu button:hover {
+  background: #025c54;
+}
+
+/* Desktop Navigation */
+.nav {
+  display: flex;
+}
+
+.navList {
+  list-style: none;
+  display: flex;
+  gap: 90px;
+}
+
+.navList li {
+  padding: 10px;
+}
+
+.navList a {
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.navList a:hover {
+  text-decoration: underline;
+}
+
+/* Hamburger Menu Button */
+.menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
   .menu-btn {
-    display: none;
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.8rem;
-    cursor: pointer;
-  }
-  
-  /* Mobile Styles */
-  @media (max-width: 768px) {
-    .menu-btn {
-      display: block;
-    }
-  
-    .nav {
-      position: absolute;
-      top: 60px;
-      right: 0;
-      background: #333;
-      width: 100%;
-      height: 0;
-      overflow: hidden;
-      transition: height 0.3s ease-in-out;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-  
-    .nav.open {
-      height: auto;
-      padding: 10px 0;
-    }
-  
-    .navList {
-      flex-direction: column;
-      width: 100%;
-      text-align: center;
-    }
-  
-    .navList li {
-      padding: 15px 0;
-    }
+    display: block;
   }
 
-  .navList a {
-    color: white;
-    text-decoration: none;
-    font-size: 1.5rem; /* Make icons bigger */
+  .nav {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background: #333;
+    width: 100%;
+    height: 0;
+    overflow: hidden;
+    transition: height 0.3s ease-in-out;
     display: flex;
+    flex-direction: column;
     align-items: center;
+  }
+
+  .nav.open {
+    height: auto;
+    padding: 10px 0;
+  }
+
+  .navList {
+    flex-direction: column;
+    width: 100%;
+    text-align: center;
     justify-content: center;
+    align-items: center;
   }
-  
-  .navList a:hover {
-    text-decoration: none;
-    color: #4DB6AC;
+
+  .navList li {
+    padding: 15px 0;
   }
-  
-  /* Icons with Text */
+}
+
+.navList a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.5rem; /* Make icons bigger */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navList a:hover {
+  text-decoration: none;
+  color: #4db6ac;
+}
+
+/* Icons with Text */
 .nav-item {
   display: flex;
   flex-direction: column;
@@ -205,20 +218,20 @@
   font-size: 12px;
 }
 
-.user-btn{
-  background: #4DB6AC;
+.user-btn {
+  background: #4db6ac;
   color: white;
   padding: 10px 15px;
   border-radius: 5px;
   text-decoration: none;
   font-weight: bold;
-  cursor: pointer; 
+  cursor: pointer;
 }
 
-  .user-btn:hover {
-    background: #4DB6AC;
-  }
-.logo{
+.user-btn:hover {
+  background: #4db6ac;
+}
+.logo {
   font-size: 1.5rem; /* Adjust size if needed */
   font-weight: bold;
   margin-left: 20px; /* Add space from the left */
@@ -226,29 +239,51 @@
   align-items: center;
 }
 
-.orders-btn{
-  background: #4DB6AC;
+.orders-btn, .reservations-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   color: white;
-  padding: 2.5px 5px;
-  border-radius: 5px;
-  text-decoration: none;
-  font-weight: bold;
-  cursor: pointer; 
-}
-.orders-btn:hover{
-  background: #1d7a71;
-}
-
-.reservations-btn {
-  background: #4DB6AC;
-  color: white;
-  padding: 2.5px 5px;
-  border-radius: 5px;
-  text-decoration: none;
-  font-weight: bold;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
   cursor: pointer;
+  text-decoration: none;
 }
 
-.reservations-btn:hover {
-  background: #1d7a71;
+.orders-btn span, .reservations-btn span {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.orders-btn:hover, .reservations-btn:hover {
+  color: #4DB6AC; /* Change color on hover to match client-side links */
+}
+
+.tables-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.tables-btn span {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.tables-btn:hover {
+  color: #4DB6AC; /* Change color on hover */
+}
+
+@media screen and (max-width: 1280px) {
+  /* Surface Pro 7 */
+  .navList {
+    gap: 30px; /* Reduce spacing between nav items */
+  }
 }

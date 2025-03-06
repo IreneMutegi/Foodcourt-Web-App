@@ -19,8 +19,8 @@ export default function Cart() {
     new Date().toISOString().split("T")[0]
   );
   const [selectedTime, setSelectedTime] = useState("");
-  const [isOrdering, setIsOrdering] = useState(false)
-  const [isReserving, setIsReserving] = useState(false)
+  const [isOrdering, setIsOrdering] = useState(false);
+  const [isReserving, setIsReserving] = useState(false);
 
   const { data: session, status } = useSession();
 
@@ -34,7 +34,8 @@ export default function Cart() {
           throw new Error("Failed to fetch tables");
         }
         const data = await response.json();
-        setTables(data.tables);
+        const availableTables = data.tables.filter((table) => table.status.toLowerCase() === "available")
+        setTables(availableTables);
       } catch (error) {
         console.error("Error fetching tables", error);
       }
@@ -64,7 +65,7 @@ export default function Cart() {
   };
 
   const totalAmount = parseFloat(
-    cart.reduce((sum, item) => sum + item.total, 0).toFixed(2)
+    clientCart.reduce((sum, item) => sum + item.total, 0).toFixed(2)
   );
 
   if (!clientId || cart.length === 0) {
@@ -94,7 +95,7 @@ export default function Cart() {
       return;
     }
 
-    setIsOrdering(true)
+    setIsOrdering(true);
     const table = tables.find((t) => t.table_number === tableNumber);
     if (!table) {
       console.error("Invalid table selected, check tables list", tables);
@@ -165,8 +166,8 @@ export default function Cart() {
       console.log("All orders placed successfully");
     } catch (error) {
       console.error("Error processing orders", error);
-    }finally{
-      setIsOrdering(false)
+    } finally {
+      setIsOrdering(false);
     }
   };
 
@@ -178,7 +179,7 @@ export default function Cart() {
 
     const tableId = table.restaurant_table_id;
     const formattedTime = `${time}:00`;
-    setIsReserving(true)
+    setIsReserving(true);
     try {
       console.log({
         client_id: Number(session.user.id),
@@ -208,8 +209,8 @@ export default function Cart() {
       await placeOrders(reservationId);
     } catch (error) {
       console.error("Error processing reservation", error);
-    }finally{
-      setIsReserving(false)
+    } finally {
+      setIsReserving(false);
     }
   };
 
@@ -248,7 +249,7 @@ export default function Cart() {
     }
   };
 
-  if (cart.length === 0) {
+  if (clientCart.length === 0) {
     return (
       <div className="cart-container">
         <div className="empty-cart">
@@ -262,7 +263,7 @@ export default function Cart() {
     <div className="cart-container">
       <h2>My Cart</h2>
       <div className="cart-items">
-        {cart.map((item, index) => (
+        {clientCart.map((item, index) => (
           <div key={index} className="cart-item">
             <img src={item.image} alt={item.name} className="cart-item-img" />
             <div className="cart-item-info">
@@ -353,7 +354,11 @@ export default function Cart() {
                   ))}
                 </select>
                 <div className="modal-buttons">
-                  <button onClick={handleOrder}>{isOrdering ? "Ordering..." : "Make Order"}</button>
+
+                  <button onClick={handleOrder}>
+                    {isOrdering ? "Ordering..." : "Make Order"}
+                  </button>
+
                   <button
                     onClick={() => {
                       setShowPrompt(false);
@@ -415,7 +420,9 @@ export default function Cart() {
                     }
                     disabled={!selectedTable || !selectedDate || !selectedTime}
                   >
-                    {isReserving ? "Making Reservation...." : "Make Reservation"}
+
+                    {isReserving ? "Reserving.." : "Make Reservation"}
+
                   </button>
                   <button
                     onClick={() => {

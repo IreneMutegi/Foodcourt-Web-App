@@ -1,0 +1,104 @@
+.tables-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 10px;
+  }
+  
+  .tables-popup {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 85vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 2px solid #4db6ac;
+    position: relative;
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 22px;
+    color: #333;
+  }
+  
+  .tables-popup h2 {
+    margin-bottom: 15px;
+    font-size: 20px;
+    text-align: center;
+    color: #222;
+  }
+  
+  .tables-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+  }
+  
+  .tables-table th,
+  .tables-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+    color: black;
+    font-size: 14px;
+  }
+  
+  .tables-table th {
+    background: #4db6ac;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .tables-table tr:nth-child(even) {
+    background: #f9f9f9;
+  }
+  
+  .tables-table tr:hover {
+    background: #e0f2f1;
+  }
+  
+  /* Status Badge Colors */
+  .status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .btn-available {
+    background-color: green;
+    color: white;
+  }
+  
+  .btn-occupied {
+    background-color: red;
+    color: white;
+  }
+  
+  /* Dropdown styling */
+  .status-dropdown {
+    padding: 6px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+  }
+  
