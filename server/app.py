@@ -918,6 +918,11 @@ api.add_resource(ReservationResource, '/reservations', '/reservations/<int:reser
 
 
 
+from datetime import datetime, timedelta, timezone
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
 class RestaurantTableResource(Resource):
     def get(self):
         tables = RestaurantTable.query.all()  # Fetch all tables
@@ -926,26 +931,23 @@ class RestaurantTableResource(Resource):
             return {"error": "No tables found"}, 404
 
         current_time = datetime.now(timezone.utc)  # Get current UTC time
-        three_hours_ago = current_time - timedelta(hours=3)
+        three_hours_later = current_time + timedelta(hours=3)  # Time window for next 3 hours
 
         tables_list = []
         for table in tables:
+            # Check if there are any confirmed reservations for the table within the next 3 hours
             latest_reservation = db.session.query(reservation_association).filter(
                 reservation_association.c.restaurant_table_id == table.id,
                 reservation_association.c.status == "Confirmed",  # Only check confirmed reservations
-                (reservation_association.c.date + reservation_association.c.time) >= three_hours_ago
-            ).order_by(reservation_association.c.date.desc(), reservation_association.c.time.desc()).first()
-
-            latest_order = db.session.query(orders_association).filter(
-                orders_association.c.restaurant_table_id == table.id,
-                orders_association.c.status == "Confirmed",  # Only check confirmed orders
-                orders_association.c.timestamp >= three_hours_ago
+                reservation_association.c.date == current_time.date(),  # Reservation should be on today's date
+                reservation_association.c.time >= current_time.time(),  # Reservation time should be in the future
+                reservation_association.c.time <= three_hours_later.time()  # Reservation time should be within the next 3 hours
             ).first()
 
-            table_status = "Available"
+            table_status = "Available"  # Default status is "Available"
 
-            if latest_reservation or latest_order:
-                table_status = "Not Available"
+            if latest_reservation:
+                table_status = "Not Available"  # Mark as "Not Available" if there's a reservation in the next 3 hours
 
             tables_list.append({
                 "restaurant_table_id": table.id,
@@ -956,6 +958,7 @@ class RestaurantTableResource(Resource):
             })
 
         return {"tables": tables_list}, 200
+
 
 
     def post(self):
