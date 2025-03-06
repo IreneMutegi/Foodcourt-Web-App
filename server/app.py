@@ -920,7 +920,7 @@ api.add_resource(ReservationResource, '/reservations', '/reservations/<int:reser
 
 
 class RestaurantTableResource(Resource):
-    
+
     def get(self):
         tables = RestaurantTable.query.all()  # Fetch all tables
 
@@ -949,10 +949,14 @@ class RestaurantTableResource(Resource):
             return {"error": "Missing required fields"}, 400
 
         try:
+            # Ensure that 'status' is set to 'Available' by default if not provided
+            status = data.get('status', 'Available')
+
             new_table = RestaurantTable(
                 table_number=data['table_number'],
                 capacity=data['capacity'],
-                admin=data['admin']
+                admin=data['admin'],
+                status=status  # Adding status with default value 'Available'
             )
 
             db.session.add(new_table)
