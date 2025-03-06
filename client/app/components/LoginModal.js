@@ -1,10 +1,11 @@
 "use client";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import "./LoginModal.css";
 
 const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
+  
   const [selectedRole, setSelectedRole] = useState(null);
   const [hasAccount, setHasAccount] = useState(true);
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
@@ -119,7 +120,7 @@ const LoginModal = ({ isOpen, onClose, isAdminLogin = false }) => {
         }
       }
     }
-  } catch {
+  } catch  {
     setError("Something went wrong. Please try again.");
   } finally {
     setLoading(false); // Stop loading
