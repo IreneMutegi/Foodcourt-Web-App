@@ -4,7 +4,7 @@ from flask_restful import Api, Resource
 from flask_migrate import Migrate
 from server.models import db, Client, Admin, Restaurant, Menu, orders_association, reservation_association ,RestaurantTable
 from sqlalchemy import select, delete,update 
-from datetime import datetime, date, time
+from datetime import datetime, date, time , timedelta, timezone
 import os
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -216,17 +216,14 @@ class RestaurantResource(Resource):
         if not restaurant:
             return {"error": "Restaurant not found"}, 404
 
-    # Delete related orders associations from orders_association table
         db.session.execute(
             orders_association.delete().where(orders_association.c.meal_id.in_(
             db.session.query(Menu.id).filter(Menu.restaurant_id == restaurant_id)
         ))
     )
 
-    # Delete related menu items
         Menu.query.filter_by(restaurant_id=restaurant_id).delete()
 
-    # Now delete the restaurant
         db.session.delete(restaurant)
         db.session.commit()
 
@@ -248,12 +245,10 @@ api.add_resource(
 class MenuResource(Resource):
     def get(self, restaurant_id, meal_id=None):
         if meal_id:
-            # Get a specific meal from the menu
             meal = Menu.query.filter_by(id=meal_id, restaurant_id=restaurant_id).first()
             if not meal:
                 return {"error": "Meal not found"}, 404
 
-            # Return meal details
             return {
                 "id": meal.id,
                 "name": meal.name,
@@ -262,7 +257,6 @@ class MenuResource(Resource):
                 "image_url": meal.image_url
             }, 200
         else:
-            # Get all meals for a restaurant
             meals = Menu.query.filter_by(restaurant_id=restaurant_id).all()
             if not meals:
                 return {"error": "No meals found for this restaurant"}, 404
@@ -749,10 +743,8 @@ class ReservationResource(Resource):
 
             reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
 
-            # Convert date to iso format if it's a valid date or datetime object
             reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
 
-            # Convert time object to string format if it's a time object
             reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
 
             return {
@@ -795,10 +787,8 @@ class ReservationResource(Resource):
         for reservation in reservations:
             reservation_id, client_id, restaurant_table_id, reservation_date, reservation_time, timestamp = reservation
 
-            # Convert date to iso format if it's a valid date or datetime object
             reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
 
-            # Convert time object to string format if it's a time object
             reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
 
             reservations_list.append({
@@ -821,29 +811,23 @@ class ReservationResource(Resource):
         reservation_date = data.get("reservation_date")
         reservation_time = data.get("reservation_time")
 
-        # Ensure that all required fields are provided
         if not all([client_id, restaurant_table_id, reservation_date, reservation_time]):
             return {"error": "client_id, restaurant_table_id, reservation_date, and reservation_time are required"}, 400
 
-        # Validate that the client exists
         client = Client.query.get(client_id)
         if not client:
             return {"error": "Invalid client_id"}, 400
 
-        # Validate that the restaurant table exists
         restaurant_table = RestaurantTable.query.get(restaurant_table_id)
         if not restaurant_table:
             return {"error": "Invalid restaurant_table_id"}, 400
 
-        # Parse the reservation date and time
         try:
             reservation_datetime = datetime.strptime(f"{reservation_date} {reservation_time}", '%Y-%m-%d %H:%M:%S')
         except ValueError:
             return {"error": "Invalid date or time format. Please use 'YYYY-MM-DD' for date and 'HH:MM:SS' for time."}, 400
 
-        # Insert the new reservation into the database
         try:
-            # Ensure that the reservation ID is unique per table for each client
             result = db.session.execute(
                 reservation_association.insert().returning(reservation_association.c.id).values(
                     client_id=client_id,
@@ -856,7 +840,6 @@ class ReservationResource(Resource):
             reservation_id = result.fetchone()[0]  # Retrieve the inserted ID
             db.session.commit()
 
-            # Return the success response with the reservation ID
             return {"message": "Reservation created successfully", "id": reservation_id}, 201
         except SQLAlchemyError as e:
             db.session.rollback()
@@ -935,36 +918,53 @@ api.add_resource(ReservationResource, '/reservations', '/reservations/<int:reser
 
 
 
-
 class RestaurantTableResource(Resource):
-    # GET - Retrieve all restaurant tables
     def get(self):
-        tables = RestaurantTable.query.all()
+        tables = RestaurantTable.query.all()  # Fetch all tables
 
         if not tables:
             return {"error": "No tables found"}, 404
 
+        current_time = datetime.now(timezone.utc)  # Get current UTC time
+        three_hours_ago = current_time - timedelta(hours=3)
+
         tables_list = []
         for table in tables:
+            latest_reservation = db.session.query(reservation_association).filter(
+                reservation_association.c.restaurant_table_id == table.id,
+                reservation_association.c.status == "Confirmed",  # Only check confirmed reservations
+                (reservation_association.c.date + reservation_association.c.time) >= three_hours_ago
+            ).order_by(reservation_association.c.date.desc(), reservation_association.c.time.desc()).first()
+
+            latest_order = db.session.query(orders_association).filter(
+                orders_association.c.restaurant_table_id == table.id,
+                orders_association.c.status == "Confirmed",  # Only check confirmed orders
+                orders_association.c.timestamp >= three_hours_ago
+            ).first()
+
+            table_status = "Available"
+
+            if latest_reservation or latest_order:
+                table_status = "Not Available"
+
             tables_list.append({
-                "restaurant_table_id": table.id,  # The ID is now auto-generated
+                "restaurant_table_id": table.id,
                 "table_number": table.table_number,
                 "capacity": table.capacity,
-                "admin": table.admin
+                "admin": table.admin,
+                "status": table_status  # Dynamically updated status
             })
 
         return {"tables": tables_list}, 200
 
-    # POST - Create a new restaurant table
+
     def post(self):
         data = request.get_json()
 
-        # Validate required fields (exclude restaurant_table_id)
         if not data or not data.get('table_number') or not data.get('capacity') or not data.get('admin'):
             return {"error": "Missing required fields"}, 400
 
         try:
-            # Create new table, id is auto-generated by the database
             new_table = RestaurantTable(
                 table_number=data['table_number'],
                 capacity=data['capacity'],
@@ -978,7 +978,6 @@ class RestaurantTableResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-    # PATCH - Update a restaurant table's details
     def patch(self, table_id):
         data = request.get_json()
 
@@ -1000,7 +999,6 @@ class RestaurantTableResource(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-    # DELETE - Remove a restaurant table
     def delete(self, table_id):
         table = RestaurantTable.query.get(table_id)
         if not table:
@@ -1025,7 +1023,6 @@ api.add_resource(RestaurantTableResource,
 class ClientReservation(Resource):
     def get(self, client_id=None, reservation_id=None):
         if reservation_id:
-            # Get a specific reservation by reservation_id and ensure only one table_number is selected
             reservation = db.session.execute(
                 select(
                     reservation_association.c.id,
@@ -1042,10 +1039,8 @@ class ClientReservation(Resource):
             if not reservation:
                 return {"message": "Reservation not found"}, 404
 
-            # Extract reservation details
             (reservation_id, reservation_date, reservation_time, timestamp, status, table_number) = reservation
 
-            # Format date and time
             reservation_date_str = reservation_date.isoformat() if isinstance(reservation_date, (date, datetime)) else str(reservation_date)
             reservation_time_str = reservation_time.strftime('%H:%M:%S') if isinstance(reservation_time, time) else str(reservation_time)
             timestamp_str = timestamp.isoformat() if isinstance(timestamp, (datetime, date)) else str(timestamp)
@@ -1060,7 +1055,6 @@ class ClientReservation(Resource):
             }, 200
 
         elif client_id:
-            # Get all reservations for a client, ensuring only one table_number per reservation
             reservations = db.session.execute(
                 select(
                     reservation_association.c.id,
@@ -1075,7 +1069,6 @@ class ClientReservation(Resource):
             ).fetchall()
 
         else:
-            # Get all reservations, ensuring only one table_number per reservation
             reservations = db.session.execute(
                 select(
                     reservation_association.c.id,
@@ -1101,7 +1094,7 @@ class ClientReservation(Resource):
 
             reservations_list.append({
                 "reservation_id": reservation_id,
-                "table_number": table_number,  # Return only the selected table_number for the reservation
+                "table_number": table_number,  
                 "date": reservation_date_str,
                 "time": reservation_time_str,
                 "timestamp": timestamp_str,
@@ -1114,10 +1107,8 @@ class ClientReservation(Resource):
     def patch(self, client_id, reservation_id):
         try:
             data = request.get_json()
-            # Use "Reserved" as the default if status isn't provided in the request body
             new_status = data.get("status", "Reserved")
 
-            # Update the reservation's status for the given reservation and client
             query = update(reservation_association).where(
                 reservation_association.c.id == reservation_id,
                 reservation_association.c.client_id == client_id
@@ -1132,7 +1123,6 @@ class ClientReservation(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
 
-# Add the resource endpoints
 api.add_resource(
     ClientReservation, 
     "/reservations/client/<int:client_id>", 
@@ -1143,7 +1133,6 @@ api.add_resource(
 class RestaurantReservation(Resource):
     def get(self, restaurant_id=None, reservation_id=None):
         if reservation_id:
-            # Fetch a single reservation by ID, including the status and client name
             reservation = db.session.execute(
                 select(
                     reservation_association.c.id,
@@ -1174,7 +1163,6 @@ class RestaurantReservation(Resource):
             }, 200
 
         elif restaurant_id:
-            # Fetch all reservations for the given restaurant by joining orders_association and client to get client name
             reservations = db.session.execute(
                 select(
                     reservation_association.c.id,
@@ -1210,7 +1198,6 @@ class RestaurantReservation(Resource):
             return {"reservations": reservations_list}, 200
 
         else:
-            # Fetch all reservations if no restaurant_id is provided, including client name and status
             reservations = db.session.execute(
                 select(
                     reservation_association.c.id,
@@ -1248,7 +1235,6 @@ class RestaurantReservation(Resource):
             data = request.get_json()
             new_status = data.get("status", "Reserved")  # Default to "Reserved" if no status is provided
 
-            # Ensure that the reservation belongs to the given restaurant by checking orders_association
             existing_reservation = db.session.execute(
                 select(reservation_association.c.id)
                 .join(orders_association, orders_association.c.reservation_id == reservation_association.c.id)
@@ -1261,7 +1247,6 @@ class RestaurantReservation(Resource):
             if not existing_reservation:
                 return {"message": "No matching reservation found"}, 404
 
-            # Update the reservation status
             query = update(reservation_association).where(reservation_association.c.id == reservation_id).values(status=new_status)
             db.session.execute(query)
             db.session.commit()
