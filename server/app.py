@@ -981,7 +981,7 @@ class RestaurantTableResource(Resource):
 
         try:
             db.session.commit()  # Commit changes to the database
-            return {"message": "Restaurant table updated"}, 200  # Return success message
+            return {"message": "Restaurant table updated successfully"}, 200  # Return success message
         except Exception as e:
             db.session.rollback()  # Rollback changes in case of an error
             return {"error": str(e)}, 500  # Return error message if update fails
@@ -998,6 +998,7 @@ class RestaurantTableResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
 
 
 
