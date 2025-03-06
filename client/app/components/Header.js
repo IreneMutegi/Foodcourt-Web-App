@@ -1,13 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FiMenu, FiX, FiUser, FiHome, FiShoppingCart, FiShoppingBag, FiInfo} from "react-icons/fi";
+import { FiMenu, FiX, FiUser, FiHome, FiShoppingCart, FiShoppingBag, FiInfo, FiCalendar, FiTable } from "react-icons/fi";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import OrdersPopup from "./ordersPopup";
-import { FiCalendar } from "react-icons/fi";
 import ReservationsPopup from "./reservationsPopup";
-// import { FiCalendar } from "react-icons/fi";
+import TablesPopup from "./tablesPopup"; // Import TablesPopup component
 import "./Header.css";
 
 const Header = ({ setIsModalOpen }) => {
@@ -20,6 +19,7 @@ const Header = ({ setIsModalOpen }) => {
   const [showWelcome, setShowWelcome] = useState(true);
   const [showOrdersPopup, setShowOrdersPopup] = useState(false);
   const [showReservationsPopup, setShowReservationsPopup] = useState(false);
+  const [showTablesPopup, setShowTablesPopup] = useState(false); // New state for TablesPopup
 
   useEffect(() => {
     if (session) {
@@ -40,9 +40,6 @@ const Header = ({ setIsModalOpen }) => {
     setIsOpen(false);
   };
 
-  // <Link href={`/orders/${session?.user?.id}`}>My Orders</Link>
-
-
   return (
     <header className="header">
       <div className="logo">Next Gen</div>
@@ -54,7 +51,20 @@ const Header = ({ setIsModalOpen }) => {
       <nav className={`nav ${isOpen ? "open" : ""}`}>
         <ul className="navList">
           {isAdminPage ? (
-            <li><button onClick={logout} className="nav-item logout-btn">Logout</button></li>
+            <>
+              <li>
+                <button 
+                  onClick={() => setShowTablesPopup(true)} 
+                  className="nav-item tables-btn"
+                >
+                  <FiTable size={26} />
+                  <span>Tables</span>
+                </button>
+              </li>
+              <li>
+                <button onClick={logout} className="nav-item logout-btn">Logout</button>
+              </li>
+            </>
           ) : isRestaurantPage ? (
             <>
               <li>
@@ -68,7 +78,7 @@ const Header = ({ setIsModalOpen }) => {
                   onClick={() => setShowOrdersPopup(true)}
                   className="nav-item orders-btn"
                 >
-                  { <FiShoppingCart size={26} /> }
+                  <FiShoppingCart size={26} />
                   <span>Orders</span>
                 </button>
               </li>
@@ -81,7 +91,9 @@ const Header = ({ setIsModalOpen }) => {
                   <span>Reservations</span>
                 </button>
               </li>
-              <li><button onClick={logout} className="nav-item logout-btn">Logout</button></li>
+              <li>
+                <button onClick={logout} className="nav-item logout-btn">Logout</button>
+              </li>
             </>
           ) : (
             <>
@@ -132,6 +144,7 @@ const Header = ({ setIsModalOpen }) => {
 
       {showOrdersPopup && <OrdersPopup onClose={() => setShowOrdersPopup(false)} />}
       {showReservationsPopup && <ReservationsPopup onClose={() => setShowReservationsPopup(false)} />}
+      {showTablesPopup && <TablesPopup onClose={() => setShowTablesPopup(false)} />} {/* New Tables Popup */}
     </header>
   );
 };
