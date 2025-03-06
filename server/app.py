@@ -919,11 +919,6 @@ api.add_resource(ReservationResource, '/reservations', '/reservations/<int:reser
 
 
 
-
-from flask import request
-from flask_restful import Resource
-from models import db, RestaurantTable
-
 class RestaurantTableResource(Resource):
     
     def get(self):
