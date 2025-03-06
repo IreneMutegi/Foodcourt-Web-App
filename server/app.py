@@ -921,6 +921,7 @@ api.add_resource(ReservationResource, '/reservations', '/reservations/<int:reser
 
 
 class RestaurantTableResource(Resource):
+    
     def get(self):
         tables = RestaurantTable.query.all()  # Fetch all tables
 
@@ -976,8 +977,7 @@ class RestaurantTableResource(Resource):
         if "admin" in data:
             table.admin = data["admin"]
         if "status" in data:  # Check if status is provided and update it
-            if table.status != data["status"]:  # Only update if the status is different
-                table.status = data["status"]
+            table.status = data["status"]  # Directly update the status
 
         try:
             db.session.commit()  # Commit changes to the database
@@ -985,7 +985,6 @@ class RestaurantTableResource(Resource):
         except Exception as e:
             db.session.rollback()  # Rollback changes in case of an error
             return {"error": str(e)}, 500  # Return error message if update fails
-
 
     def delete(self, table_id):
         table = RestaurantTable.query.get(table_id)
@@ -999,6 +998,7 @@ class RestaurantTableResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
 
 
 api.add_resource(RestaurantTableResource, 
