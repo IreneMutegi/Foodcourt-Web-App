@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FaStar, FaTrash } from "react-icons/fa";
+import { FaStar } from "react-icons/fa";
 import { MdOutlineShoppingBag } from "react-icons/md";
 import "./orders.css";
 import { useSession } from "next-auth/react";
@@ -76,7 +76,7 @@ export default function OrdersHistory() {
       />
       <div className="ordersList">
         {filteredOrders.length > 0 ? (
-          filteredOrders.map((order, index) => (
+          filteredOrders.map((order) => (
             <div key={order.order_id} className="orderCard"> 
               <img
                 src={order.image_url}

@@ -3,12 +3,12 @@ import "./Menu.css";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 
-export default function Menu({ restaurant, onClose, meals, addToCart }) {
+export default function Menu({ restaurant, onClose, meals }) {
   const [addedItems, setAddedItems] = useState([]);
   const { cart, setCart } = useCart();
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   console.log(meals);
   const handleCartToggle = (item) => {

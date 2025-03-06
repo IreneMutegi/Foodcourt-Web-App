@@ -9,7 +9,7 @@ const API_BASE_URL = "https://foodcourt-web-app-4.onrender.com";
 const OrdersPopup = ({ onClose }) => {
   const { data: session, status } = useSession();
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [setLoading] = useState(true);
   const statusOptions = ["Pending", "Confirmed", "Completed", "Cancelled"];
 
   useEffect(() => {

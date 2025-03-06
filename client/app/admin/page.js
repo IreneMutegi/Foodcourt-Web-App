@@ -228,7 +228,7 @@ const AdminDashboard = () => {
               />
 
               {restaurantData.image_url && (
-                <img src={restaurantData.image_url} alt="Preview" className="image-preview" />
+                <img src={restaurantData.image_url} alt="Preview" className="image-preview" /> 
               )}
 
               {/* Hidden Admin ID Field */}
