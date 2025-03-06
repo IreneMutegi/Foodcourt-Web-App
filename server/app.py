@@ -965,6 +965,9 @@ class RestaurantTableResource(Resource):
     def patch(self, table_id):
         data = request.get_json()  # Get the data from the request
 
+        # Debugging: Check incoming request data
+        print("Received data:", data)
+
         table = RestaurantTable.query.get(table_id)  # Find the table by its ID
         if not table:
             return {"error": "Table not found"}, 404  # If table doesn't exist, return error
@@ -976,7 +979,8 @@ class RestaurantTableResource(Resource):
             table.capacity = data["capacity"]
         if "admin" in data:
             table.admin = data["admin"]
-        if "status" in data:  # Check if status is provided and update it
+        if "status" in data:
+            print(f"Updating status to: {data['status']}")  # Debugging line
             table.status = data["status"]  # Directly update the status
 
         try:
@@ -998,6 +1002,7 @@ class RestaurantTableResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
 
 
 
