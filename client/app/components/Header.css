@@ -239,31 +239,46 @@
   align-items: center;
 }
 
-.orders-btn {
-  background: #4db6ac;
+.orders-btn, .reservations-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   color: white;
-  padding: 2.5px 5px;
-  border-radius: 5px;
-  text-decoration: none;
-  font-weight: bold;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
   cursor: pointer;
-}
-.orders-btn:hover {
-  background: #1d7a71;
+  text-decoration: none;
 }
 
-.reservations-btn {
-  background: #4db6ac;
-  color: white;
-  padding: 2.5px 5px;
-  border-radius: 5px;
-  text-decoration: none;
-  font-weight: bold;
-  cursor: pointer;
+.orders-btn span, .reservations-btn span {
+  margin-top: 4px;
+  font-size: 12px;
 }
 
-.reservations-btn:hover {
-  background: #1d7a71;
+.orders-btn:hover, .reservations-btn:hover {
+  color: #4DB6AC; /* Change color on hover to match client-side links */
+}
+
+.tables-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.tables-btn span {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.tables-btn:hover {
+  color: #4DB6AC; /* Change color on hover */
 }
 
 @media screen and (max-width: 1280px) {
