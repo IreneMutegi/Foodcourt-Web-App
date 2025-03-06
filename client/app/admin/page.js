@@ -167,7 +167,6 @@ const AdminDashboard = () => {
                   </button>
                   <button className="delete-btn" onClick={() => handleDelete(index)}>
                     <FiTrash2 />
-                    <span>Delete</span>
                   </button>
                 </td>
               </tr>

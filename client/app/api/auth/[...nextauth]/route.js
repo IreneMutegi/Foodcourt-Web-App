@@ -37,7 +37,7 @@ export const authOptions = {
           }
 
           return { id: user.id, email: user.email, role: user.role, name: user.name };
-        } catch (error) {
+        } catch {
           throw new Error("Invalid email or password");
         }
       },  // ✅ This closing bracket was missing
