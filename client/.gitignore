@@ -15,6 +15,17 @@
 !app/reservation/page.js
 !app/reservation/reservation.css
 
+# allow admin folder
+!app/admin/
+!app/admin/page.js
+!app/admin/AdminDashboard.css
+
+# allow restaurant folder
+!app/restaurant/
+!app/restaurant/page.js
+!app/restaurant/Dashboard.css
+
+
 # Allow public files
 !public/
 !public/images
