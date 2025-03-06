@@ -354,9 +354,11 @@ export default function Cart() {
                   ))}
                 </select>
                 <div className="modal-buttons">
+
                   <button onClick={handleOrder}>
                     {isOrdering ? "Ordering..." : "Make Order"}
                   </button>
+
                   <button
                     onClick={() => {
                       setShowPrompt(false);
@@ -418,7 +420,9 @@ export default function Cart() {
                     }
                     disabled={!selectedTable || !selectedDate || !selectedTime}
                   >
+
                     {isReserving ? "Reserving.." : "Make Reservation"}
+
                   </button>
                   <button
                     onClick={() => {
