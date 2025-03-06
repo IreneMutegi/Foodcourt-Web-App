@@ -13,6 +13,7 @@
 @media (max-width: 768px) {
   .dashboard {
     padding: 10px; /* Reduce padding for smaller screens */
+    padding-top: 100px;
   }
 
   .table-container {
