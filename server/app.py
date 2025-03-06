@@ -927,36 +927,19 @@ class RestaurantTableResource(Resource):
         if not tables:
             return {"error": "No tables found"}, 404
 
-        current_time = datetime.now(timezone.utc)  # Get current UTC time
-        three_hours_later = current_time + timedelta(hours=3)  # Time window for next 3 hours
-
         tables_list = []
         for table in tables:
-            # Check if there are any confirmed reservations for the table within the next 3 hours
-            latest_reservation = db.session.query(reservation_association).filter(
-                reservation_association.c.restaurant_table_id == table.id,
-                reservation_association.c.status == "Confirmed",  # Only check confirmed reservations
-                reservation_association.c.date == current_time.date(),  # Reservation should be on today's date
-                reservation_association.c.time >= current_time.time(),  # Reservation time should be in the future
-                reservation_association.c.time <= three_hours_later.time()  # Reservation time should be within the next 3 hours
-            ).first()
-
             table_status = "Available"  # Default status is "Available"
-
-            if latest_reservation:
-                table_status = "Not Available"  # Mark as "Not Available" if there's a reservation in the next 3 hours
 
             tables_list.append({
                 "restaurant_table_id": table.id,
                 "table_number": table.table_number,
                 "capacity": table.capacity,
                 "admin": table.admin,
-                "status": table_status  # Dynamically updated status
+                "status": table_status  # Status remains "Available" without any checks
             })
 
         return {"tables": tables_list}, 200
-
-
 
     def post(self):
         data = request.get_json()
@@ -979,25 +962,28 @@ class RestaurantTableResource(Resource):
             return {"error": str(e)}, 500
 
     def patch(self, table_id):
-        data = request.get_json()
+        data = request.get_json()  # Get the data from the request
 
-        table = RestaurantTable.query.get(table_id)
+        table = RestaurantTable.query.get(table_id)  # Find the table by its ID
         if not table:
-            return {"error": "Table not found"}, 404
+            return {"error": "Table not found"}, 404  # If table doesn't exist, return error
 
+        # Update table properties based on the provided data
         if "table_number" in data:
             table.table_number = data["table_number"]
         if "capacity" in data:
             table.capacity = data["capacity"]
         if "admin" in data:
             table.admin = data["admin"]
+        if "status" in data:  # Check if status is provided and update it
+            table.status = data["status"]
 
         try:
-            db.session.commit()
-            return {"message": "Restaurant table updated"}, 200
+            db.session.commit()  # Commit changes to the database
+            return {"message": "Restaurant table updated"}, 200  # Return success message
         except Exception as e:
-            db.session.rollback()
-            return {"error": str(e)}, 500
+            db.session.rollback()  # Rollback changes in case of an error
+            return {"error": str(e)}, 500  # Return error message if update fails
 
     def delete(self, table_id):
         table = RestaurantTable.query.get(table_id)
@@ -1011,6 +997,7 @@ class RestaurantTableResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
 
 api.add_resource(RestaurantTableResource, 
                  '/restaurant_tables', 
