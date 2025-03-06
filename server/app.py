@@ -920,6 +920,10 @@ api.add_resource(ReservationResource, '/reservations', '/reservations/<int:reser
 
 
 
+from flask import request
+from flask_restful import Resource
+from models import db, RestaurantTable
+
 class RestaurantTableResource(Resource):
     
     def get(self):
@@ -930,14 +934,15 @@ class RestaurantTableResource(Resource):
 
         tables_list = []
         for table in tables:
-            table_status = "Available"  # Default status is "Available"
+            # Ensure you're getting the latest data from the session
+            db.session.refresh(table)  # Force a reload of the table data from the database
 
             tables_list.append({
                 "restaurant_table_id": table.id,
                 "table_number": table.table_number,
                 "capacity": table.capacity,
                 "admin": table.admin,
-                "status": table_status  # Status remains "Available" without any checks
+                "status": table.status  # Reflect the latest status from the database
             })
 
         return {"tables": tables_list}, 200
@@ -1002,6 +1007,7 @@ class RestaurantTableResource(Resource):
         except Exception as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
 
 
 
