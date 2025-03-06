@@ -1,7 +1,7 @@
 /* General Dashboard Styling */
 .dashboard {
   padding: 20px;
-  padding-top: 70px;
+  padding-top: 15vh;
   height: auto; /* Ensures it grows with content */
   min-height: 100vh; /* Ensures it at least fills the screen */
   display: flex;
