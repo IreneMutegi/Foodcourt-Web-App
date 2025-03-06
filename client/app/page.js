@@ -1,9 +1,9 @@
 "use client";
 import Menu from "./components/Menu";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCart } from "./context/CartContext-temp";
 import "./page.css";
-
+import { useSession } from "next-auth/react";
 import sliderImages from "../public/images";
 
 export default function Home() {
@@ -15,12 +15,12 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { data: session } = useSession();
+  const targetSectionRef = useRef(null);
 
   const loadSvg = "/loading.svg";
   const imagesPerSlide = 3;
-
 
   const addToCart = (order) => {
     console.log("Adding order", order);
@@ -31,9 +31,7 @@ export default function Home() {
     (restaurant) =>
       restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (restaurant.category &&
-
         restaurant.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
-
       (restaurant.cuisine &&
         restaurant.cuisine.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -60,9 +58,7 @@ export default function Home() {
     const fetchMeals = async () => {
       try {
         const response = await fetch(
-
           `${baseUrl}/menu/restaurant/${selectedRestaurant.id}`
-
         );
         if (!response.ok) throw new Error("Failed to fetch meals");
         const data = await response.json();
@@ -75,7 +71,6 @@ export default function Home() {
     fetchMeals();
   }, [selectedRestaurant]);
 
-
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) =>
@@ -86,6 +81,21 @@ export default function Home() {
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // const handleReservationBtn = () => {
+  //   if (!session) {
+  //     alert("Please login to make a reservation");
+  //   }
+  //   if (cart === 0) {
+  //     alert(
+  //       "Your cart is empty, add items to cart so as to make a reservation"
+  //     );
+  //   }
+  // };
+
+  const handleOrderNowBtn = () => {
+    targetSectionRef.current?.scrollIntoView({ behaviour: "smooth" });
+  };
   return (
     <>
       <section>
@@ -94,7 +104,12 @@ export default function Home() {
             <div className="hero-left">
               <h2>Discover Amazing Restaurants</h2>
               <p>Find and order from restaurants within with ease </p>
-              <button>Book a reservation</button>
+              <div className="welcome-btns">
+                {/* <button onClick={() => handleReservationBtn()}>
+                  Book a reservation
+                </button> */}
+                <button onClick={() => handleOrderNowBtn()}>Order Now</button>
+              </div>
             </div>
             <div className="hero-right">
               <img src="/images/hero-image.png" alt="Hero Image" />
@@ -123,6 +138,7 @@ export default function Home() {
               type="text"
               placeholder="search (cuisine/name/category)"
               onChange={(e) => setSearchTerm(e.target.value)}
+              id="search-restaurant"
             />
           </form>
         </div>
@@ -131,7 +147,7 @@ export default function Home() {
             <img src={loadSvg} />
           </div>
         ) : (
-          <div className="restaurant-card-container">
+          <div className="restaurant-card-container" ref={targetSectionRef}>
             {filteredRestaurants.length > 0 ? (
               filteredRestaurants.map((restaurant, index) => (
                 <div
@@ -147,7 +163,6 @@ export default function Home() {
                     <h2>{restaurant.name}</h2>
                     <p>{restaurant.cuisine}</p>
                   </div>
-
                 </div>
               ))
             ) : (

@@ -19,6 +19,8 @@ export default function Cart() {
     new Date().toISOString().split("T")[0]
   );
   const [selectedTime, setSelectedTime] = useState("");
+  const [isOrdering, setIsOrdering] = useState(false)
+  const [isReserving, setIsReserving] = useState(false)
 
   const { data: session, status } = useSession();
 
@@ -92,6 +94,7 @@ export default function Cart() {
       return;
     }
 
+    setIsOrdering(true)
     const table = tables.find((t) => t.table_number === tableNumber);
     if (!table) {
       console.error("Invalid table selected, check tables list", tables);
@@ -162,6 +165,8 @@ export default function Cart() {
       console.log("All orders placed successfully");
     } catch (error) {
       console.error("Error processing orders", error);
+    }finally{
+      setIsOrdering(false)
     }
   };
 
@@ -173,6 +178,7 @@ export default function Cart() {
 
     const tableId = table.restaurant_table_id;
     const formattedTime = `${time}:00`;
+    setIsReserving(true)
     try {
       console.log({
         client_id: Number(session.user.id),
@@ -202,6 +208,8 @@ export default function Cart() {
       await placeOrders(reservationId);
     } catch (error) {
       console.error("Error processing reservation", error);
+    }finally{
+      setIsReserving(false)
     }
   };
 
@@ -345,7 +353,7 @@ export default function Cart() {
                   ))}
                 </select>
                 <div className="modal-buttons">
-                  <button onClick={handleOrder}>Make Order</button>
+                  <button onClick={handleOrder}>{isOrdering ? "Loading..." : "Make Order"}</button>
                   <button
                     onClick={() => {
                       setShowPrompt(false);
@@ -407,7 +415,7 @@ export default function Cart() {
                     }
                     disabled={!selectedTable || !selectedDate || !selectedTime}
                   >
-                    Make Reservation
+                    {isReserving ? "Loading.." : "Make Reservation"}
                   </button>
                   <button
                     onClick={() => {
