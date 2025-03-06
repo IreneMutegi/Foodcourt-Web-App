@@ -104,6 +104,17 @@
   .statusText.confirmed {
     color: orange;
   }
+
+  .orderMessage {
+    font-size: 14px; 
+    font-weight: bold;
+    margin-top: 5px;
+  }
+
+  .orderMessage.confirmed {
+    color: #4DB6AC;
+  }
+  
   
   .statusText.completed {
     color: green;
@@ -144,6 +155,7 @@
       align-self: flex-start;
     }
   }
+  
 
   @media (max-width: 1024px) {
     .orderCard {
