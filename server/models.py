@@ -104,6 +104,7 @@ class RestaurantTable(db.Model):
     table_number = Column(String(50), nullable=False)
     capacity = Column(Integer, nullable=False)
     admin = Column(String(100), nullable=False)
+    status = Column(String(20), default="Available", nullable=False)
 
     clients = relationship('Client', secondary=reservation_association, back_populates="reservations")
 
