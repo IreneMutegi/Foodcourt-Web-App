@@ -62,8 +62,8 @@
 
 .item-price {
   position: absolute;
-  bottom: 20;
-  right: 0;
+  bottom: 20px;
+  right: 0px;
   color: #4db6ac;
   font-weight: bold;
   font-size: 18px;
