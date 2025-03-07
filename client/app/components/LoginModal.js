@@ -215,8 +215,10 @@ const handleClose = () => {
   
               {error && <p className="error-text">{error}</p>}
   
-              <button type="submit" className="submit-btn" disabled={loading}>{loading ? "Loading..." : hasAccount ? "Sign In" : "Sign Up"}
+              <button type="submit" className="submit-btn" disabled={loading}>
+               {loading ? (hasAccount ? "Signing in..." : "Signing up...") : hasAccount ? "Sign In" : "Sign Up"}
               </button>
+
             </form>
   
             {/* Toggle Sign In/Sign Up - Only for Clients */}
