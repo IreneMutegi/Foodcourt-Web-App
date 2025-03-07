@@ -290,7 +290,7 @@ export default function Cart() {
                 </button>
               </div>
               <button
-                className="delete-btn"
+                className="cart-delete-btn"
                 onClick={() => removeCartItem(index)}
               >
                 <FaTrash />
