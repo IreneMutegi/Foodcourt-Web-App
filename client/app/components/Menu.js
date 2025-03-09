@@ -8,7 +8,7 @@ export default function Menu({ restaurant, onClose, meals, addToCart }) {
   const { cart, setCart } = useCart();
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   console.log(meals);
   const handleCartToggle = (item) => {

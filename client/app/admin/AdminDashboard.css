@@ -195,6 +195,11 @@
   .delete-btn {
     width: auto;
   }
+  @media (max-width: 575.98px) {
+    .restaurant-form-container {
+      min-width: 100%;
+    }
+  }
 }
 
 /* Form Modal Styling */

@@ -2,16 +2,15 @@
 .dashboard {
   padding: 20px;
   padding-top: 70px;
-  height: 100vh;
   width: 100%; /* Ensure it takes full width */
   max-width: 100%; /* Prevents it from being smaller than the screen */
   margin: 0 auto; /* Centers the content if necessary */
   box-sizing: border-box; /* Ensures padding doesn’t add extra width */
-  height: 100vh;
+  height: 100%;
 }
 
 .dish-table tr {
-  height: 80px; 
+  height: 80px;
 }
 
 @media (max-width: 768px) {
@@ -54,7 +53,7 @@
 .dish-table th:last-child,
 .dish-table td:last-child {
   text-align: center;
-  width: 160px; 
+  width: 160px;
   height: 100%; /* Matches row height */
   vertical-align: middle;
 }
@@ -129,7 +128,6 @@
   height: 100%;
   margin-top: 24px;
 }
-
 
 /* Edit & Delete Buttons */
 .edit-btn,
@@ -219,6 +217,18 @@
     .edit-btn,
     .delete-btn {
       width: auto; /* Allow buttons to fit within the mobile card design */
+    }
+  }
+
+  @media (max-width: 575.98px) {
+    .dashboard {
+      height: 100%;
+    }
+    .dish-form-container {
+      min-width: 100%;
+    }
+    .dish-table tr {
+      height: auto;
     }
   }
 }

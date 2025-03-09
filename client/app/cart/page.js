@@ -11,7 +11,6 @@ export default function Cart() {
   const { cart, setCart } = useCart();
   const [tableNumber, setTableNumber] = useState("");
   const [showPrompt, setShowPrompt] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
   const [tables, setTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState("");
@@ -22,7 +21,7 @@ export default function Cart() {
   const [isOrdering, setIsOrdering] = useState(false);
   const [isReserving, setIsReserving] = useState(false);
 
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchTables = async () => {
