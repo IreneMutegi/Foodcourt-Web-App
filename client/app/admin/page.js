@@ -167,7 +167,6 @@ const AdminDashboard = () => {
                   </button>
                   <button className="delete-btn" onClick={() => handleDelete(index)}>
                     <FiTrash2 />
-                    <span>Delete</span>
                   </button>
                 </td>
               </tr>
@@ -228,7 +227,7 @@ const AdminDashboard = () => {
               />
 
               {restaurantData.image_url && (
-                <img src={restaurantData.image_url} alt="Preview" className="image-preview" />
+                <img src={restaurantData.image_url} alt="Preview" className="image-preview" /> 
               )}
 
               {/* Hidden Admin ID Field */}

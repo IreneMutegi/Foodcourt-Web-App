@@ -3,20 +3,20 @@ import Menu from "./components/Menu";
 import { useState, useEffect, useRef } from "react";
 import { useCart } from "./context/CartContext-temp";
 import "./page.css";
-import { useSession } from "next-auth/react";
+
 import sliderImages from "../public/images";
 
 export default function Home() {
   const baseUrl = "https://foodcourt-web-app-4.onrender.com";
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
-  const { cart, setCart } = useCart();
+  const { setCart } = useCart();
   const [restaurants, setRestaurants] = useState([]);
   const [restaurantMeals, setRestaurantMeals] = useState([]);
-  const [error, setError] = useState(null);
+  const [setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { data: session } = useSession();
+ 
   const targetSectionRef = useRef(null);
 
   const loadSvg = "/loading.svg";

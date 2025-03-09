@@ -8,7 +8,7 @@ export default function Reservations() {
   const { data: session } = useSession();
   const [reservation, setReservation] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
-  const [selectedReservation, setSelectedReservation] = useState(null);
+  
 
   const clientId = session?.user?.id;
 
